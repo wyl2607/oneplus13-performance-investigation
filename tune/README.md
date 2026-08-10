@@ -24,14 +24,37 @@ On the reference unit, with a pure-ALU busy loop (a worse case than Geekbench):
 | | Stock | With tune |
 |---|---|---|
 | Single-thread junction | 51 °C | 73 °C |
-| All-core junction plateau | not measured | 89 °C |
-| Shell temperature | 31 °C | 34–35 °C |
-| Android `Thermal Status` | 0 | 0 |
+| Shell during single-thread | 31 °C | 33 °C |
 
-So daily junction temperatures go **up by roughly 20 °C** under sustained CPU load. The
-shell barely moves, so you will not feel it, but the silicon runs hotter. Over years that is
-a real electromigration and battery-ageing consideration, and it is the honest reason to
-think twice rather than a disclaimer.
+For **short bursts** — benchmarks, app launches, anything under a couple of minutes —
+junction runs about 20 °C hotter. The shell barely moves, so you will not feel it, but the
+silicon runs hotter. Over years that is a real electromigration and battery-ageing
+consideration, and it is the honest reason to think twice rather than a disclaimer.
+
+### For sustained load the picture is different, and worse
+
+A 15-minute all-core run (`docs/DATA.md` section 17) shows the advantage evaporating:
+
+```
+sec   p6cur   junction  shell  Thermal Status
+  0    3283      49       35        0
+120    2438      90       37        0
+240    1689      78       40        1
+420    1689      70       43        2
+900    1689      69       43        2
+```
+
+The prime cluster settles at **1 689 600 — below CFB's stock 2 438 400 clamp** — and Android's
+thermal framework escalates to status 2, which also governs charging rate and display
+brightness. Steady-state junction is 69 °C, *lower* than the burst figure, because the loop
+trades clock for temperature.
+
+Whether this is worse than stock is **not established**: stock generates less heat from the
+first second and may never escalate the framework at all. That control has not been run. But
+do not expect this tune to help in long gaming sessions on the evidence available.
+
+Throttling also does not release promptly — the device was still clamped 2.5 minutes after
+the load ended, with the junction back down to 42 °C.
 
 ## Failure mode
 

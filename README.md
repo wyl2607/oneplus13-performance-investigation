@@ -122,16 +122,22 @@ With CFB off and no ceiling, `scaling_max_freq` self-modulates between 3 283 200
 4 320 000 — the Qualcomm LMH/DCVS loop remains active and holds the core below the trip
 point. Disabling CFB does **not** leave the SoC unprotected.
 
-### All-core (8 threads)
+### All-core (8 threads), 40 s
 
-| Ceilings (p0 / p6) | Landing freq | Steady junction | Shell | Result |
+| Ceilings (p0 / p6) | Landing freq | Junction at 40 s | Shell | Result |
 |---|---|---|---|---|
-| 2 918 400 / 3 283 200 | p6 → 2 841 600 | 89 °C plateau | 34 °C | 40 s, no abort, `Thermal Status: 0` |
-| 2 745 600 / 3 072 000 | p6 → 2 841 600 | 89 °C plateau | 35 °C | 40 s, no abort, `Thermal Status: 0` |
+| 2 918 400 / 3 283 200 | p6 → 2 841 600 | 89 °C | 34 °C | no abort, `Thermal Status: 0` |
+| 2 745 600 / 3 072 000 | p6 → 2 841 600 | 89 °C | 35 °C | no abort, `Thermal Status: 0` |
 
-**Both configurations converge to the identical plateau.** Under all-core load the steady
-state is set by the thermal/power loop, not by the ceiling — so lowering the ceiling below
-3 283 200 buys no thermal headroom and only costs single-thread performance.
+**Both configurations converge to the same point at 40 s.** Under all-core load the landing
+frequency is set by the thermal/power loop, not by the ceiling — so lowering the ceiling
+below 3 283 200 buys nothing thermally and only costs single-thread performance.
+
+> **These 40 s figures are transients, not steady state.** A 15-minute run
+> ([DATA.md section 17](docs/DATA.md)) shows the prime cluster continuing down to
+> **1 689 600** — below CFB's own 2 438 400 clamp — with Android's thermal framework
+> escalating to status 2 and the junction settling *lower*, at 69 °C. Anything in this
+> repository derived from a 40 s window describes burst behaviour only.
 
 ---
 

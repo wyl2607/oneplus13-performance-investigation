@@ -1,6 +1,7 @@
-# Methodology, and two traps that produced wrong answers
+# Methodology, and three traps that produced wrong answers
 
-Documenting the false starts because both are easy to hit and both looked convincing.
+Documenting the false starts because each is easy to hit and each looked convincing at the
+time. Two of them produced conclusions that had to be withdrawn after they were written down.
 
 ---
 
