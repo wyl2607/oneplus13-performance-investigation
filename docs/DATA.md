@@ -333,3 +333,64 @@ calibration machine and rewrote its workloads in July 2026; its results are not 
 with Geekbench 6. The commonly cited OnePlus 13 figures near 2 900–3 000 single-core are
 Geekbench 6 and must not be used to compute a deficit against these numbers. An earlier
 revision of this repository did exactly that and inferred a non-existent second bottleneck.
+
+---
+
+## 13. GPU passive A/B — same workload, cooler removed
+
+Same Geekbench 7 OpenCL workload, same CPU tune (`cfb=0`, ceilings 2918400 / 3283200), same
+screen-on foreground state. Only difference: the 40 W Peltier back-clip removed and the
+device allowed to re-equilibrate to ambient first. Full log in `data/gpu-opencl-passive.log`.
+
+### Idle starting point (screen on, Geekbench foreground)
+
+| | Cooled | Passive | Delta |
+|---|---|---|---|
+| GPU junction | 26 °C | 40 °C | +14 °C |
+| Shell | 23 °C | 35 °C | +12 °C |
+
+### Under load
+
+| | Cooled | Passive |
+|---|---|---|
+| Peak GPU junction | 93 °C | **104 °C** |
+| Peak shell | 26 °C | **39 °C** |
+| Throttle events | **0** | **1** |
+| Samples at 1100 MHz (busy ≥ 90) | 156 | 150 |
+| Samples at 1050 MHz | 0 | 2 |
+| **Score** | **15537** | **15432** (−0.68%) |
+
+The single throttle event:
+
+```
+ sec  gpuMHz busy% thermal_pwrlvl cdev throttling gpuTemp gpussMax cpu7j shell p6cur
+  231   1050    96   1    0   0     104     103    69    36   1017
+```
+
+### Findings
+
+**GPU throttling does exist, and the cooled-run conclusion was conditional as suspected.**
+`thermal_pwrlevel` reached 1 at 104 °C junction, one step below maximum.
+
+**But it barely engages.** Two samples out of ~156 busy samples, one power level down
+(1100 → 1050 MHz, −4.5%), about 1.3% of the busy window. The score difference of −0.68% is
+consistent with that and is within run-to-run noise. Predicted before the run at 15380–15540
+from the sample counts; measured 15432.
+
+**The throttle path is `kgsl`'s own `thermal_pwrlevel`, not the Linux thermal framework.**
+The `gpu` cooling device stayed at `cur_state=0` for the entire passive run even while
+`thermal_pwrlevel` was 1. Monitoring only cooling devices would have missed this entirely.
+
+### What the cooler is actually worth here
+
+For a workload of this length it buys headroom, not throughput:
+
+```
+cooled  : peak 93 C  -> 12 C of margin to the 105 C trip
+passive : peak 104 C ->  1 C of margin
+```
+
+The passive run was working right against the trip point and only survived because the
+workload ended after ~7 minutes. A sustained load — a game running for tens of minutes —
+would consume that 1 °C immediately, and throttling would stop being two samples and become
+the steady state. That regime is issue #3 and remains unmeasured.
