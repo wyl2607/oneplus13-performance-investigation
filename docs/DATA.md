@@ -394,3 +394,77 @@ The passive run was working right against the trip point and only survived becau
 workload ended after ~7 minutes. A sustained load — a game running for tens of minutes —
 would consume that 1 °C immediately, and throttling would stop being two samples and become
 the steady state. That regime is issue #3 and remains unmeasured.
+
+---
+
+## 14. Boot persistence and watchdog cost
+
+Verified across a real reboot, not inferred.
+
+```
+uptime=144s   boot_completed=1
+watchdog: PID 3473, PPID 1, "busybox sh /data/adb/service.d/oneplus13_cfb_tune.sh", alive
+log: 20:06:57 start cfb=1 p0=2400000 p6=2649600   <- caught CFB active at boot
+     20:06:57 re-disabled CFB (count=1)
+```
+
+`p0=2400000` in that first line is CFB's own clamp value, so the watchdog observed the
+limiter engaged at boot and corrected it. Magisk does execute `service.d` on this setup.
+
+### Watchdog CPU cost
+
+Measured from `/proc/PID/stat` (utime + stime) over 90 s of wall time:
+
+```
+t=0    utime=0  stime=1  jiffies
+t=90   utime=0  stime=2  jiffies
+consumed: 1 jiffy = 10 ms over 90 s = 0.011% of one core
+```
+
+A spinning loop would have consumed ~9000 jiffies. The 20 s poll is effectively free.
+
+### Known limitation: a wake window of up to one poll interval
+
+The system re-enables CFB on wake, and the watchdog corrects it on its next pass, so there is
+a window of up to `POLL` seconds after unlocking during which the stock clamp is active.
+Observed accidentally when a load test was started immediately after `KEYCODE_WAKEUP`:
+
+```
+sec  p6cur  p6max
+  0   1958   1958    <- CFB active, watchdog has not polled yet
+  1   1958   1958
+  2   1958   1958
+  3   3283   3283    <- watchdog corrects
+  4   2438   2438    <- and CFB clamps again before settling
+```
+
+Practical effect: launching a heavy app in the first ~20 s after unlocking runs at stock
+clamped performance. Shortening the poll reduces the window at the cost of more wakeups.
+
+---
+
+## 15. Power delivery A/B — 500 mA USB versus battery only
+
+Tested over wireless ADB so the cable could be removed mid-session. Same single-thread load,
+same tune, screen on and unlocked, comparable starting temperatures. Preconditions were
+asserted before each run rather than assumed — the first attempt was correctly refused
+because the screen had slept.
+
+| | Plugged, 500 mA SDP | Unplugged, battery |
+|---|---|---|
+| `p6cur` | 3 283 200 for all 20 samples | **3 283 200 for all 20 samples** |
+| Junction | 66 → 73 °C | 66 → 72 °C |
+| `current_now` | 216–252 | 94 → 471 → **763** |
+| Battery status | `Not charging` | `Discharging` |
+
+**No difference in frequency behaviour.** `bcl=1` is enabled but does not engage at this power
+level. The original hypothesis that the weak PC USB port was suppressing performance is ruled
+out, and no measurement taken during this investigation carries a systematic bias from it.
+
+Note `Not charging` while plugged: at 500 mA the supply is entirely consumed by the load, and
+`current_now` roughly triples once the cable is removed and the battery carries everything.
+
+### Scope
+
+Single-threaded CPU load only. A simultaneous CPU + GPU load — a game — draws far more, and
+whether BCL engages there is untested.
