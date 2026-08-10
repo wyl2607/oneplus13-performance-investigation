@@ -247,6 +247,85 @@ Single-core tracks clock ratio almost exactly. Multi-core falls slightly short o
 scaling, as expected for a workload with more memory and DSU dependence than the ALU loop
 used for thermal characterisation.
 
+---
+
+## 11. GPU under load — Geekbench 7 OpenCL, **with** the 40 W active cooler
+
+Adreno 830v2, `max_gpuclk` 1 100 000 000. 420 s of 1 Hz read-only sampling
+(`scripts/gpu-sample.sh`), full log in `data/gpu-opencl-with-40w-cooler.log`.
+Result: **15537 OpenCL**.
+
+Idle state before the run:
+
+```
+max_pwrlevel = 0        (0 is the top level — no cap)
+min_pwrlevel = 12
+thermal_pwrlevel = 0
+throttling = 0
+lm = 0   bcl = 1   popp = 0
+gpu cooling device = cooling_device37, max_state = 13
+freq table MHz: 1100 1050 967 900 832 734 660 607 525 443 389 342 222 160
+```
+
+### No throttling occurred at any point
+
+`thermal_pwrlevel`, the `gpu` cooling device `cur_state`, and `throttling` were **0 in every
+one of the 366 samples**, with no exceptions.
+
+Clock distribution across samples with `gpu_busy_percentage >= 90`:
+
+| Clock | Samples |
+|---|---|
+| **1100 MHz** | **156** |
+| 660 MHz | 1 |
+| 443 MHz | 1 |
+| 389 MHz | 1 |
+| 342 MHz | 3 |
+
+The six sub-maximum samples are the gaps between subtests. The GPU held its rated maximum
+for 96% of the busy window.
+
+It did so even at 93 °C junction:
+
+```
+ sec  gpuMHz busy% thermal_pwrlvl cdev throttling gpuTemp gpussMax cpu7j shell p6cur
+  227   1100    97   0    0   0      90      89    55    24   1017
+  231   1100    96   0    0   0      93      93    57    24   1017
+```
+
+Compare with the CPU, where `cpufreq_bouncing` cuts the prime cluster to 56% after 50 ms at
+50 °C. **The GPU has no equivalent of CFB.** The two domains are governed completely
+differently on this device.
+
+### Mixed-load observation
+
+During GPU-bound work the prime cluster sat at **1 017 600 MHz** (idle) for most samples,
+rising to the 3 283 200 ceiling only in the gaps between subtests, with `cpu7j` at 39–72 °C.
+The CPU tune adds no thermal burden in GPU-bound workloads — it only engages when the
+workload is CPU-bound.
+
+### Scope limit — this run was actively cooled
+
+Shell sensors read **23–26 °C** throughout, against 31–35 °C in every passive CPU test in
+this document. The OnePlus 40 W magnetic Peltier back-clip was attached.
+
+**The "never throttled" conclusion is therefore established only under active cooling.**
+The cooler pulled the shell down roughly 9 °C; in steady state that offset transfers to the
+junction, so a passive run would plausibly have reached 101–103 °C rather than 93 °C — right
+at the threshold where the cooling device would be expected to engage. A passive A/B using
+the same Geekbench 7 OpenCL workload is required before this can be called unconditional.
+
+### Score caveat
+
+15537 OpenCL is recorded for reference only. No Geekbench 7 GPU baseline for this device is
+available, and comparing it against Geekbench 6 or any other version would repeat the error
+corrected in section 10. The mechanistic finding does not depend on the score: the GPU ran at
+100% of its rated clock with zero throttling events.
+
+---
+
+## 12. Geekbench version caveat (applies to section 10)
+
 ### Version caveat
 
 These are Geekbench **7** numbers on both sides of the comparison. Geekbench 7 rebased its
