@@ -573,3 +573,57 @@ t+150s j7=42C shell=40C p6max=1689600 status=2
 
 Still clamped 2.5 minutes later with the junction down to 42 °C. The framework's release
 threshold has hysteresis, so a phone stays throttled for minutes after a heavy session ends.
+
+---
+
+## 18. Sustained all-core with the 40 W cooler — the framework escalates on skin, not junction
+
+Identical to section 17 — same tune, same 900 s, same 8-thread load, zones by name — with the
+OnePlus 40 W Peltier back-clip attached. Log in `data/sustained-allcore-tuned-cooled.log`.
+
+```
+sec    passive                        cooled
+       p6cur  j7  shell  tstat        p6cur  j7  shell  tstat
+  0     3283  49    35     0           3283  37    27     0
+120     2438  90    37     0           2649  90    28     0
+240     1689  78    40     1           2649  90    30     0
+360     1689  74    43     2           2438  91    31     0
+600     1689  69    44     2           2438  91    33     0
+900     1689  69    43     2           2438  90    35     0
+```
+
+### Steady state
+
+| | Passive | Cooled | Delta |
+|---|---|---|---|
+| Prime | 1 689 600 | **2 438 400** | **+44%** |
+| Mid | 1 785 600 | **2 400 000** | **+34%** |
+| `Thermal Status` | 2 | **0**, never escalated | |
+| Shell | 43 °C | 35 °C | −8 °C |
+| Junction | 69 °C | 90 °C | **+21 °C** |
+
+### The mechanism
+
+Both runs reach the same peak junction temperature, 90–91 °C. The difference is entirely in
+skin: passive climbs to 43 °C and trips Android's thermal framework to status 1 at ~180 s and
+status 2 at ~300 s, which clamps the clocks. Cooled holds skin at 35 °C, the framework never
+escalates, and the clocks hold.
+
+**The framework governs on skin temperature, not junction.** That is why a back-clip — which
+does nothing for junction-to-package thermal resistance — has such a large effect here, while
+it was worth only −0.68% on a 7-minute GPU benchmark (section 13) that never escalated the
+framework in either state.
+
+### Three things this does not mean
+
+**The cooler does not make the chip cooler.** Cooled junction is 90 °C sustained for 15
+minutes against 69 °C passive. Passive is cooler precisely because it is throttled. What the
+cooler buys is a cool shell plus sustained clocks, at the cost of hot silicon for longer.
+
+**Even cooled, sustained all-core never reaches the 3 283 200 ceiling.** It lands at
+2 438 400, 26% below it. The ceiling matters for bursts and single-thread work, not for
+sustained all-core.
+
+**The cooled landing point equals CFB's stock `limit_freq` of 2 438 400.** Almost certainly
+coincidence — both are entries in the same OPP table — but it underlines that the stock
+control (#9) is still missing. Where stock lands over the same 15 minutes is unknown.
