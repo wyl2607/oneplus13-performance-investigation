@@ -153,6 +153,35 @@ free win.
 Screen-off power saving is preserved: URCC's screen-off cap (1 996 800 / 2 649 600) is a
 separate, lower QoS request that still wins via `min()`.
 
+### Validated against Geekbench 7
+
+Applied for one boot (`cfb_enable=0`, `p0max=2918400`, `p6max=3283200`, screen on), then
+Geekbench 7 run on the device:
+
+| | Stock (4 runs) | Tuned | Change |
+|---|---|---|---|
+| Single-core | 891 / 1052 / 911 / 935 (~950) | **1253** | **+32%** |
+| Multi-core | 5279 / 5344 / 5178 / 5086 (~5220) | **5945** | **+14%** |
+
+The single-core result was predicted before the run from the clock ratio alone:
+
+```
+950 × (3 283 200 / 2 438 400) = 950 × 1.347 = 1280   predicted
+                                              1253   measured    (2.1% error)
+```
+
+Matching the predicted *magnitude*, not merely getting faster, is what closes the causal
+chain: root cause → mechanism → intervention → quantitative prediction → measurement.
+
+Multi-core gaining only +14% is consistent with the all-core measurements above: LMH pulls
+the prime cluster to 2 841 600 regardless of ceiling, mid cores run 2 745 600–2 918 400
+against a stock 2 400 000, so pure clock scaling predicts ~+17%. The shortfall to +14% is
+expected — multi-core is more memory- and DSU-bound than the single-threaded ALU loop used
+for the thermal characterisation.
+
+Both figures are Geekbench 7 and are compared only against Geekbench 7 results from the same
+device. See the correction below.
+
 ---
 
 ## Open question — help wanted
@@ -163,11 +192,23 @@ Nothing on this device can answer that. It needs one data point from another One
 If you have one, please run [`scripts/contribute-comparison.sh`](scripts/contribute-comparison.sh)
 (read-only, no root changes, no PII) and open an issue with the output.
 
-Also unresolved: scaling from 2 438 400 → 3 283 200 is **+34.7%**. If a stock-clamped
-Geekbench single-core run scores ~950, linear extrapolation predicts ~1 280, and even a fully
-unclamped 4 320 000 only reaches ~1 680. If healthy CPH2653 units score meaningfully above
-that, **frequency alone does not explain the whole gap** and something else (DSU clock,
-memory frequency, scheduler) is also involved. Not yet investigated.
+### Correction — there is no evidence of a "second factor"
+
+An earlier revision of this document argued that because a fully unclamped 4 320 000 would
+only extrapolate to ~1 680 single-core, while "healthy" Snapdragon 8 Elite units score
+2 200–3 000, frequency could not explain the whole gap and some second bottleneck (DSU clock,
+memory frequency, scheduler) had to exist.
+
+**That reasoning was invalid and is withdrawn.** It compared Geekbench 7 results from this
+device against Geekbench 6 reference figures. Geekbench 7 (released July 2026) rebased its
+calibration from a Core i7-12700 to a Ryzen 7 7700, and substantially rewrote its workloads
+and datasets — [independent testing found single-core scores drop across all tested platforms
+relative to Geekbench 6](https://signal65.com/research/geekbench-7-analysis-and-early-results/).
+Primate Labs states GB7 results are comparable only with other GB7 results. The widely quoted
+OnePlus 13 figures of ~2 900–3 000 single-core are Geekbench **6** numbers.
+
+No cross-version percentage should be computed from them, and none of the measurements in
+this repository support the existence of a non-frequency bottleneck.
 
 ---
 

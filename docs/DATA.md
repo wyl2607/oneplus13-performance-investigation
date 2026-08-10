@@ -210,3 +210,47 @@ policy.
 The module is compiled into a `boot` image whose fingerprint already matches `vendor` and
 `odm` exactly. Reflashing the same build reinstalls the same module with the same
 compiled-in defaults.
+
+---
+
+## 10. Intervention validation (Geekbench 7)
+
+Device state at the time of the run, read back directly rather than assumed:
+
+```
+cfb=0
+p0max=2918400
+p6max=3283200
+screen=ON
+uptime=5473s          (no reboot — same boot as the characterisation runs)
+service.d=[]          (volatile only, nothing persistent installed)
+```
+
+| | Stock (4 runs) | Tuned (1 run) | Change |
+|---|---|---|---|
+| Single-core | 891, 1052, 911, 935 → ~950 | **1253** | +32% |
+| Multi-core | 5279, 5344, 5178, 5086 → ~5220 | **5945** | +14% |
+
+Prediction made from the clock ratio before the run:
+
+```
+single-core: 950 × (3283200 / 2438400) = 1280   predicted
+                                          1253   measured   → 2.1% error
+
+multi-core:  mid   2745600–2918400 / 2400000 = +18%
+             prime 2841600 / 2438400         = +16.5%
+             pure-clock expectation          ≈ +17%
+                                               +14%   measured
+```
+
+Single-core tracks clock ratio almost exactly. Multi-core falls slightly short of pure clock
+scaling, as expected for a workload with more memory and DSU dependence than the ALU loop
+used for thermal characterisation.
+
+### Version caveat
+
+These are Geekbench **7** numbers on both sides of the comparison. Geekbench 7 rebased its
+calibration machine and rewrote its workloads in July 2026; its results are not comparable
+with Geekbench 6. The commonly cited OnePlus 13 figures near 2 900–3 000 single-core are
+Geekbench 6 and must not be used to compute a deficit against these numbers. An earlier
+revision of this repository did exactly that and inferred a non-existent second bottleneck.
