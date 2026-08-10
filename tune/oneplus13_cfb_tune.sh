@@ -37,8 +37,6 @@ fi
   until [ "$(getprop sys.boot_completed)" = "1" ]; do sleep 5; done
   sleep 40
 
-  echo $$ > $LOCK
-
   [ -f "$E" ] && [ -f "$P6" ] && [ -f "$P0" ] || {
       echo "$(date) FATAL nodes missing - wrong kernel or module gone, exiting" >> $LOG
       rm -f $LOCK; exit 0; }
@@ -80,3 +78,9 @@ fi
     sleep $POLL
   done
 ) &
+
+# $$ inside a subshell is the PARENT's pid in POSIX sh, so the lock must be written
+# here, by the parent, from $!. Writing it inside the subshell records a pid that has
+# already exited, which makes the single-instance check above always miss and lets
+# duplicate watchdogs accumulate.
+echo $! > $LOCK
