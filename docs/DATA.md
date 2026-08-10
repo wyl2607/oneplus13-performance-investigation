@@ -468,3 +468,38 @@ Note `Not charging` while plugged: at 500 mA the supply is entirely consumed by 
 
 Single-threaded CPU load only. A simultaneous CPU + GPU load — a game — draws far more, and
 whether BCL engages there is untested.
+
+---
+
+## 16. Geekbench 7 reproducibility — three tuned runs
+
+Runs 2 and 3 were driven over ADB with a sampler confirming `cfb=0`, `p0max=2918400`,
+`p6max=3283200` held for the entire duration — no configuration drift during any run.
+
+| | Stock (4 runs) | Tuned (3 runs) | Change |
+|---|---|---|---|
+| Single-core | 891, 1052, 911, 935 → **947** | 1253, 1225, 1224 → **1234** | **+30.3%** |
+| spread | 18% | **2.4%** | |
+| Multi-core | 5279, 5344, 5178, 5086 → **5222** | 5945, 6626, 6082 → **6218** | **+19.1%** |
+| spread | 5% | **11.5%** | |
+
+### Single-core became more reproducible, not just faster
+
+Spread fell from 18% to 2.4%. This follows from the mechanism: stock behaviour depends on
+when CFB's 50 ms accumulator trips, which varies with the workload's duty cycle, whereas a
+fixed `scaling_max_freq` ceiling is deterministic. Single-core sits at 3 283 200 with the
+junction at ~73 °C, far from any thermal limit, so nothing else modulates it.
+
+### Multi-core became less reproducible
+
+Spread rose from 5% to 11.5%. Stock multi-core was clamped to 2 400 000 / 2 438 400, which is
+thermally comfortable and therefore stable. Tuned multi-core runs near the thermal loop's
+operating point, where LMH picks the landing frequency from temperature.
+
+An initial guess that the variance tracks starting junction temperature does **not** hold:
+runs 2 and 3 both started at 37 °C and differed by 8.9%. Run 3 began about a minute after run
+2 finished, so bulk chassis heat was likely still present while the junction sensor had
+already recovered — plausible, but not measured. **The cause is unresolved.**
+
+Honest summary: multi-core gain is **+14% to +27%** depending on conditions, mean +19%.
+Single-core gain is **+30%** and repeatable to within 2.4%.
