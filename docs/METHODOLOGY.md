@@ -140,3 +140,47 @@ deltas). Use `/proc/uptime` instead:
 ```sh
 now() { cut -d' ' -f1 /proc/uptime | tr -d '.'; }   # centiseconds
 ```
+
+---
+
+## Trap 3 — thermal zone indices are reassigned across reboots
+
+`/sys/class/thermal/thermal_zoneN` numbering is allocated in probe order and is **not stable
+across boots**. On this device, before a reboot:
+
+```
+thermal_zone63 = shell_front
+thermal_zone64 = shell_frame
+thermal_zone65 = shell_back
+```
+
+After a reboot, the same indices resolved to completely different sensors:
+
+```
+thermal_zone63 = sys-therm-3
+thermal_zone64 = sys-therm-4
+thermal_zone65 = sys-therm-5      <- a fast-responding board sensor near the SoC
+shell_front/frame/back had moved to thermal_zone57/58/59
+```
+
+A sustained-load script with hardcoded indices therefore aborted on a "shell temperature" of
+45 °C that was not a shell temperature at all. The tell was that the battery sensor and
+`shell_front` stayed at 34–35 °C while "back" climbed 9 °C in 30 seconds — physically
+impossible for a back cover with the battery pressed against it.
+
+The CPU junction zones (27, 28, 30) happened to keep their indices, so measurements using
+them remained valid. That is luck, not design.
+
+**Always resolve zones by name:**
+
+```sh
+zone_by_name() {
+  for z in /sys/class/thermal/thermal_zone*; do
+    [ "$(cat $z/type 2>/dev/null)" = "$1" ] && { echo "$z/temp"; return 0; }
+  done
+  return 1
+}
+Z_J7=$(zone_by_name cpu-1-1-1) || exit 2
+```
+
+Failing closed on a missing sensor is better than silently reading the wrong one.

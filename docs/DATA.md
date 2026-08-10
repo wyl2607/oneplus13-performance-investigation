@@ -503,3 +503,73 @@ already recovered — plausible, but not measured. **The cause is unresolved.**
 
 Honest summary: multi-core gain is **+14% to +27%** depending on conditions, mean +19%.
 Single-core gain is **+30%** and repeatable to within 2.4%.
+
+---
+
+## 17. Sustained all-core load, 15 minutes — the 40 s snapshot was misleading
+
+Tuned config (`cfb=0`, ceilings 2 918 400 / 2 918 400... prime 3 283 200), passive cooling,
+screen on, 8-thread ALU load for 900 s. Zones resolved by name. Full log in
+`data/sustained-allcore-tuned-passive.log`.
+
+```
+sec   p0cur p6cur  j6  j7 cluss shell batt tstat
+  0    2918  3283  44  49  47     35   35   0
+ 60    2400  2649  85  90  83     36   36   0
+120    2400  2438  86  90  83     37   37   0
+180    2400  2438  87  91  84     39   39   1
+240    2400  1689  76  78  74     40   40   1
+300    2400  1689  76  78  74     42   42   2
+360    1996  1689  72  74  71     43   43   2
+420    1785  1689  69  70  67     43   43   2
+480    1785  1689  69  70  67     43   43   2
+...
+900    1785  1689  68  69  66     43   43   2
+```
+
+### The "89 °C plateau" from section 7 was a transient, not a steady state
+
+A 40 s run stops before the system begins to respond. Over 15 minutes the prime cluster walks
+down `3283 → 2649 → 2438 → 1689` and settles at **1 689 600**, with the mid cluster at
+**1 785 600**. True steady state is reached after roughly 7 minutes.
+
+### The sustained landing point is below the stock CFB clamp
+
+1 689 600 is lower than CFB's stock `limit_freq` of 2 438 400. Under a sustained all-core
+load the tune's advantage is gone after about 3 minutes, and the endpoint is *below* where
+stock would have been clamping.
+
+**The control for this is missing.** Stock runs at 2 400 000 / 2 438 400 from the first
+second, generates less heat, and may never escalate the thermal framework at all — in which
+case its sustained landing point could be higher than the tune's. Until stock is measured
+over the same 15 minutes, "the tune is worse for sustained load" is a plausible reading, not
+a demonstrated one.
+
+### Android's thermal framework does engage here
+
+`Thermal Status` escalated 0 → 1 at ~180 s → 2 at ~300 s. Every earlier measurement in this
+document reported status 0, because none ran long enough. Status 2 is `MODERATE`, which
+affects more than CPU clocks — charging rate and display brightness are also governed by it.
+
+### Junction temperature at steady state is *lower*, not higher
+
+69 °C at 900 s, against the 89 °C transient. Earlier text in this repository described the
+tune as costing "+20 °C junction under sustained load". That figure came from the 40 s window
+and is wrong for genuinely sustained work: the thermal loop trades clock for temperature and
+converges cooler. The +20 °C figure remains accurate for short bursts.
+
+### Shell temperature and recovery hysteresis
+
+Shell rose 35 → 44 °C and tracked the battery sensor exactly throughout, which is the
+signature of a real thermal measurement rather than the misattributed sensor described in
+METHODOLOGY trap 3.
+
+After the load stopped, throttling did **not** release promptly:
+
+```
+t+30s  j7=45C shell=42C p6max=1689600 status=2
+t+150s j7=42C shell=40C p6max=1689600 status=2
+```
+
+Still clamped 2.5 minutes later with the junction down to 42 °C. The framework's release
+threshold has hysteresis, so a phone stays throttled for minutes after a heavy session ends.
