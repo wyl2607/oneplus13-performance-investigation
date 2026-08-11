@@ -627,3 +627,64 @@ sustained all-core.
 **The cooled landing point equals CFB's stock `limit_freq` of 2 438 400.** Almost certainly
 coincidence — both are entries in the same OPP table — but it underlines that the stock
 control (#9) is still missing. Where stock lands over the same 15 minutes is unknown.
+
+---
+
+## 19. The `config` write format, and a per-cluster disable that survives wake
+
+The format is documented in OnePlus's own kernel source
+([cpufreq_bouncing.c, OnePlusOSS sm8350](https://github.com/OnePlusOSS/android_kernel_oneplus_sm8350/blob/2578666fe1999778d99ad48f707dd8ead15e9347/techpack/oneplus/coretech/cpufreq_bouncing/cpufreq_bouncing.c))
+and is **comma-separated**:
+
+```
+clus,enable,limit_level,limit_thres_ms,down_speed,down_limit_ms,up_speed,up_limit_ms
+```
+
+An earlier round of this investigation tried a dozen space-separated variants, got `-EINVAL`
+on all of them, and abandoned the approach in favour of the global `enable` parameter plus a
+watchdog. The separator was the only thing wrong.
+
+Verified on this device (SM8750), original values restored afterwards:
+
+```
+write "1,1,11,50,1,50,1,50"  ->  clus 1 limit_level: 6 -> 11    confirmed
+write "1,0,6,50,1,50,1,50"   ->  clus 1 enable:      1 -> 0     confirmed
+```
+
+Note the source also shows the in-tree default is `enable = false` — the module ships off and
+something in userspace turns it on, which matches the wake-time re-enable observed in
+section 8.
+
+### Per-cluster disable is not reset on wake
+
+With the watchdog stopped, both clusters set to `enable=0` via `config`, and the **global**
+`enable` parameter left at 1:
+
+```
+TEST 1, load                cur = 3283200 for the whole run   (not clamped to 2438400)
+screen off -> screen on
+after wake                  global=1, per-cluster still 0 of 2 enabled
+TEST 2, load                cur = 3283200 for the whole run
+```
+
+The system's wake handler writes the global parameter and does not touch per-cluster config.
+**A one-shot boot write would therefore replace the 20 s watchdog entirely**, eliminating the
+resident process and the wake window of issue #8.
+
+### Not adopted — unexplained thermal discrepancy
+
+Single-thread load at the same 3 283 200 ceiling:
+
+| Mode | Steady junction |
+|---|---|
+| Global `enable=0` (current watchdog approach) | 73 °C passive, 76 °C cooled |
+| Per-cluster `enable=0`, global `enable=1` | **86–96 °C** |
+
+13–23 °C apart on nominally identical work, with 96 °C leaving only 9 °C to the 105 °C trip
+point. Candidate explanations — different starting temperature, CFB's `core_boost` path still
+running while the global parameter is set, or measurement noise — were not separated, and the
+per-cluster run's starting temperature was not recorded.
+
+The watchdog approach is fully validated across reboot, screen cycle, and load, and costs
+0.011% of one core. Trading that for an unexplained thermal delta to save a background loop
+is not a good exchange. Left as issue #10.
