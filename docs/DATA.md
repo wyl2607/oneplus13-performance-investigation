@@ -688,3 +688,48 @@ per-cluster run's starting temperature was not recorded.
 The watchdog approach is fully validated across reboot, screen cycle, and load, and costs
 0.011% of one core. Trading that for an unexplained thermal delta to save a background loop
 is not a good exchange. Left as issue #10.
+
+---
+
+## 20. App cold start A/B — no measurable benefit
+
+CFB's threshold is 50 ms and an app cold start is 500–2000 ms of dense CPU work, so the
+limiter certainly engages during launch. Whether that is measurable is a separate question.
+
+`am force-stop` then `am start -W`, five cold starts per app per condition, `TotalTime` in ms.
+First run of each set discarded as a page-cache outlier.
+
+| App | Tuned (`cfb=0`, ceiling 3 283 200) | Stock (`cfb=1`) |
+|---|---|---|
+| Settings | 284 246 270 260 → **265** | 276 301 267 258 287 → **276** |
+| Maps | 198 196 214 201 → **200** | 203 191 205 205 196 → **203** |
+
+Differences of 1–4%, inside batch noise. In the Maps case the fastest block of all was a
+stock one.
+
+### Test flaws, disclosed
+
+The third block was labelled "tuned" but its header reported `cfb=1`. Stopping the watchdog
+via the kill switch meant nothing was holding `enable=0`, and the system re-enabled CFB on a
+wake during the run. That block is therefore a second stock block — which incidentally gives
+a useful repeatability check on stock (Settings 276 then 271, Maps 203 then 193).
+
+Chrome returned no `TotalTime` on any iteration; not investigated.
+
+### Interpretation
+
+Cold start is dominated by I/O, zygote fork, class loading and binder rather than sustained
+single-thread compute, and much of it runs on the mid cluster rather than the heavily clamped
+prime. The clamp is present but is not the bottleneck.
+
+This closes the last plausible everyday-responsiveness benefit. What remains untested is
+**sustained single-threaded compute in real applications** — video export, large image
+processing, emulation, compilation — which is the workload shape Geekbench single-core
+actually models, and where the +30% should be real.
+
+### Consequence for issue #8
+
+The 20 s wake window was filed as a real usability problem on the reasoning that app
+cold-starts immediately after unlock would miss the tune. Since cold starts do not benefit
+from the tune at all, that window costs nothing measurable, and #8 drops from a usability
+concern to a cosmetic one. The same reasoning removes most of the motivation for #10.

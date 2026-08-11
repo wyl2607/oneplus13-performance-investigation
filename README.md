@@ -26,6 +26,37 @@ confusion when diagnosing this.
 
 ---
 
+## Read this before the rest: what removing the clamp is actually worth
+
+Lifting the clamp is worth **+30% single-core in Geekbench 7**, reproducible to within 2.4%.
+Every other scenario measured so far shows **no benefit at all**.
+
+| Scenario | Benefit | Basis |
+|---|---|---|
+| Geekbench 7 single-core | **+30%** (947 → 1234) | three runs, 2.4% spread |
+| Geekbench 7 multi-core | +19% (5222 → 6218) | three runs, 11.5% spread |
+| **App cold start** | **none** | Settings 265 vs 276 ms, Maps 200 vs 203 ms — inside noise |
+| **Sustained all-core** | **none** | landing frequency is set by the thermal loop, not the ceiling |
+| **GPU-bound work** | **none** | prime idles at 1 017 600 during GPU load; the ceiling is never approached |
+| Geekbench 7 OpenCL | −0.68% | noise |
+
+The reasoning that app launches *should* benefit is sound and was wrong. CFB's threshold is
+50 ms and a cold start is 500–2000 ms of dense CPU work, so the limiter certainly engages —
+it simply is not the bottleneck. Cold start is dominated by I/O, zygote fork, class loading
+and binder, and much of it runs on the mid cluster rather than the heavily clamped prime.
+
+**The honest description of this tune is: it removes a vendor clamp on sustained
+single-threaded compute.** That covers benchmarks, and plausibly video export, photo
+processing, emulation and compilation — none of which have been measured. It is not a
+general "performance mode", and the everyday responsiveness of the phone does not change.
+
+The single largest measured lever in this entire investigation was not the CPU tune at all —
+it was **active cooling**, worth +44% sustained clock under a 15-minute all-core load, because
+Android's thermal framework governs on skin temperature rather than junction. See
+[DATA.md section 18](docs/DATA.md).
+
+---
+
 ## Device under test
 
 | | |
