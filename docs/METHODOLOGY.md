@@ -334,3 +334,42 @@ matching the binary's name rather than a command-line substring.
 
 **Confirming that the probe can see the effect is not enough if it is pointed at the wrong
 process.** Validate the readout *and* the target.
+
+---
+
+## Trap 8 — a cooldown that can time out is not a safety limit
+
+The placement experiment used the same shape of cooldown as every other script here:
+
+```sh
+n=0; while [ $n -lt 90 ]; do j=$(cat $Z_J); [ "$j" -lt 45000 ] && break; n=$((n+5)); sleep 5; done
+```
+
+If the device has not cooled within 90 seconds, this **falls through and runs the trial anyway**.
+Run back-to-back after a long experiment, it did exactly that: two trials started at 69 °C and
+66 °C junction instead of the intended sub-45 °C.
+
+A prime-pinned spin loop at 3 283 200 takes the junction from 52 °C to 93 °C in 26 seconds. From
+a 69 °C start it passed **104.6 °C within one 250 ms sample** — over the script's own 92 °C abort
+and 0.4 °C from the 105 °C hardware trip. The abort did fire and the trial did stop, but it fired
+late, because the sensor was only read once per 250 ms data point while the ramp is much faster
+than that.
+
+Nothing was damaged — `Thermal Status` stayed 0, battery health `Good`, and the device cooled
+normally to 55 °C — but the envelope this repository states for itself was exceeded, and it was
+exceeded by the safety code, not by the experiment.
+
+Three separate faults, all of which read as reasonable when written:
+
+- **The gate was advisory.** A precondition that proceeds when unmet is not a precondition. It
+  now waits up to 300 s for < 42 °C and **aborts the whole script** if that is not reached.
+- **The sensor was sampled at the data rate, not the hazard rate.** Temperature is now
+  sub-sampled every 50 ms between data points.
+- **The operating point was higher than the question required.** The experiment only needs the
+  prime cluster to be *more attractive* than mid, not fast. Re-pinned to 2 649 600 / 2 400 000,
+  which preserves the mechanism under test — prime effective capacity 628 against mid 538, and a
+  clamp of 376 still fits inside mid — at a fraction of the power.
+
+The last one is the general lesson. **Choose the mildest operating point that still exercises the
+mechanism.** The earlier runs used 3 283 200 because that was the number the rest of the
+repository used, not because the question needed it.
