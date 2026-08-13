@@ -1,0 +1,13 @@
+=== trigger condition trials (synthetic busy loop, prime ceiling 3283200, cfb=0) ===
+uid 10999 is a synthetic app uid created for the test, not an installed app.
+
+TRIAL|app_A          |uid=10999|mask=none|elapsed_s=5.84 |result=CLAMPED     |uclamp=466
+TRIAL|app_B          |uid=10999|mask=none|elapsed_s=26.79|result=CLAMPED     |uclamp=466
+TRIAL|app_C          |uid=10999|mask=none|elapsed_s=5.14 |result=CLAMPED     |uclamp=466
+TRIAL|root_ctrl      |uid=0    |mask=none|elapsed_s=14.06|result=LOGGED_ONLY |uclamp=1024
+TRIAL|system_ctrl    |uid=1000 |mask=none|elapsed_s=41.75|result=LOGGED_ONLY |uclamp=1024
+TRIAL|app_pinned_MID |uid=10999|mask=3f  |elapsed_s=45.04|result=TIMEOUT     |uclamp=1024  junction 45.1C
+TRIAL|app_pinned_PRIM|uid=10999|mask=c0  |elapsed_s=5.12 |result=CLAMPED     |uclamp=466   junction 64.8C
+
+Earlier trials, table-watching only (before the probe read uclamp directly):
+  uid=10999 flagged at 5.91s and 5.13s, both limit_flag=466 at freq 3283200

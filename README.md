@@ -1,5 +1,8 @@
 # OnePlus 13 — the real bottleneck is `uclamp.max`, not frequency
 
+**New here? Start with [docs/FOR-USERS.md](docs/FOR-USERS.md)** — plain-language explanation,
+a two-command self-check, and what your options are.
+
 Investigation into why a OnePlus 13 (CPH2653, SM8750 / Snapdragon 8 Elite) scores a third of
 what the same phone scores elsewhere on the same benchmark version.
 

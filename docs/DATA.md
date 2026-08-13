@@ -876,7 +876,7 @@ IPC rather than clock and would be invisible to any `scaling_cur_freq` reading.
 
 ### Tooling
 
-`C:\Users\redacted-user\gb7-diag` — a resident on-device sampler driven over `adb exec-out` at ~4 Hz,
+The diagnostic toolchain — a resident on-device sampler driven over `adb exec-out` at ~4 Hz,
 a host-side CSV logger, and an analyser. Entirely read-only. It records per-CPU frequency and
 utilisation, the busiest Geekbench thread's CPU/cpuset/affinity/uclamp/util, both process- and
 thread-level cpuset, the cooling devices above, the `game_opt` nodes, and `fqm_dump` at exit.
@@ -1168,7 +1168,7 @@ On the same clean table, before Geekbench was even launched:
 22287  10xxx  376  pool-5-thread-1  18:36:32  0  2649600
 ```
 
-uid 10xxx is `an.unrelated.app`, an ordinary app that happens to use the same Java
+that uid belongs to an unrelated third-party app that happens to use the same Java
 thread-pool naming. It was clamped to **376** while idle at the launcher. The guard fires on
 thread behaviour, not on package identity.
 
@@ -1408,3 +1408,77 @@ One A/B pair, one device, one benchmark. The effect size (+128%) is far outside 
 run-to-run spread (934–1229 stock, a 31% band), and the mechanism is independently supported
 by the dose-response in section 25 and the per-thread traces in sections 22 and 24. But the
 arms were not repeated or order-reversed, so the ordering effect is unmeasured.
+
+---
+
+## 27. What triggers the clamp
+
+Controlled probing with `trigger_probe.sh`: a bounded busy loop spawned under a chosen uid and
+optional affinity mask, polling both `abnormal_task` and the task's own `uclamp.max` until one
+of them moves. Aborts at 90 °C junction. Prime ceiling 3 283 200 and `cfb=0` throughout, so
+every trial saw the same clock.
+
+Watching the table alone is not enough — it can log without clamping — so the task's
+`uclamp.max` is read directly and the two outcomes are reported separately.
+
+### The gate is uid, and it is absolute
+
+Identical busy loop, identical `comm` (`sh`), identical prime clock. Only the uid differs:
+
+| uid | Result | `uclamp.max` | Time |
+|---|---|---|---|
+| 10999 (app) | **CLAMPED** | **466** | 5.84 s |
+| 10999 (app) | **CLAMPED** | **466** | 26.79 s |
+| 0 (root) | logged only | 1024 | 14.06 s |
+| 1000 (system) | logged only | 1024 | 41.75 s |
+
+Root and system tasks *are* evaluated and *are* written into `abnormal_task` — with
+`limit_flag = 1024`, meaning no clamp. The exemption is applied at the clamp decision, not by
+skipping the check. This is the clean version of the pattern the historical table showed,
+where every uid 0 and uid 1000 row carried 1024 even at full prime clock.
+
+**This also invalidates every benchmark run from a root shell.** A `taskset`-pinned busy loop
+run as root — the proxy this repository used for all of its thermal characterisation in
+sections 2, 6 and 7 — is exempt from the guard, and therefore cannot reproduce what an app
+experiences. Those thermal numbers remain valid as thermal numbers; they are not valid as a
+model of app behaviour.
+
+### It only fires on the prime cluster
+
+Same uid, same load, only the affinity mask differs:
+
+| Affinity | Result | Time | Junction reached |
+|---|---|---|---|
+| `taskset 3f` — mid cluster, CPU0-5 | **never clamped** | 45 s timeout | 45.1 °C |
+| `taskset c0` — prime cluster, CPU6-7 | **CLAMPED at 466** | 5.12 s | 64.8 °C |
+| unpinned | CLAMPED at 466 | 5.1–26.8 s | 61–73 °C |
+
+**The guard is a one-way ratchet:**
+
+```
+task starts, utilisation ramps
+   -> the scheduler correctly promotes it to the prime cluster
+   -> the guard sees sustained load ON PRIME and clamps uclamp.max
+   -> the clamped task falls back to the mid cluster
+   -> on mid it can never satisfy the trigger again, so it never returns
+```
+
+It punishes precisely the tasks the scheduler got right, and there is no path back. That is
+why `abnormal_task`'s `freq` column always holds a *prime* frequency, and why the limit is
+computed from the prime clock: the task was on prime at the moment it was judged.
+
+**Confound, stated:** cluster and temperature are not separated by this pair. The mid-pinned
+run only reached 45.1 °C against 64.8 °C for prime, so a temperature threshold would fit the
+same two data points. The cluster reading is favoured by the rest of the evidence — the
+module's own `goplus_cpu` symbol, its `skip_goplus_enabled` node, and the prime-clock-based
+formula — but a mid-cluster load driven to 65 °C is needed to settle it.
+
+### Timing
+
+Time from load start to clamp, app uid, unpinned or prime-pinned: **5.91, 5.13, 5.84, 26.79,
+5.14, 5.12 s**. Five of six inside six seconds, one outlier at 27 s.
+
+There is no long grace period. Any sustained single-threaded work an app does — a video
+export, a compile, an emulator, a benchmark — is clamped within seconds of the scheduler
+promoting it. Section 20's finding that app cold starts see no benefit from the CFB tune now
+has a second explanation: a 500–2000 ms launch ends before this guard would even engage.
