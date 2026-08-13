@@ -1,3 +1,5 @@
+[English](FOR-USERS.md) · [简体中文](FOR-USERS.zh-CN.md)
+
 # For OnePlus 13 owners — why your phone scores half of what it should
 
 If you have benchmarked a OnePlus 13 and got a number far below what the same phone gets
