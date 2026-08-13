@@ -1305,3 +1305,106 @@ Linear extrapolation of the dose-response alone would predict ~2600, but the pri
 truncates it — a task that reaches the prime cluster still cannot exceed 3 283 200. So: 1900
 to 2100, with prime residency going from 8% to a majority. Materially below 1900 means a
 third mechanism remains.
+
+---
+
+## 26. A/B — lifting only `uclamp.max` more than doubles single-core
+
+The controlled experiment. Both arms used the identical sampler, kprobes and logcat capture,
+both started from a force-stopped thread pool so no clamp could ride in from a previous
+session, both from a cool device with ceilings verified at 2 918 400 / 3 283 200 and `cfb=0`.
+
+**The only difference in arm B** was a loop running `uclampset -a -M 1024 -p <pid>` every
+250 ms. Toybox's first-party `uclampset`, going through the ordinary `sched_setattr` path.
+Nothing else was touched — no cpufreq, no cpuset, no thermal, no governor, no module
+parameter.
+
+### Result
+
+| | Arm A (control) | Arm B (uclamp lifted) | Change |
+|---|---|---|---|
+| `uclamp.max` on workers | **346** | **1024** | |
+| Prime residency of running threads | **8.0%** | **59.5%** | |
+| CPU7 alone | 6.3% | **46.4%** | |
+| **Single-core** | **934** | **2126** | **+128%** |
+| **Multi-core** | **6017** | **8386** | **+39%** |
+
+The prediction recorded before the run was 1900–2100. Measured 2126, **4.3% above the top of
+the range**.
+
+### Against a same-version reference
+
+Reference: 2681 / 8846 (GB7 7.0.0, CPH2655).
+
+```
+Arm A  single-core  934 = 34.8% of reference     multi-core 6017 = 68.0%
+Arm B  single-core 2126 = 79.3% of reference     multi-core 8386 = 94.8%
+```
+
+The single-core shortfall that remains is the tune's own ceiling, not a defect:
+
+```
+prime ceiling 3 283 200 / 4 320 000 = 76.0% of rated
+arm B achieved                        79.3% of the reference score
+
+2126 × (4 320 000 / 3 283 200) = 2797 at rated clock, against a 2681 reference
+```
+
+**Scaled to its rated clock this device is fully healthy** — slightly above the reference,
+within sample-to-sample variation. There is no third mechanism. The entire deficit this
+repository has been chasing was `uclamp.max`.
+
+### The intervention was caught in the act
+
+```
+t=11.72s   TID 17073 (pool-5-thread-1)  uclamp.max 466 -> 1024   effective -> 1024
+```
+
+`oplus_bsp_task_overload` still fired during arm B — `abnormal_task` gained its row at
+t=3205.98 with `limit_flag=466` — but the loop reverted it within one 250 ms poll. Across the
+whole run, thread-samples read:
+
+```
+uclamp.max = 1024 : 34121 samples
+uclamp.max =  466 :     1 sample
+```
+
+One sample. That single 466 is the window between the guard writing and the loop undoing it,
+and it is the clearest possible statement of the causal chain: the guard clamps, and while the
+clamp is held off, the workload runs on the prime cores.
+
+### What it costs — the honest part
+
+| | Arm A | Arm B |
+|---|---|---|
+| Junction, median | 40.5 °C | 54.0 °C |
+| Junction, p95 | 52.1 °C | **87.2 °C** |
+| Junction, max | 78.4 °C | **95.0 °C** |
+| Shell, max | 35.0 °C | 36.1 °C |
+
+The safety guard fired at the end of the run:
+
+```
+!! THERMAL ABORT - reverting to stock clamp: ABORT|98400|35500
+```
+
+98.4 °C junction against a 105 °C hardware trip point, with the shell at 35.5 °C. Arm B's
+score of 2126 was achieved *including* the portion of the run after the abort, when stock
+behaviour had resumed.
+
+**The shell barely moved — 35.0 to 36.1 °C — while the junction rose 35 °C at p95.** Section 18
+established that Android's thermal framework escalates on skin temperature, not junction. So
+nothing in the framework would intervene here: the user cannot feel it, `Thermal Status` stays
+0, and the only remaining backstop is Qualcomm's LMH loop at the trip point.
+
+That is the real argument for the guard existing. A runaway thread on this SoC will sit at
+87 °C junction indefinitely without the phone ever feeling warm or the OS noticing. What the
+guard cannot do is tell that thread apart from a user who deliberately asked for sustained
+compute.
+
+### Scope of the claim
+
+One A/B pair, one device, one benchmark. The effect size (+128%) is far outside the observed
+run-to-run spread (934–1229 stock, a 31% band), and the mechanism is independently supported
+by the dose-response in section 25 and the per-thread traces in sections 22 and 24. But the
+arms were not repeated or order-reversed, so the ordering effect is unmeasured.
