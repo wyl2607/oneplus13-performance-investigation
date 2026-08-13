@@ -1,0 +1,40 @@
+=== placement-vs-sleep-v2 Fri Aug 14 00:35:58 CEST 2026 ===
+harness affinity: 3f
+
+--- capability check: fractional read -t ---
+read -t 0.05 took 50ms (expect ~50ms; a few ms means it did not block, ~0 means unsupported)
+CAPABILITY=PASS
+
+--- calibration ---
+ceiling p0max=2918400 p6max=3283200
+200000 iterations in 610ms -> ~327 iterations/ms (on the mid cluster, harness is pinned there)
+duty_slow: 58860 iters + 0.02s sleep    duty_fast: 5886 iters + 0.002s sleep
+
+===== spin =====
+  start j=52500 p6max=3283200
+  pid=17948 comm=w_spin affinity=ff
+  !! thermal abort 92600
+  measured: wakeups/s=0  duty=992%  (over 26430ms)
+  clamp landed at: 3150 ms
+  samples=94  prime_overall=100.0%
+  before clamp: n=11 prime=100.0%
+  AFTER clamp:  n=83 prime=100.0%
+
+===== slow =====
+  start j=69100 p6max=3283200
+  pid=24543 comm=w_slow affinity=ff
+  !! thermal abort 104600
+  measured: wakeups/s=9  duty=812%  (over 320ms)
+  clamp landed at: never ms
+  samples=2  prime_overall=100.0%
+
+===== fast =====
+  start j=66000 p6max=3283200
+  pid=27018 comm=w_fast affinity=ff
+  !! thermal abort 103800
+  measured: wakeups/s=100  duty=1000%  (over 30ms)
+  clamp landed at: never ms
+  samples=1  prime_overall=100.0%
+
+Compare slow and fast: matched duty, ~10x different wakeup rate.
+PL2_DONE

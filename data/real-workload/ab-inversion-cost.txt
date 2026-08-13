@@ -1,0 +1,107 @@
+harness affinity: pid 24692's current affinity mask: 3f
+=== ab-real-workload Fri Aug 14 00:22:27 CEST 2026 ===
+input:  /data/local/tmp/gzab/big.dat  951886264 bytes  md5=5c85ba019ff07ae433e48db19dcf4f30
+uid:    10999
+pin:    mid=2918400 prime=3283200  (both arms)
+order:  S A B B A S A S B
+orig node: mid=2400000 prime=1689600
+cfb enable=0
+junction zone=/sys/class/thermal/thermal_zone28/temp shell zone=/sys/class/thermal/thermal_zone56/temp
+
+===== RUN 1  ARM S =====
+  cooldown...
+  cooled to 40900 after 0s
+  ceiling: node6=1689600 p6max=1689600 p0max=2400000 (want mid=2400000 prime=1689600)
+  gzip pid=24997  affinity=ff  (spawn overhead 30ms, excluded)
+  elapsed_ms=47640 aborted=no new_abnormal_task_rows=0
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 154|0.0|0.0|1024|2400000|48600|0
+
+===== RUN 2  ARM A =====
+  cooldown...
+  cooled to 44400 after 0s
+  ceiling: node6=3283200 p6max=3283200 p0max=2918400 (want mid=2918400 prime=3283200)
+  gzip pid=30656  affinity=ff  (spawn overhead 50ms, excluded)
+  elapsed_ms=30800 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 93|98.9|52.7|466|3093058|73700|1
+
+===== RUN 3  ARM B =====
+  cooldown...
+  cooled to 44000 after 5s
+  ceiling: node6=3283200 p6max=3283200 p0max=2918400 (want mid=2918400 prime=3283200)
+  gzip pid=2281  affinity=ff  (spawn overhead 360ms, excluded)
+  arm B: uclampset loop pid=2329
+  elapsed_ms=28900 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 88|100.0|0.0|1024|3283200|75300|0
+
+===== RUN 4  ARM B =====
+  cooldown...
+  cooled to 44000 after 10s
+  ceiling: node6=3283200 p6max=3283200 p0max=2918400 (want mid=2918400 prime=3283200)
+  gzip pid=8273  affinity=ff  (spawn overhead 40ms, excluded)
+  arm B: uclampset loop pid=8278
+  elapsed_ms=29140 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 88|100.0|0.0|1024|3283200|77200|0
+
+===== RUN 5  ARM A =====
+  cooldown...
+  cooled to 44400 after 15s
+  ceiling: node6=3283200 p6max=3283200 p0max=2918400 (want mid=2918400 prime=3283200)
+  gzip pid=11183  affinity=ff  (spawn overhead 40ms, excluded)
+  elapsed_ms=33530 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 97|99.0|69.1|466|2888709|74900|0
+
+===== RUN 6  ARM S =====
+  cooldown...
+  cooled to 44800 after 10s
+  ceiling: node6=1689600 p6max=1689600 p0max=2400000 (want mid=2400000 prime=1689600)
+  gzip pid=13963  affinity=ff  (spawn overhead 60ms, excluded)
+  elapsed_ms=47800 aborted=no new_abnormal_task_rows=0
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 154|2.6|0.0|1024|2402244|63700|2
+
+===== RUN 7  ARM A =====
+  cooldown...
+  cooled to 44400 after 5s
+  ceiling: node6=3283200 p6max=3283200 p0max=2918400 (want mid=2918400 prime=3283200)
+  gzip pid=19557  affinity=ff  (spawn overhead 30ms, excluded)
+  elapsed_ms=32120 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 94|100.0|51.1|466|3000102|75300|0
+
+===== RUN 8  ARM S =====
+  cooldown...
+  cooled to 44400 after 20s
+  ceiling: node6=1689600 p6max=1689600 p0max=2400000 (want mid=2400000 prime=1689600)
+  gzip pid=24960  affinity=ff  (spawn overhead 50ms, excluded)
+  elapsed_ms=64640 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 185|97.8|77.3|240|1491684|53600|0
+
+===== RUN 9  ARM B =====
+  cooldown...
+  cooled to 43600 after 5s
+  ceiling: node6=3283200 p6max=3283200 p0max=2918400 (want mid=2918400 prime=3283200)
+  gzip pid=32364  affinity=ff  (spawn overhead 40ms, excluded)
+  arm B: uclampset loop pid=32378
+  elapsed_ms=29280 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 88|97.7|0.0|1024|3235855|77200|0
+
+===== SUMMARY =====
+RUN|1|S|OK|elapsed_ms=47640|154|0.0|0.0|1024|2400000|48600|0|newrows=0
+RUN|2|A|OK|elapsed_ms=30800|93|98.9|52.7|466|3093058|73700|1|newrows=1
+RUN|3|B|OK|elapsed_ms=28900|88|100.0|0.0|1024|3283200|75300|0|newrows=1
+RUN|4|B|OK|elapsed_ms=29140|88|100.0|0.0|1024|3283200|77200|0|newrows=1
+RUN|5|A|OK|elapsed_ms=33530|97|99.0|69.1|466|2888709|74900|0|newrows=1
+RUN|6|S|OK|elapsed_ms=47800|154|2.6|0.0|1024|2402244|63700|2|newrows=0
+RUN|7|A|OK|elapsed_ms=32120|94|100.0|51.1|466|3000102|75300|0|newrows=1
+RUN|8|S|OK|elapsed_ms=64640|185|97.8|77.3|240|1491684|53600|0|newrows=1
+RUN|9|B|OK|elapsed_ms=29280|88|97.7|0.0|1024|3235855|77200|0|newrows=1
+
+----- per-arm aggregate (valid, non-aborted runs only) -----
+ARM A: n=3 mean_ms=32150 best_ms=30800 worst_ms=33530
+ARM B: n=3 mean_ms=29107 best_ms=28900 worst_ms=29280
+ARM S: n=3 mean_ms=53360 best_ms=47640 worst_ms=64640
+
+S->A  removing the URCC inversion : 39.7% faster
+A->B  lifting the uclamp guard    : 9.5% faster
+S->B  both together              : 45.5% faster
+
+restored node: 0:2400000 1:2400000 2:2400000 3:2400000 4:2400000 5:2400000 6:1689600 7:1689600 
+AB_DONE
