@@ -1913,3 +1913,86 @@ timing: the duty task held 100% prime residency for its first 14 seconds while u
 went to 0% at the sample the clamp landed. The transition coincides with the clamp, not with a
 change in its load. A fork-free duty-cycle generator matched to within a few percent on
 utilisation would settle it.
+
+---
+
+## 33. The clamp formula, settled — and the constant is an integer
+
+Section 25 fitted `limit_flag = floor(0.6 x 1024 x prime_freq / 4320000)` to four points
+spanning 346-466 and graded it HIGHLY LIKELY, noting that "a fifth point at a substantially
+different clock would settle it". Those four points were not chosen; they were wherever CFB
+happened to have the prime cluster when the guard fired. Pinning the node (section 30) makes
+the clock selectable, so the model can now be tested by **extrapolation**.
+
+Five points taken at frequencies chosen to fall outside the historical band, app uid, spin
+loop pinned to the prime pair, ceiling re-asserted throughout:
+
+| prime freq | observed | `floor(614.4 f / 4320000)` | `floor(614 f / 4320000)` |
+|---|---|---|---|
+| 1 209 600 | **171** | 172 ✗ | **171** ✓ |
+| 1 689 600 | 240 | 240 ✓ | 240 ✓ |
+| 2 246 400 | 319 | 319 ✓ | 319 ✓ |
+| 2 438 400 | 346 | 346 ✓ | 346 ✓ |
+| 2 841 600 | **403** | 404 ✗ | **403** ✓ |
+| 2 649 600 † | 376 | 376 ✓ | 376 ✓ |
+| 3 072 000 † | 436 | 436 ✓ | 436 ✓ |
+| 3 283 200 † | 466 | 466 ✓ | 466 ✓ |
+
+† from section 25. The 2 438 400 row independently reproduces section 25's own observation at
+that clock, four days later and by a different method.
+
+### The refinement
+
+```
+limit_flag = floor(614 * prime_cur_freq / 4320000)
+```
+
+**All eight points fit exactly, residual 0.** The section 25 form misses two of them by one.
+
+The difference is where the truncation happens. `0.6 x 1024 = 614.4`; the kernel evidently
+truncates that to the integer **614** once, up front, rather than carrying 614.4 through the
+multiply. That is what a kernel actually does — 60% of `SCHED_CAPACITY_SCALE` as an integer
+constant, no floating point in sight.
+
+The two rows that separate the models are the two chosen furthest from the historical band, and
+both are cases where the fractional part of the 614.4 form is small (172.03, 404.14). No amount
+of additional sampling inside 346-466 would have distinguished them. **This is the specific
+value of picking the operating point instead of accepting the one the system offers.**
+
+### Grading
+
+**Section 25's formula is superseded, not merely confirmed.** Eight points, exact integer
+agreement, five of them at independently chosen frequencies spanning nearly a factor of three.
+The `0.6` was an artefact of fitting in floating point.
+
+Still not read out of the module's code, so the mechanism remains inferred — but a two-parameter
+model fitting eight points to the unit with no residual, across a range it was not fitted on, is
+a different class of evidence from four points inside a narrow band.
+
+### Incidental: the guard de-duplicates on (uid, comm)
+
+The first attempt at this measurement produced a success / timeout / success / timeout pattern
+in which **every failure directly followed a success**. All probes were named `sh`, under one
+uid. Giving each trial its own binary name made every point fire in **2.9 s**:
+
+```
+sh              -> 1209600 clamped 49.7s, 1689600 TIMEOUT, 2246400 clamped 2.9s, 2841600 TIMEOUT
+spin_<freq>     -> 1689600 2.9s, 2841600 2.9s, 2438400 2.9s
+```
+
+So `oplus_bsp_task_overload` will not re-flag the same `(uid, comm)` pair again within some
+window. This matters beyond instrumentation: a thread pool whose threads all share one `comm`
+gets **one** flag between them, which is consistent with section 24 observing 169 clamped
+threads against exactly one `abnormal_task` row, and with that row's clamp spreading by fork
+inheritance rather than by repeated flagging.
+
+It also means any probe that reuses a process name silently under-reports, and a null from one
+is not evidence.
+
+### Not measurable here: anything above 3 283 200
+
+The three points at 3 513 600 / 4 089 600 / 4 320 000 could not be taken. The msm_performance
+node accepted the write, but `scaling_max_freq` stayed at 3 283 200 because the owner's
+installed tune watchdog (`/data/adb/service.d/oneplus13_cfb_tune.sh`, running this boot) holds
+a `freq_qos` request there, and cpufreq takes the `min()`. Raising it means editing an installed
+system script, so those points were left untaken rather than forced.

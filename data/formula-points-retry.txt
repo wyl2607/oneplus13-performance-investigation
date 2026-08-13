@@ -1,0 +1,19 @@
+=== formula-points Fri Aug 14 00:12:47 CEST 2026 ===
+harness affinity: 3f
+orig node: mid=2400000 prime=1689600
+
+TARGET_F   CLAMP_F    OBSERVED  PREDICTED DELTA    SECONDS
+1689600    1689600    240       240       0        2.9
+    abnormal_task: 27904 10xxx 240 spin_1689600 1786659173318 0 1689600
+2841600    2841600    403       404       -1       2.9
+    abnormal_task: 28851 10xxx 403 spin_2841600 1786659199586 0 2841600
+2438400    2438400    346       346       0        2.9
+    abnormal_task: 29692 10xxx 346 spin_2438400 1786659225846 0 2438400
+
+=== fit ===
+points=3
+observed slope   = 0.000141501  (model 0.6*1024/4320000 = 0.000142222)
+observed intercept = 0.93  (model 0)
+residual vs floor(model): min=-1 max=0 mean_abs=0.33
+restored node: 0:2400000 1:2400000 2:2400000 3:2400000 4:2400000 5:2400000 6:1689600 7:1689600 
+FORMULA_DONE
