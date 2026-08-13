@@ -1,8 +1,9 @@
-# Methodology, and four traps that produced wrong answers
+# Methodology, and seven traps that produced wrong answers
 
 Documenting the false starts because each is easy to hit and each looked convincing at the
 time. Three of them produced conclusions that had to be withdrawn after they were written
-down, and trap 4 produced a wrong conclusion in *both* directions before it settled.
+down, trap 4 produced a wrong conclusion in *both* directions before it settled, and trap 7 is
+the same mistake as a previously withdrawn result, made a second time.
 
 ---
 

@@ -40,9 +40,18 @@ trip point, `Thermal Status` stayed `0`, and all 20 cooling devices read `cur_st
 | Workload | Affected? |
 |---|---|
 | App launches, UI, scrolling, short bursts | **No** — a cold start finishes before the guard engages (measured) |
-| Benchmarks | **Yes** — the easiest reproducer, which is why this was found there |
-| Video export, compilation, emulators, on-device inference | **Expected yes** — same shape as the reproducer, *not yet measured* |
+| Benchmarks, thread pools, event loops | **Yes** — up to 2.3x; the easiest reproducer, which is why this was found there |
+| A single long-running compute loop (`gzip`, a compile job's inner process) | **No** — clamped, but *not displaced*; 1.4% and not statistically distinguishable (measured, [section 31](docs/DATA.md)) |
+| Video export, emulators, on-device inference | **Unknown** — depends on whether their hot thread sleeps; see below |
 | Games | **Unknown** — OPLUS routes games through a separate `game_opt` path; untested |
+
+**What decides it is whether the task sleeps.** Displacement happens at wakeup: the scheduler
+picks a CPU when a task wakes, and that is where the clamped utilisation is weighed against
+cluster capacity. A task that never sleeps keeps the prime core it was already on and loses
+only frequency; a task that wakes repeatedly is re-placed onto a mid core and never returns.
+Measured directly — identical work, differing only in sleeping, gave 100% prime residency after
+clamping versus 0% ([section 32](docs/DATA.md)). So the cost falls hardest on interactive and
+frame-driven work, and lightest on batch compute.
 
 Geekbench is not the problem and not the target. It is simply the cleanest way to trigger a
 vendor scheduler policy that also applies to real sustained work.
@@ -134,9 +143,13 @@ it simply is not the bottleneck. Cold start is dominated by I/O, zygote fork, cl
 and binder, and much of it runs on the mid cluster rather than the heavily clamped prime.
 
 **The honest description of this tune is: it removes a vendor clamp on sustained
-single-threaded compute.** That covers benchmarks, and plausibly video export, photo
-processing, emulation and compilation — none of which have been measured. It is not a
-general "performance mode", and the everyday responsiveness of the phone does not change.
+single-threaded compute *that sleeps often enough to be re-placed*.** That covers benchmarks,
+thread pools and event-driven work. It does **not** cover a single long-running compute loop:
+`gzip -9` under an app uid was clamped exactly as predicted and still finished within 1.4% of
+its unclamped time, because the clamp never moved it off the prime cores. The earlier version
+of this section listed compilation as "plausibly" affected; that prediction was measured and
+did not hold ([section 31](docs/DATA.md)). It is not a general "performance mode", and the
+everyday responsiveness of the phone does not change.
 
 The single largest measured lever in this entire investigation was not the CPU tune at all —
 it was **active cooling**, worth +44% sustained clock under a 15-minute all-core load, because
