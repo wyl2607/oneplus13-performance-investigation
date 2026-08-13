@@ -48,3 +48,28 @@ and frequency telemetry.
 `tools/collect-report.sh` and `tools/diagnose.sh` are read-only and collect no identifiers.
 Redact UIDs above 10000 in anything you paste if you would rather not publish which apps you
 have installed.
+
+## History rewrite, and a disclosure
+
+The published history was rewritten with `git filter-branch` before release. Two passes were
+needed, and the second one was a mistake worth recording.
+
+The first pass scrubbed the build path and the package name. It **missed the application
+UIDs**, because those had only been redacted going forward by an ordinary commit — the earlier
+commits still contained them. The repository was made public in that state and the UIDs were
+briefly reachable in history before a second pass removed them and the branch was force-pushed
+again.
+
+Practical exposure: application UIDs are device-local integers. Mapping one back to a package
+requires access to the device that produced it, so on their own they identify an app inventory
+only to someone who already has the phone. No credential, serial, IMEI, account or network
+identifier was ever committed — that was verified across the full history before publication
+and again from a fresh clone afterwards.
+
+Note that GitHub can keep unreferenced objects reachable by direct SHA for some time after a
+force-push, so the pre-rewrite blobs may persist in its cache independently of the branch.
+
+The lesson generalises: **redacting a string in the working tree does not redact it from
+history**, and an audit that only greps the current checkout will report a clean tree over a
+dirty history. Verify with `git log --all -S<string>` and from a fresh clone, not from the
+working copy.
