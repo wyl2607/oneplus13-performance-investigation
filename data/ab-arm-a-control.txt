@@ -1,0 +1,27 @@
+=== ARM A (control) — Geekbench 7 = 934 / 6017 ===
+
+--- task_overload flag event ---
+TOLNEW|2541.83|16276	10xxx	346  	pool-5-thread-1 	1786641299873	0    	2438400         
+
+--- clamp values observed on Geekbench threads ---
+  values: {'346': 3125}
+  distinct threads clamped: 83
+  first seen: {'346': 2541.68}
+
+--- running-thread CPU residency ---
+  CPU0:   125    9.4%
+  CPU1:   312   23.4%
+  CPU2:    75    5.6%
+  CPU3:    71    5.3%
+  CPU4:   334   25.1%
+  CPU5:   309   23.2%
+  CPU6:    23    1.7%
+  CPU7:    84    6.3%
+  prime(6+7) = 8.0%
+
+--- limit_flag formula, all observations to date ---
+  prime_kHz  limit_flag   0.6*1024*f/4320000
+  3283200    466          466.94
+  3072000    436          436.91
+  2649600    376          376.83
+  2438400    346          346.79

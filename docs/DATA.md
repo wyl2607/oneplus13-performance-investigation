@@ -1205,3 +1205,103 @@ Global `enable=0` did **not** stop CFB on this boot, contradicting sections 3 an
 ceilings did come back to 2 918 400 / 3 283 200 once the benchmark load started, so the run
 itself was not invalid, but the watchdog's guarantee is weaker than this repository has been
 claiming. Unresolved, and tracked separately from the uclamp work.
+
+---
+
+## 25. The clamp value is computed from the prime clock — and the two limiters compound
+
+A/B arm A (control, nothing modified), run from a cold start with the thread pool
+force-stopped first so no clamp could ride in from an earlier session. Ceilings verified at
+2 918 400 / 3 283 200 and `cfb=0` immediately before the run. Geekbench 7: **934 / 6017**.
+
+That is the *lowest* score of the whole investigation, on the run with the most carefully
+controlled preconditions. The reason is in the flag record.
+
+### The clamp was 346, not 466
+
+```
+TOLNEW  t=2541.83  16276  10xxx  346  pool-5-thread-1  ...  2438400
+```
+
+83 threads carried `uclamp.max = 346` for the run. Prime residency of running Geekbench
+threads: **8.0%**, unchanged from the 9.3% of section 24.
+
+The `freq` column of `abnormal_task` reads **2 438 400** — CFB's clamp value. The guard fired
+at a moment when CFB had the prime cluster pulled down, and the limit it applied was lower to
+match.
+
+### The formula
+
+Across every `abnormal_task` row observed so far:
+
+| prime `scaling_cur_freq` | `limit_flag` | `0.6 × 1024 × freq / 4 320 000` |
+|---|---|---|
+| 3 283 200 | 466 | 466.94 |
+| 3 072 000 | 436 | 436.91 |
+| 2 649 600 | 376 | 376.83 |
+| 2 438 400 | 346 | 346.79 |
+
+```
+limit_flag = floor(0.6 × 1024 × prime_cur_freq / 4320000)
+```
+
+Four points, all within 1 unit, consistent with truncation. The module clamps an "abnormal"
+task to **60% of the utilisation its current prime frequency represents**.
+
+**Graded HIGHLY LIKELY.** Four observations fitting a two-parameter line is a good fit but not
+a derivation; the 0.6 factor is inferred, not read out of source. A fifth point at a
+substantially different clock would settle it.
+
+### The two limiters compound, multiplicatively
+
+This closes a loop that was not visible before:
+
+```
+CFB pulls the prime cluster from 4 320 000 down toward 2 438 400
+        ↓
+task_overload samples that clock and computes 346 instead of 466
+        ↓
+a harder uclamp pins the worker further onto the mid cluster, and holds
+the mid cluster below its own ceiling as well
+        ↓
+934 instead of ~1200
+```
+
+CFB does not merely cost clock on the prime cores the benchmark never reaches. It *feeds* the
+uclamp guard a lower number. The repository has treated these as unrelated mechanisms.
+
+### It also explains the run-to-run spread
+
+Section 16 attributed the tuned single-core spread to thermal variance and left it
+unresolved. It is not thermal:
+
+| Run | `limit_flag` | Single-core |
+|---|---|---|
+| section 22 | 466 | 1145 |
+| section 24 | 466 | 1229 |
+| arm A | **346** | **934** |
+
+Clamp ratio 346/466 = **0.742**. Score ratio 934/1187 = **0.787**. Within 6%.
+
+**Score is very nearly proportional to `uclamp.max`.** The spread across runs is not noise —
+it is the clamp value itself changing, depending on where CFB happened to have the prime
+cluster when the guard fired. Any single Geekbench figure from this device is one sample from
+a distribution whose width is set by a race between two vendor limiters.
+
+This is also an unplanned dose-response curve, which is stronger causal evidence than the
+single-value observation in section 24: two different clamp values, two proportional scores,
+same mechanism, same placement.
+
+### Prediction recorded before arm B
+
+If `uclamp.max` is the whole story, lifting it to 1024 with the prime ceiling at 3 283 200
+should give:
+
+```
+2681 × (3 283 200 / 4 320 000) = 2038
+```
+
+Linear extrapolation of the dose-response alone would predict ~2600, but the prime ceiling
+truncates it — a task that reaches the prime cluster still cannot exceed 3 283 200. So: 1900
+to 2100, with prime residency going from 8% to a majority. Materially below 1900 means a
+third mechanism remains.
