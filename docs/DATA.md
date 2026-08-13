@@ -1482,3 +1482,76 @@ There is no long grace period. Any sustained single-threaded work an app does �
 export, a compile, an emulator, a benchmark — is clamped within seconds of the scheduler
 promoting it. Section 20's finding that app cold starts see no benefit from the CFB tune now
 has a second explanation: a 500–2000 ms launch ends before this guard would even engage.
+
+---
+
+## 28. A URCC state that inverts the clusters, and does not release
+
+Found while trying to set up the real-workload A/B on 2026-08-13, ~22:30. It blocked that
+experiment, so it is recorded here rather than worked around.
+
+`/sys/kernel/msm_performance/parameters/cpu_max_freq` — the node `UrccWorker` writes, see
+METHODOLOGY trap 2 — was holding:
+
+```
+0:2400000 ... 5:2400000   6:1689600 7:1689600
+```
+
+**The prime ceiling is below the mid ceiling.** In that state moving a task to a prime core
+makes it slower, which inverts the entire mechanism this repository documents.
+
+### It is not any of the usual suspects
+
+| Candidate | Reading |
+|---|---|
+| `cpufreq_bouncing` | `cur_level: 15` (top of the OPP table), `acc: 0` — not clamping |
+| Thermal framework | `Thermal Status: 0`; `cpu-cluster0`, `cpu-cluster1`, `ddr-cdev` all `cur_state=0` |
+| Temperature | junction 42 °C, shell 37 °C |
+| Battery | 71%, charging, 36.4 °C, `health=Good` |
+| Battery saver | `mSettingBatterySaverEnabled=false`, `low_power=0` |
+| The tune's watchdog | alive, `LOOP_ALIVE`, no kill switch present |
+
+No new `freq_qos` requests appeared in `fqm_dump` over an 8 s window. It is a **standing**
+request that was made once and never released, and the watchdog's `scaling_max_freq` writes
+lose to it via `min()`.
+
+### Screen-off gives a *higher* prime ceiling than screen-on
+
+A full off/on cycle, reading the node at each step:
+
+```
+before        0:2400000 ... 6:1689600
+screen off    0:1996800 ... 6:2649600     <- the documented section 5 cap, prime ABOVE mid
+screen on     0:2745600 ... 6:2438400     <- transient
++22 s         0:2400000 ... 6:1689600     <- converges back
+```
+
+This **contradicts section 5**, which recorded screen-off as 1 996 800 / 2 649 600 released by
+waking the display, and which is quoted in METHODOLOGY trap 2. Screen-off is reproduced exactly.
+What is new is the screen-*on* steady state: the prime pair settles 960 000 kHz *below* where
+screen-off leaves it, and re-converges there within ~22 s of any disturbance.
+
+### It does not release under load
+
+15 s of real gzip work run under an app uid:
+
+```
+ t     p6max     p0max     cpu7      cpu4
+ 1s   1689600   2400000   1017600   1555200
+ 6s   1689600   2400000   1017600   1996800
+15s   1689600   2400000   1017600   2227200
+```
+
+The work sits on the mid cluster and the prime pair stays at its 1 017 600 minimum for the
+whole run. Neither ceiling moves. So this is not an idle-only policy that demand would lift.
+
+### Status
+
+**UNKNOWN.** Cause not identified, trigger not identified, release condition not identified.
+What is established is that it exists, that it is not CFB / thermal / battery / screen state,
+that it survives a screen cycle and real load, and that section 5's "released by waking the
+display" is not a complete description.
+
+It also matters practically: **any measurement taken without reading this node first may be
+taken in an inverted-cluster state**, and reading `scaling_max_freq` alone will not tell you
+that, because the value looks like an ordinary low ceiling.
