@@ -1,27 +1,87 @@
-# OnePlus 13 — the real bottleneck is `uclamp.max`, not frequency
+# OnePlus 13 — performance investigation
 
-**New here? Start with [docs/FOR-USERS.md](docs/FOR-USERS.md)** — plain-language explanation,
-a two-command self-check, and what your options are.
+An evidence-based investigation into unexpectedly low sustained CPU performance on the
+OnePlus 13 / Snapdragon 8 Elite (SM8750): OPLUS `task_overload`, `uclamp.max`, scheduler
+placement, `cpufreq_bouncing`, and thermal behaviour.
 
-Investigation into why a OnePlus 13 (CPH2653, SM8750 / Snapdragon 8 Elite) scores a third of
-what the same phone scores elsewhere on the same benchmark version.
-
-Everything here is measured on-device over ADB. No inferred numbers.
-
-> **Answered.** An OPLUS kernel module, `oplus_bsp_task_overload`, flags sustained-load threads
-> as "abnormal" and clamps their `uclamp.max`. With `cpu_capacity` at 792 for the mid cluster
-> and 1024 for prime, a clamped task fits inside one mid core, so the scheduler never promotes
-> it — the two fastest cores on the SoC idle at 1 017 600 while the work runs on the mid
-> cluster. Lifting **only** that clamp, changing nothing else, took Geekbench 7 single-core
-> from **934 to 2126 (+128%)** and prime-core residency from **8% to 59.5%**.
-> See [DATA.md sections 22-26](docs/DATA.md).
->
-> `cpufreq_bouncing` — the module this repository is named after and which the first half of it
-> documents — is real, but it is the *secondary* limiter. Its main effect on scores appears to
-> be indirect: the clamp value is computed from the prime cluster's current clock, so CFB
-> lowering that clock makes the uclamp guard clamp harder. The two compound.
+Everything here is measured on-device over ADB. No inferred numbers. Wrong turns are kept.
 
 ---
+
+## Is my OnePlus 13 broken?
+
+**Almost certainly not.** The hardware is fine. The scheduler is being told your work does not
+need the fast cores.
+
+Your phone has two prime cores (CPU6/CPU7, 4.32 GHz) and six mid cores (CPU0–5, 3.53 GHz). An
+OPLUS kernel module, **`oplus_bsp_task_overload`**, watches for app threads that stay busy on
+the prime cores, decides they are "abnormal", and caps `uclamp.max` — the value the scheduler
+uses to judge how much CPU a task needs. The cap is low enough that the task fits on a mid
+core, so Linux moves it there and, working exactly as designed, never brings it back.
+
+On the reference device, lifting **only that cap** and changing nothing else:
+
+| | Stock | uclamp lifted |
+|---|---|---|
+| Geekbench 7 single-core | 934 | **2126** |
+| Geekbench 7 multi-core | 6017 | **8386** |
+| Time the benchmark spent on prime cores | 8.0% | **59.5%** |
+
+Scaled to its rated clock the device measured *slightly faster* than a healthy comparison
+unit. Nothing is defective, nothing needs reflashing.
+
+**It is not thermal.** CPU temperature during the clamped run was 40–50 °C against a 105 °C
+trip point, `Thermal Status` stayed `0`, and all 20 cooling devices read `cur_state=0`.
+
+**What it does and does not affect** — measured where stated, flagged where not:
+
+| Workload | Affected? |
+|---|---|
+| App launches, UI, scrolling, short bursts | **No** — a cold start finishes before the guard engages (measured) |
+| Benchmarks | **Yes** — the easiest reproducer, which is why this was found there |
+| Video export, compilation, emulators, on-device inference | **Expected yes** — same shape as the reproducer, *not yet measured* |
+| Games | **Unknown** — OPLUS routes games through a separate `game_opt` path; untested |
+
+Geekbench is not the problem and not the target. It is simply the cleanest way to trigger a
+vendor scheduler policy that also applies to real sustained work.
+
+## Can I check my own phone?
+
+Yes, read-only, root required (reading another process's scheduler state is privileged):
+
+```sh
+adb push tools/diagnose.sh /data/local/tmp/
+adb shell su -c 'sh /data/local/tmp/diagnose.sh <package>'
+```
+
+Run it **while the app is under sustained CPU load**. It writes nothing — it reads `/proc`
+and `/sys` and prints what it found, including whether the module exists on your device at
+all. See [docs/FOR-USERS.md](docs/FOR-USERS.md) for how to read the output.
+
+**Please contribute a result**, especially from a non-OnePlus-13 OPLUS device — the single
+biggest gap in this project is that it is one device.
+
+## How do I fix it?
+
+Read [`mitigation/`](mitigation/) — and read the thermal warning first.
+
+Diagnosis is read-only and safe. Mitigation is not. When the clamp was lifted, CPU junction
+temperature ran at **87 °C p95, peaking at 95 °C**, while the phone's outside surface moved
+from 35.0 to 36.1 °C. Android's thermal framework escalates on *skin* temperature, so nothing
+in the OS would have intervened. **You cannot feel this with your hand.**
+
+That is also the honest argument *for* the module: a genuinely runaway thread can sit at 87 °C
+inside this SoC indefinitely without the phone ever feeling warm. What the guard cannot do is
+tell a runaway bug apart from a user who deliberately asked for sustained compute.
+
+So this project does not ship a one-click "unlock full power" toggle, and you should be wary
+of anything that does.
+
+---
+
+# For researchers
+
+The rest of this document is the technical record.
 
 ## TL;DR — the original CFB finding, which still stands
 
@@ -232,7 +292,7 @@ Two facts shape the fix:
    `0` for 60 s with the screen on, survives screen-off, and flips back to `1` on wake. A
    one-shot boot script is therefore not sufficient — a watchdog is required.
 
-`tune/oneplus13_cfb_tune.sh` implements this. See [tune/README.md](tune/README.md) for the
+`mitigation/oneplus13_cfb_tune.sh` implements this. See [mitigation/README.md](mitigation/README.md) for the
 tradeoffs — it does permanently disable a vendor limiter, which is a real decision, not a
 free win.
 
@@ -307,20 +367,20 @@ Still unknown: the trigger condition and what selects the specific limit value. 
 [DATA.md section 23](docs/DATA.md) for the confidence grading and the kprobe setup for the
 confirming run.
 
-This finding also demotes the prime-cluster ceiling in `tune/`: the +30% it measured is most
+This finding also demotes the prime-cluster ceiling in `mitigation/`: the +30% it measured is most
 plausibly the *mid* cluster going from 2 400 000 to 2 918 400, not anything the prime pair did.
 
 **2. Is `limit_level 6` stock for CPH2653, or specific to this unit's build?**
 
 Nothing on this device can answer that. It needs one data point from another OnePlus 13.
-If you have one, please run [`scripts/contribute-comparison.sh`](scripts/contribute-comparison.sh)
+If you have one, please run [`tools/collect-report.sh`](tools/collect-report.sh)
 (read-only, no root changes, no PII) and open an issue with the output.
 
 **3. A same-version GB7 reference that is verifiable.**
 
 The 2 681 / 8 846 figure underpinning question 1 is user-supplied and could not be fetched
 programmatically. A GB7 result from another OnePlus 13, captured alongside
-`scripts/contribute-comparison.sh` output, would put question 1 on firmer ground.
+`tools/collect-report.sh` output, would put question 1 on firmer ground.
 
 ### Correction, twice — the "second factor" is back, and is the main open question
 
@@ -393,8 +453,8 @@ modifies kernel state has an unconditional `restore` and a `trap`, and aborts on
 junction > 95 °C or shell > 42 °C.
 
 ```bash
-adb push scripts /data/local/tmp/
-adb shell su -c 'sh /data/local/tmp/scripts/collect-baseline.sh'
+adb push experiments /data/local/tmp/
+adb shell su -c 'sh /data/local/tmp/experiments/collect-baseline.sh'
 ```
 
 See [docs/METHODOLOGY.md](docs/METHODOLOGY.md) — including two measurement traps that

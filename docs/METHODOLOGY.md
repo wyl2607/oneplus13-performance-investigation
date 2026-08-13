@@ -125,7 +125,7 @@ oscillation around 88 °C with the LMH loop actively modulating `scaling_max_fre
 from the sensor's actual operating range, not from intuition.
 
 Nothing here is persistent. All module parameters and `scaling_max_freq` values reset on
-reboot. The only persistent artifact in this repo is `tune/oneplus13_cfb_tune.sh`, which is
+reboot. The only persistent artifact in this repo is `mitigation/oneplus13_cfb_tune.sh`, which is
 opt-in and removable.
 
 ---

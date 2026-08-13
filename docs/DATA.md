@@ -252,7 +252,7 @@ used for thermal characterisation.
 ## 11. GPU under load — Geekbench 7 OpenCL, **with** the 40 W active cooler
 
 Adreno 830v2, `max_gpuclk` 1 100 000 000. 420 s of 1 Hz read-only sampling
-(`scripts/gpu-sample.sh`), full log in `data/gpu-opencl-with-40w-cooler.log`.
+(`experiments/gpu-sample.sh`), full log in `data/gpu-opencl-with-40w-cooler.log`.
 Result: **15537 OpenCL**.
 
 Idle state before the run:
