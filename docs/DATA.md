@@ -1812,3 +1812,104 @@ POSITIVE_CONTROL=PASS
 It also validates its own field parsing — `processor` is field 39 of `/proc/<pid>/stat`, which
 after stripping the `pid (comm) ` prefix is index 37 — and asserts the parsed value is a legal
 CPU id before proceeding. The natural-clamp null above was recorded only after both passed.
+
+---
+
+## 31. Real-workload A/B — gzip, and a null result that matters
+
+The experiment section 28 was blocked from running. `gzip -9` over a fixed 908 MiB input under
+app uid 10999, stock versus `uclamp.max` held at 1024, ceiling pinned to 2 918 400 / 3 283 200
+**in both arms**, interleaved ABBABAAB, 4 runs per arm. Capture in `data/real-workload/`.
+
+### Result
+
+| Run | Arm | Wall ms | prime % | clamped % | mean freq |
+|---|---|---|---|---|---|
+| 1 | A | 28 650 | 100.0 | 41.4 | 3 283 200 |
+| 4 | A | 29 220 | 100.0 | 0.0 | 3 283 200 |
+| 6 | A | 29 150 | 98.9 | 20.2 | 3 273 276 |
+| 7 | A | 30 880 | 98.9 | 81.5 | 3 080 765 |
+| 2 | B | 29 110 | 98.9 | 0.0 | 3 268 746 |
+| 3 | B | 29 090 | 98.9 | 0.0 | 3 273 276 |
+| 5 | B | 29 070 | 100.0 | 1.1 | 3 283 200 |
+| 8 | B | 29 030 | 98.9 | 0.0 | 3 273 276 |
+
+```
+Arm A  mean 29 475 ms   sd 970   (28 650 - 30 880)
+Arm B  mean 29 075 ms   sd  34   (29 030 - 29 110)
+difference 1.4%,  Welch t = 0.82, df ~ 3, p ~ 0.47
+```
+
+**No detectable effect.** Against the +128% that the same intervention produced on Geekbench 7
+single-core (section 26), this is the important number in the section.
+
+### Why — the clamp fires but does not displace
+
+`prime residency is 98.9-100% in every run of both arms.` The guard fires in arm A (up to 81.5%
+of samples carry `uclamp.max = 466`, and `abnormal_task` gains a row in 7 of 8 runs) but gzip
+**keeps running on the prime cores anyway**. In section 26 the identical 466 clamp drove
+Geekbench's prime residency to 8.0%.
+
+So for this workload the clamp costs only frequency, and even that inconsistently — arm A's
+mean frequency ranged from the full 3 283 200 down to 3 080 765. When frequency did drop, wall
+time tracked it almost exactly (run 7: frequency ratio 1.066, time ratio 1.062).
+
+### Scope — and a correction to how this repository has been framing its headline
+
+The +128% is not withdrawn; it was measured under a controlled A/B and the mechanism is
+independently supported. What is now established is that **it does not generalise to all
+sustained single-threaded app work.** Section 27 said "any sustained single-threaded work an
+app does — a video export, a compile, an emulator, a benchmark — is clamped within seconds".
+The clamping part is confirmed. The implied performance consequence is not: this compile-like
+workload was clamped and lost nothing measurable.
+
+Section 32 identifies what separates the two cases.
+
+---
+
+## 32. What decides whether the clamp costs anything: whether the task sleeps
+
+Section 26 and section 31 apply the same clamp, at the same value, on the same device, and get
++128% and nothing. The difference is not the clamp. It is what the scheduler does with it.
+
+**Hypothesis.** Displacement happens at *wakeup*. Linux chooses a CPU in `select_task_rq` when a
+task wakes, and that is where clamped utilisation is compared against cluster capacity. A task
+that never sleeps is never re-placed: it keeps the prime core it was promoted to before the
+clamp landed, and the clamp costs it frequency only. Geekbench's pool workers sleep between
+subtests and are re-placed constantly, every time against a clamped utilisation.
+
+**Test.** Identical busy work under an app uid, unpinned, full `ff` affinity, ceiling pinned,
+differing only in whether the task sleeps. Prime residency measured separately before and after
+the clamp lands.
+
+```
+spin  106 cpu-ticks/s, never sleeps   clamped @  3 960 ms   prime 100.0% -> 100.0%
+duty   80 cpu-ticks/s, wakes ~5x/s    clamped @ 17 470 ms   prime 100.0% ->   0.0%
+```
+
+Both were on the prime cluster 100% of the time *before* being clamped. The duty-cycle task
+left it completely and permanently at the moment it was clamped; the spinning task did not
+move at all.
+
+**This confirms the hypothesis and completes section 27's ratchet.** The one-way ratchet needs a
+wakeup to turn. Without one it never engages, which is why gzip stayed on prime for 30 seconds
+while carrying a 466 clamp.
+
+Practical reading:
+
+| Workload shape | Clamped? | Displaced? | Cost |
+|---|---|---|---|
+| Single long-running compute loop (gzip, a compile job's inner process) | yes | **no** | frequency only, often nil |
+| Thread pool, event loop, frame-driven work, benchmark harness (Geekbench, games, UI) | yes | **yes** | up to 2.3x |
+
+The workloads that sleep are the interactive ones. So the guard's cost falls hardest on exactly
+the work a user perceives as responsiveness, and lightest on the batch work where a user would
+tolerate it.
+
+**Confound, stated.** The duty variant ran at 80 cpu-ticks/s against the spin variant's 106, so
+the two are not matched on utilisation, and a task at ~78% duty could fit the mid cluster's
+effective capacity (654) on utilisation alone. What argues against that explanation is the
+timing: the duty task held 100% prime residency for its first 14 seconds while unclamped, and
+went to 0% at the sample the clamp landed. The transition coincides with the clamp, not with a
+change in its load. A fork-free duty-cycle generator matched to within a few percent on
+utilisation would settle it.

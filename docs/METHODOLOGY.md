@@ -262,3 +262,74 @@ Three lessons:
 Blast radius, checked rather than assumed: `gb7_sampler.sh` has exactly three lines ending in
 `r` and all three are comments, so the frequency and placement traces taken with it are
 unaffected. Only the newer attribution sampler had functional code on such a line.
+
+---
+
+## Trap 6 — the instrument ran on the cluster it was measuring
+
+The first real-workload A/B (section 31) produced control runs that were clamped to 466 for
+most of their duration while the prime cluster sat at its full 3 283 200 ceiling. That is not
+possible from the workload alone: a task clamped to 466 asks for
+`466/1024 x 4 320 000 = 1966 MHz`. Something else was holding the clock up.
+
+It was the sampler. Per 250 ms tick it ran roughly fifteen short-lived processes — `sed`, `awk`,
+and a `cat | tr | grep | cut` pipeline per sysfs read — all as root, all therefore exempt from
+the clamp under test. **cpu6 and cpu7 share one cpufreq policy**, so any unclamped task landing
+on either core sets the frequency for both, and EAS puts exactly that kind of short bursty work
+on the fastest available core.
+
+The contamination was also asymmetric: arm B carried an additional `uclampset` loop, so the arm
+whose result depended on high frequency had more of the thing that produces high frequency.
+
+Pinning the harness to the mid cluster and handing the workload back its full mask changed the
+measured effect from 6.8% to 1.4%:
+
+```sh
+taskset -p 3f $$                      # harness and every child on mid
+su $UID -c "taskset ff sh -c '...'"   # workload alone gets all 8 cores
+```
+
+- **A sampler is a workload.** Frequency-domain sharing means an observer on the same cluster is
+  inside the experiment, not outside it. Pin the harness, or read through something that does
+  not schedule.
+- **Sanity-check the physics of your own control arm.** The tell was there in the first table:
+  a 466-clamped task cannot sustain 3 283 200. Any sample where the reported cause and the
+  reported effect are inconsistent is an instrument fault until proven otherwise.
+
+---
+
+## Trap 7 — `pgrep -f` matched the idle parent, twice
+
+The previous round's `workload_clamp_probe.sh` reported no effect while monitoring an idle
+parent shell, and every conclusion drawn from it was withdrawn. Building the replacement, the
+same bug was written again:
+
+```sh
+su $APPUID -c "taskset ff sh -c '$BODY # plsleepprobe'" &
+PID=$(pgrep -u $APPUID -f plsleepprobe | head -1)     # WRONG
+```
+
+`su`'s own command line contains the marker string, and after it drops privileges it matches
+`-u $APPUID` too. `head -1` takes the lowest pid, which is the `su` parent — blocked in
+`wait()`, on a mid core, never clamped. Both trials returned `prime_residency=0.0%` and
+`clamp: never`, a clean and completely false null.
+
+What caught it was that the null was *too* clean: two workloads designed to differ produced
+byte-identical outcomes, and one of them contradicted the already-established section 27 result
+that an unpinned app-uid busy loop is clamped within seconds. A null that disagrees with a
+previously confirmed positive is an instrument failure first and a discovery second.
+
+The fix is to validate the probe's *target*, not just its readout — the same discipline as the
+`uclampset` positive control, applied one level further out:
+
+```sh
+# sample utime+stime over 1 s; pick the candidate actually burning CPU, refuse if none is
+for c in $CANDS; do ... d=$((b - a)) ...; done
+[ "$BESTD" -lt 20 ] && { echo "probe target invalid"; return; }
+```
+
+The A/B harness escaped the bug only because it happened to use `pgrep -u $APPUID -x gzip`,
+matching the binary's name rather than a command-line substring.
+
+**Confirming that the probe can see the effect is not enough if it is pointed at the wrong
+process.** Validate the readout *and* the target.

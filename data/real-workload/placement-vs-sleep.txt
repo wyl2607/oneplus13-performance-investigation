@@ -1,0 +1,28 @@
+=== placement-vs-sleep Thu Aug 13 23:53:52 CEST 2026 ===
+harness affinity: 3f
+
+===== spin =====
+  start junction=42000
+  ceiling p0max=2918400 p6max=3283200
+  candidate pid=10083 cpu_ticks_in_1s=0  (sh)
+  candidate pid=10084 cpu_ticks_in_1s=106  (sh)
+  pid=10084 comm=sh cpu_ticks_in_1s=106 affinity=ff
+  clamp landed at: 3960 ms
+  samples=240  prime_residency_overall=100.0%
+  before clamp: n=13 prime=100.0%
+  AFTER clamp:  n=227 prime=100.0%
+  uclamp values seen: 1024 466 
+
+===== duty =====
+  start junction=43600
+  ceiling p0max=2918400 p6max=3283200
+  candidate pid=14459 cpu_ticks_in_1s=0  (sh)
+  candidate pid=14460 cpu_ticks_in_1s=80  (sh)
+  pid=14460 comm=sh cpu_ticks_in_1s=80 affinity=ff
+  clamp landed at: 17470 ms
+  samples=240  prime_residency_overall=23.8%
+  before clamp: n=57 prime=100.0%
+  AFTER clamp:  n=183 prime=0.0%
+  uclamp values seen: 1024 466 
+
+PLSLEEP_DONE

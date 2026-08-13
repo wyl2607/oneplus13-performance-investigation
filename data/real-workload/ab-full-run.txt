@@ -1,0 +1,95 @@
+=== ab-real-workload Thu Aug 13 23:27:59 CEST 2026 ===
+input:  /data/local/tmp/gzab/big.dat  951886264 bytes  md5=5c85ba019ff07ae433e48db19dcf4f30
+uid:    10999
+pin:    mid=2918400 prime=3283200  (both arms)
+order:  A B B A B A A B
+orig node: mid=2400000 prime=1689600
+cfb enable=0
+junction zone=/sys/class/thermal/thermal_zone28/temp shell zone=/sys/class/thermal/thermal_zone56/temp
+
+===== RUN 1  ARM A =====
+  cooldown...
+  cooled to 39700 after 0s
+  pinned: node6=3283200 p6max=3283200 p0max=2918400
+  gzip pid=20097  (spawn overhead 30ms, excluded)
+  elapsed_ms=29210 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 89|100.0|43.8|466|3283200|71800|0
+
+===== RUN 2  ARM B =====
+  cooldown...
+  cooled to 42400 after 5s
+  pinned: node6=3283200 p6max=3283200 p0max=2918400
+  gzip pid=24599  (spawn overhead 60ms, excluded)
+  arm B: uclampset loop pid=24603
+  elapsed_ms=28980 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 89|100.0|0.0|1024|3283200|73300|0
+
+===== RUN 3  ARM B =====
+  cooldown...
+  cooled to 43600 after 5s
+  pinned: node6=3283200 p6max=3283200 p0max=2918400
+  gzip pid=28441  (spawn overhead 40ms, excluded)
+  arm B: uclampset loop pid=28444
+  elapsed_ms=29090 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 89|100.0|1.1|466|3283200|73300|0
+
+===== RUN 4  ARM A =====
+  cooldown...
+  cooled to 44000 after 5s
+  pinned: node6=3283200 p6max=3283200 p0max=2918400
+  gzip pid=31985  (spawn overhead 40ms, excluded)
+  elapsed_ms=28950 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 88|100.0|68.2|466|3283200|76400|0
+
+===== RUN 5  ARM B =====
+  cooldown...
+  cooled to 44800 after 5s
+  pinned: node6=3283200 p6max=3283200 p0max=2918400
+  gzip pid=5025  (spawn overhead 40ms, excluded)
+  arm B: uclampset loop pid=5033
+  elapsed_ms=29160 aborted=no new_abnormal_task_rows=0
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 89|100.0|0.0|1024|3283200|69500|0
+
+===== RUN 6  ARM A =====
+  cooldown...
+  cooled to 43600 after 10s
+  pinned: node6=3283200 p6max=3283200 p0max=2918400
+  gzip pid=10047  (spawn overhead 50ms, excluded)
+  elapsed_ms=32020 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 95|100.0|73.7|466|3009752|74100|0
+
+===== RUN 7  ARM A =====
+  cooldown...
+  cooled to 44000 after 5s
+  pinned: node6=3283200 p6max=3283200 p0max=2918400
+  gzip pid=12576  (spawn overhead 40ms, excluded)
+  elapsed_ms=34660 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 100|99.0|84.0|466|2754816|72200|0
+
+===== RUN 8  ARM B =====
+  cooldown...
+  cooled to 43600 after 5s
+  pinned: node6=3283200 p6max=3283200 p0max=2918400
+  gzip pid=15415  (spawn overhead 50ms, excluded)
+  arm B: uclampset loop pid=15418
+  elapsed_ms=29130 aborted=no new_abnormal_task_rows=1
+  samples|prime%|clamped%|min_uclamp|mean_freq|jmax|ceiling_violations = 89|100.0|0.0|1024|3283200|74900|0
+
+===== SUMMARY =====
+RUN|1|A|OK|elapsed_ms=29210|89|100.0|43.8|466|3283200|71800|0|newrows=1
+RUN|2|B|OK|elapsed_ms=28980|89|100.0|0.0|1024|3283200|73300|0|newrows=1
+RUN|3|B|OK|elapsed_ms=29090|89|100.0|1.1|466|3283200|73300|0|newrows=1
+RUN|4|A|OK|elapsed_ms=28950|88|100.0|68.2|466|3283200|76400|0|newrows=1
+RUN|5|B|OK|elapsed_ms=29160|89|100.0|0.0|1024|3283200|69500|0|newrows=0
+RUN|6|A|OK|elapsed_ms=32020|95|100.0|73.7|466|3009752|74100|0|newrows=1
+RUN|7|A|OK|elapsed_ms=34660|100|99.0|84.0|466|2754816|72200|0|newrows=1
+RUN|8|B|OK|elapsed_ms=29130|89|100.0|0.0|1024|3283200|74900|0|newrows=1
+
+----- per-arm aggregate (valid, non-aborted runs only) -----
+ARM A: n=4 mean_ms=31210 best_ms=28950 worst_ms=34660
+ARM B: n=4 mean_ms=29090 best_ms=28980 worst_ms=29160
+
+A/B wall-time ratio = 0.932  (B faster by 6.8%)
+
+restored node: 0:2400000 1:2400000 2:2400000 3:2400000 4:2400000 5:2400000 6:1689600 7:1689600 
+AB_DONE

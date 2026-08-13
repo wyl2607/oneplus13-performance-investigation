@@ -90,6 +90,21 @@ read_ucl() { awk '/^uclamp\.max /{print $NF; exit}' /proc/$1/sched 2>/dev/null; 
 mkdir -p $OUT
 rm -f $OUT/*.csv $OUT/summary.txt 2>/dev/null
 
+# Keep the instrument off the cluster it is measuring.
+#
+# cpu6 and cpu7 share one cpufreq policy, so ANY unclamped task on either core sets
+# the clock for both. This sampler spawns ~15 short-lived root processes per 250 ms
+# tick; left unpinned, EAS puts that burst on the prime cores and holds policy6 at
+# its ceiling no matter what the workload asks for. The first 8-run attempt showed
+# exactly that: two control runs stayed at 3283200 while clamped to 466, which a
+# task demanding 466/1024 * 4320000 = 1966 MHz cannot do on its own.
+#
+# Arm B additionally carries a uclampset loop, so the contamination was not even
+# symmetric between arms. Pin the harness to the mid cluster and give the workload
+# back its full mask explicitly.
+taskset -p 3f $$ >/dev/null 2>&1
+echo "harness affinity: $(taskset -p $$ 2>/dev/null)"
+
 echo "=== ab-real-workload $(date) ==="
 echo "input:  $BIG  $(wc -c < $BIG) bytes  md5=$(md5sum $BIG | cut -d' ' -f1)"
 echo "uid:    $APPUID"
@@ -132,7 +147,9 @@ for ARM in $ORDER; do
 
   TOLB=$(wc -l < $TOL 2>/dev/null || echo 0)
 
-  su $APPUID -c "sh -c 'gzip -9 -c $BIG > /dev/null # $MARK'" &
+  # taskset ff undoes the harness's own 3f mask for the workload only, so the
+  # workload is free to use all 8 cores while the instrument stays on mid.
+  su $APPUID -c "taskset ff sh -c 'gzip -9 -c $BIG > /dev/null # $MARK'" &
   T0=$(now)
 
   PID=""; n=0
@@ -149,7 +166,14 @@ for ARM in $ORDER; do
   # Restart the clock at pid discovery. T0 includes `su` process setup, which is
   # jitter of order a second on a ~40 s run and is not part of the workload.
   TP=$(now)
-  echo "  gzip pid=$PID  (spawn overhead $(( (TP-T0)*10 ))ms, excluded)"
+  WAFF=$(taskset -p $PID 2>/dev/null | sed 's/.*: *//')
+  echo "  gzip pid=$PID  affinity=$WAFF  (spawn overhead $(( (TP-T0)*10 ))ms, excluded)"
+  if [ "$WAFF" != "ff" ]; then
+    echo "  !! workload affinity is '$WAFF', not ff - it cannot reach prime. INVALID"
+    echo "RUN|$RUN|$ARM|INVALID|bad_workload_affinity=$WAFF" >> $OUT/summary.txt
+    pkill -9 -f "$MARK" 2>/dev/null; pkill -9 -u $APPUID gzip 2>/dev/null
+    continue
+  fi
 
   # URCC reclaims this node ~28 s into a loaded run -- it holds indefinitely while
   # idle but not under load, which silently cost arm A 8 s at the inverted ceiling
