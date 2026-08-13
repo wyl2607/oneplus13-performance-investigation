@@ -1,0 +1,30 @@
+=== abnormal_task after the traced run (clean table from reboot) ===
+TOLNEW|234.83|22287	10xxx	376  	pool-5-thread-1 	1786638992941	0    	2649600         
+TOLNEW|611.25|26298	10xxx	466  	pool-5-thread-1 	1786639362457	0    	3283200         
+
+=== uclamp.max=466 spread: distinct threads and first-seen ===
+distinct threads ever at uclamp.max=466: 169
+  TID 26298   pool-5-thread-1    first seen already clamped at t=611.25
+  TID 31761   pool-5-thread-1    first seen already clamped at t=688.16
+  TID 31809   pool-5-thread-1    first seen already clamped at t=689.16
+  TID 31876   pool-5-thread-1    first seen already clamped at t=690.68
+  TID 31889   pool-5-thread-1    first seen already clamped at t=690.96
+  TID 31936   pool-5-thread-1    first seen already clamped at t=691.95
+  TID 32011   pool-5-thread-1    first seen already clamped at t=693.48
+  TID 32023   pool-5-thread-1    first seen already clamped at t=693.75
+  TID 32068   pool-5-thread-1    first seen already clamped at t=694.74
+  TID 32141   pool-5-thread-1    first seen already clamped at t=696.26
+  TID 32155   pool-5-thread-1    first seen already clamped at t=696.54
+  TID 32202   pool-5-thread-1    first seen already clamped at t=697.53
+
+=== kprobe summary: __sched_setscheduler calls during the run ===
+  10xxx  ucl: 
+flags distribution:
+   9017 flags=0x0
+   1520 flags=0x1
+      4 flags=0x78
+every call carrying UTIL_CLAMP flags:
+   binder:4542_9-25537   [004] d....   437.593233: ucl: (__sched_setscheduler+0x0/0xb88) flags=0x78 umin=1024 umax=1024
+   binder:4542_9-25537   [007] d....   437.597514: ucl: (__sched_setscheduler+0x0/0xb88) flags=0x78 umin=0 umax=1024
+   binder:4542_2-4547    [006] d....   923.892856: ucl: (__sched_setscheduler+0x0/0xb88) flags=0x78 umin=1024 umax=1024
+   binder:4542_2-4547    [006] d....   923.894894: ucl: (__sched_setscheduler+0x0/0xb88) flags=0x78 umin=0 umax=1024

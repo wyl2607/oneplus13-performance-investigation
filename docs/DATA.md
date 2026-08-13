@@ -1095,3 +1095,113 @@ p:uclsys __arm64_sys_sched_setattr tpid=+0(%x0):s32 flags=+8(+8(%x0)):x64 umax=+
 `sched_attr.sched_util_min` / `sched_util_max` are at +48 / +52 by uapi definition. Probes are
 removed and the instance disabled on exit. Trace-only: nothing writes a scheduler, uclamp,
 cpuset, cpufreq or thermal tunable.
+
+---
+
+## 24. Catching the clamp live — and how it spreads
+
+Second attribution run, on a freshly rebooted device so `abnormal_task` started empty and any
+row in it is unambiguously from this session. Geekbench 7 scored **1229 / 7382**. Full capture
+in `data/uclamp-writer-hunt.txt`.
+
+### The clamp, caught on the same 100 ms tick
+
+```
+t=611.25  TOLNEW  26298  10xxx  466  pool-5-thread-1  ...  3283200
+t=611.25  sampler TID 26298 pool-5-thread-1  uclamp.max=466  effective=466  util_avg=1014
+```
+
+uid 10xxx is `com.primatelabs.parkdale`. The module wrote its `abnormal_task` row and the
+thread's `uclamp.max` read 466 within the same sample. `util_avg` was 1014 out of 1024 — the
+thread was fully loaded when it was flagged, which is consistent with an overload guard.
+
+### The standard API did not do it
+
+`__sched_setscheduler` was kprobed for the whole run — that path carries both the
+`sched_setattr` syscall and the kernel-internal `sched_setattr_nocheck`:
+
+```
+9873  __sched_setscheduler calls
+8491  flags=0x0
+1468  flags=0x1
+   4  flags=0x78   <- the only calls carrying SCHED_FLAG_UTIL_CLAMP
+```
+
+All four were `binder:4542_*` setting **umax=1024**. **Not one call in the entire run set 466.**
+So no userspace process and no standard kernel API applied the clamp. `proc_task_uclamp_write`
+never fired either, confirming `/proc/oplus_qos_sched/qos_task_uclamp` is uninvolved.
+
+`set_uclamp_max` also recorded zero hits. It is a static symbol; its call sites are almost
+certainly inlined, so the out-of-line copy never executes and a kprobe on it cannot fire. That
+is a limitation of the probe, not evidence against the module.
+
+### One thread is flagged; the clamp then spreads by inheritance
+
+169 distinct threads carried `uclamp.max = 466` during the run, but `abnormal_task` contains
+exactly **one** Geekbench row for the whole session.
+
+```
+t=596.4   0 clamped of 15 threads
+t=611.2   1 clamped of 22      <- TID 26298, the logged row
+t=688.2   2 clamped of 22
+t=861.4   8 / 16 / 24 clamped  <- multi-core phase, in waves of eight
+```
+
+Every thread in those waves was **already at 466 the first time it was sampled**, and none of
+them produced an `abnormal_task` row. Linux copies `uclamp_req` from parent to child in
+`uclamp_fork()` unless `reset_on_fork` is set, so a single flagged thread is enough to poison
+every worker the pool spawns afterwards.
+
+This is why the whole benchmark is affected rather than one thread, and why the previous
+session's `pool-5-thread-1` was already clamped at trace start — the clamp outlives the
+workload that triggered it and rides the thread pool into the next run.
+
+**Graded HIGHLY LIKELY, not proven.** The alternative — the module clamping each new thread of
+an already-flagged process without logging it — fits the same data. Distinguishing them needs
+a probe that fires, i.e. one placed on the module's caller rather than on an inlined callee.
+
+### It is not benchmark detection
+
+On the same clean table, before Geekbench was even launched:
+
+```
+22287  10xxx  376  pool-5-thread-1  18:36:32  0  2649600
+```
+
+uid 10xxx is `an.unrelated.app`, an ordinary app that happens to use the same Java
+thread-pool naming. It was clamped to **376** while idle at the launcher. The guard fires on
+thread behaviour, not on package identity.
+
+### Placement, and a result that separates uclamp from frequency
+
+CPU residency of *running* Geekbench threads across the run:
+
+```
+CPU0-CPU5 (mid)   90.7%
+CPU6-CPU7 (prime)  9.3%
+```
+
+Still broken, as in section 22. But this run's ceiling behaved very differently: it oscillated
+continuously between 2 438 400 and 3 283 200 as CFB stepped it down and the watchdog pushed it
+back up, whereas section 22's run held a flat 3 283 200 for its entire duration.
+
+**The run with the worse ceiling scored higher** — 1229 against 1145 single-core, 7382 against
+6382 multi-core. Whatever is costing this device its performance, the prime-cluster ceiling is
+not it.
+
+### Aside — the tune did not hold after this reboot
+
+Checked before the run, screen awake, global `cpufreq_bouncing` `enable` reading 0 and the
+watchdog alive:
+
+```
+p0max = 2400000   (CFB's own clus0 limit_freq)
+p6max = 1689600
+fqm_dump: cb_do_boundary_change_work [cpufreq_bouncing] still issuing freq_qos requests
+config:  per-cluster enable: 1 on both clusters
+```
+
+Global `enable=0` did **not** stop CFB on this boot, contradicting sections 3 and 19. The
+ceilings did come back to 2 918 400 / 3 283 200 once the benchmark load started, so the run
+itself was not invalid, but the watchdog's guarantee is weaker than this repository has been
+claiming. Unresolved, and tracked separately from the uclamp work.
