@@ -28,9 +28,19 @@ CEIL6=3283200
 
 [ -f /data/adb/cfb_tune.off ] && exit 0
 
-# Single instance. A stale pid file from an unclean shutdown is ignored.
-if [ -f "$LOCK" ] && kill -0 "$(cat $LOCK 2>/dev/null)" 2>/dev/null; then
-  exit 0
+# Single instance. A bare PID is NOT a valid lock across a reboot: the kernel
+# reallocates PIDs from low numbers, so a PID stored by the previous boot is very
+# likely to be held by an unrelated early system process, `kill -0` succeeds, and
+# this script exits without ever running. That was observed in the field — the
+# lock still held 3434 from the previous boot, that PID was alive 200 s into the
+# new boot, and CFB was never disabled. Confirm the process really is this script.
+if [ -f "$LOCK" ]; then
+  OLD=$(cat "$LOCK" 2>/dev/null)
+  if [ -n "$OLD" ] && kill -0 "$OLD" 2>/dev/null &&
+     tr '\0' ' ' < "/proc/$OLD/cmdline" 2>/dev/null | grep -q cfb_tune; then
+    exit 0
+  fi
+  rm -f "$LOCK"
 fi
 
 (
