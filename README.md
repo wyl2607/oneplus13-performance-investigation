@@ -1,13 +1,26 @@
-# OnePlus 13 — `cpufreq_bouncing` frequency clamp
+# OnePlus 13 — the real bottleneck is `uclamp.max`, not frequency
 
-Investigation into why a OnePlus 13 (CPH2653, SM8750 / Snapdragon 8 Elite) sustains only
-**56% of its rated prime-core clock** under load, and what can be done about it.
+Investigation into why a OnePlus 13 (CPH2653, SM8750 / Snapdragon 8 Elite) scores a third of
+what the same phone scores elsewhere on the same benchmark version.
 
 Everything here is measured on-device over ADB. No inferred numbers.
 
+> **Answered.** An OPLUS kernel module, `oplus_bsp_task_overload`, flags sustained-load threads
+> as "abnormal" and clamps their `uclamp.max`. With `cpu_capacity` at 792 for the mid cluster
+> and 1024 for prime, a clamped task fits inside one mid core, so the scheduler never promotes
+> it — the two fastest cores on the SoC idle at 1 017 600 while the work runs on the mid
+> cluster. Lifting **only** that clamp, changing nothing else, took Geekbench 7 single-core
+> from **934 to 2126 (+128%)** and prime-core residency from **8% to 59.5%**.
+> See [DATA.md sections 22-26](docs/DATA.md).
+>
+> `cpufreq_bouncing` — the module this repository is named after and which the first half of it
+> documents — is real, but it is the *secondary* limiter. Its main effect on scores appears to
+> be indirect: the clamp value is computed from the prime cluster's current clock, so CFB
+> lowering that clock makes the uclamp guard clamp harder. The two compound.
+
 ---
 
-## TL;DR
+## TL;DR — the original CFB finding, which still stands
 
 An OPLUS kernel module called **`cpufreq_bouncing`** (CFB) clamps the CPU via `freq_qos`
 after **50 ms** of sustained load:
@@ -24,11 +37,14 @@ Because CFB enforces through `freq_qos`, and cpufreq takes the **minimum** of al
 requests, writing `scaling_max_freq` as root has no effect — a very common source of
 confusion when diagnosing this.
 
-> **CFB is not the whole story, and may not even be the main story.** Tracing an actual
-> Geekbench 7 run shows the benchmark executing on the **mid** cluster while both prime cores
-> idle at 1 017 600 — not because anything clamped them, but because the worker threads carry
-> `uclamp.max = 466` against a mid-cluster `cpu_capacity` of 792, so the scheduler never
-> promotes them. See [DATA.md section 22](docs/DATA.md). Who sets that value is unresolved.
+> **The tune's measured +30% may work through a mechanism this repository never knew about.**
+> The clamp value is `floor(0.6 × 1024 × prime_cur_freq / 4 320 000)`. Stock, CFB holds the
+> prime cluster at 2 438 400, which yields a clamp of 346. Tuned, the ceiling holds it at
+> 3 283 200, which yields 466. That ratio is **+34.7%**, against a measured tune gain of
+> **+30.3%** — a closer fit than the mid-cluster ceiling change (+21.6%) that was assumed to be
+> responsible. The workload never runs on the prime cluster, but the prime cluster's clock
+> decides how much of the mid cluster it is allowed to use. Not proven; consistent with every
+> number so far.
 
 ---
 
