@@ -16,6 +16,11 @@ This is not a free performance win. Read this before installing.
   `freq_qos` request and still wins via `min()`.
 - It does not persist across a reboot by itself if you remove the script — every value it
   writes is volatile.
+- **It does not unlock the hardware's rated clock.** `cpuinfo_max_freq` is `4 320 000` (prime)
+  and `3 532 800` (mid), so the ceilings above are 76% and 83% of rated — chosen for thermal
+  headroom, not because they are the maximum. Nor does it address the separate, per-cycle
+  shortfall documented in [DATA.md section 12](../docs/DATA.md); a tuned Geekbench 7
+  single-core score is still well under what the clock ratio alone predicts.
 
 ## Measured cost
 

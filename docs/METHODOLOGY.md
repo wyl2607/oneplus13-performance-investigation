@@ -1,7 +1,8 @@
-# Methodology, and three traps that produced wrong answers
+# Methodology, and four traps that produced wrong answers
 
 Documenting the false starts because each is easy to hit and each looked convincing at the
-time. Two of them produced conclusions that had to be withdrawn after they were written down.
+time. Three of them produced conclusions that had to be withdrawn after they were written
+down, and trap 4 produced a wrong conclusion in *both* directions before it settled.
 
 ---
 
@@ -172,7 +173,8 @@ impossible for a back cover with the battery pressed against it.
 The CPU junction zones (27, 28, 30) happened to keep their indices, so measurements using
 them remained valid. That is luck, not design.
 
-**Always resolve zones by name:**
+**Always resolve zones by name — and note that a name lookup is one extra `cat` at startup,
+against a whole invalidated run:**
 
 ```sh
 zone_by_name() {
@@ -185,3 +187,78 @@ Z_J7=$(zone_by_name cpu-1-1-1) || exit 2
 ```
 
 Failing closed on a missing sensor is better than silently reading the wrong one.
+
+---
+
+## Trap 4 — taking an effect's direction without checking its magnitude
+
+The most expensive error in this repository, because it did not look like an error. It looked
+like rigour.
+
+The chain: this device's Geekbench **7** scores were compared against Geekbench **6**
+reference figures, and the gap was read as evidence of a second bottleneck. Catching the
+version mismatch was correct. What followed was not.
+
+The fix cited a real source — [Signal65's GB7 analysis](https://signal65.com/research/geekbench-7-analysis-and-early-results/)
+— for a real fact: GB7 single-core scores come in lower than GB6 on identical hardware. That
+citation was then used to dismiss the entire gap. But the source's own numbers are **−9% to
+−15%**, and the gap being explained away was **2.2×**.
+
+A correctly-sourced, correctly-directed effect was used to explain a discrepancy fifteen times
+its size. Nothing in the citation was misquoted. The magnitude was simply never put next to
+the thing it was supposed to explain.
+
+**The check that would have caught it takes one line:**
+
+```
+claimed cause:  -15%   ->  factor 0.85
+observed gap:   947 vs ~2600   ->  factor 0.36
+0.85 explains 0.36?   no, by 2.4x
+```
+
+Two habits fall out of this:
+
+- **Withdrawing a claim is itself a claim, and needs the same evidence bar.** The retraction
+  was written with more confidence than the original assertion and was checked less. A
+  correction that over-shoots is not more conservative than the error it replaces — it just
+  fails in the opposite direction, and it is harder to spot because it reads as caution.
+- **A ratio validating does not validate the absolute level.** Section 10's clock-ratio
+  prediction landed within 2.1% and was taken as confirmation the whole model was right. A
+  constant multiplicative error cancels in a ratio, so that agreement was exactly as strong
+  with the residual present as without it. Ratio evidence and level evidence are independent;
+  collecting one does not get you the other.
+
+---
+
+## Trap 5 — a defensive normalisation step that silently corrupted the code it "fixed"
+
+Scripts were pushed to the device and then normalised with what looked like a harmless
+belt-and-braces line-ending fix:
+
+```sh
+adb shell "su -c \"sed -i \\\"s/\r$//\\\" /data/local/tmp/x.sh\""
+```
+
+Through that nesting the backslash does not survive. sed receives `s/r$//` and deletes a
+**trailing letter `r`** from every line of the script. `order[++k] = cur` became
+`order[++k] = cu`.
+
+The failure mode is what makes this dangerous. awk treats `cu` as a new, empty variable, so
+there is no syntax error and no warning — the program runs, opens the right number of files,
+emits the right number of records, and fills every field with an empty string. The output
+*looks* structurally correct. It was only caught because the fields were obviously blank; a
+corruption in a less visible line would have produced quietly wrong numbers.
+
+Three lessons:
+
+- **The local files were LF-terminated already.** The step was unnecessary from the start.
+  A defensive fix for a problem that does not exist still gets to break things.
+- **Normalise on the host, where there is no quoting layer.** Reading the file in Python,
+  replacing `\r\n`, and pushing the result cannot be misquoted.
+- **Assert after pushing.** `sh -n <file> && echo SYNTAX_OK` costs one round trip and would
+  not have caught *this* one — but pairing it with a smoke assertion on the first record
+  (are the fields non-empty?) would have.
+
+Blast radius, checked rather than assumed: `gb7_sampler.sh` has exactly three lines ending in
+`r` and all three are comments, so the frequency and placement traces taken with it are
+unaffected. Only the newer attribution sampler had functional code on such a line.

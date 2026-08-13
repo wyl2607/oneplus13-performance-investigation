@@ -24,6 +24,12 @@ Because CFB enforces through `freq_qos`, and cpufreq takes the **minimum** of al
 requests, writing `scaling_max_freq` as root has no effect — a very common source of
 confusion when diagnosing this.
 
+> **CFB is not the whole story, and may not even be the main story.** Tracing an actual
+> Geekbench 7 run shows the benchmark executing on the **mid** cluster while both prime cores
+> idle at 1 017 600 — not because anything clamped them, but because the worker threads carry
+> `uclamp.max = 466` against a mid-cluster `cpu_capacity` of 792, so the scheduler never
+> promotes them. See [DATA.md section 22](docs/DATA.md). Who sets that value is unresolved.
+
 ---
 
 ## Read this before the rest: what removing the clamp is actually worth
@@ -35,6 +41,7 @@ Every other scenario measured so far shows **no benefit at all**.
 |---|---|---|
 | Geekbench 7 single-core | **+30%** (947 → 1234) | three runs, 2.4% spread |
 | Geekbench 7 multi-core | +19% (5222 → 6218) | three runs, 11.5% spread |
+| *(neither figure is a healthy baseline — see the correction below)* | | |
 | **App cold start** | **none** | Settings 265 vs 276 ms, Maps 200 vs 203 ms — inside noise |
 | **Sustained all-core** | **none** | landing frequency is set by the thermal loop, not the ceiling |
 | **GPU-bound work** | **none** | prime idles at 1 017 600 during GPU load; the ceiling is never approached |
@@ -115,6 +122,29 @@ req, idx, ts, cluster, pid, ..., max, ..., comm, utc, stack
 
 Setting `enable=0` correctly releases the request (`max` → `2147483647`) via
 `enable_store [cpufreq_bouncing]`.
+
+### CFB is one of at least five `freq_qos` requesters
+
+An idle 5-second capture of `fqm_dump` already shows five distinct sources contending for the
+same `min()`. Disabling CFB removes exactly one of them:
+
+| `comm` | Kernel module | Role |
+|---|---|---|
+| `UrccWorker` | `msm_performance` | screen-state power policy (normal, see METHODOLOGY trap 2) |
+| `gameSceneLooper` | `oplus_bsp_game_opt` | OPLUS game optimiser — **not previously characterised** |
+| `thermal-engine-` | `qti_cpufreq_cdev` | Android/QTI thermal cooling device |
+| `kworker/N:1H` | `cpufreq_bouncing` | the clamp this repository documents |
+| — | `sched_walt` | WALT governor |
+
+`/proc/game_opt` exposes the game optimiser's controls, including `cpu_max_freq` (reads
+`2147483647` = not capping, when idle), `dsu_freq`, `disable_cpufreq_limit`,
+`skip_gameself_setaffinity`, and a node named **`fake_cpu7_cpuinfo_max_freq`** whose function
+is to falsify CPU7's advertised ceiling. It reads `0` on this unit, which is how we know the
+`4 320 000` figure quoted throughout this repository is genuine rather than synthesised.
+
+Separately, the cpuset `oiface_fg` has `cpus=3-6` — **CPU7 is excluded from it**, while
+`oiface_fg+` has `cpus=3-7`. Whether any benchmark thread is ever placed in `oiface_fg` is
+untested and is one of the candidate explanations for the residual above.
 
 ---
 
@@ -221,31 +251,119 @@ device. See the correction below.
 
 ---
 
-## Open question — help wanted
+## Open questions — help wanted
 
-**Is `limit_level 6` stock for CPH2653, or specific to this unit's build?**
+**1. Who writes `uclamp.max = 466` onto the benchmark's worker threads?** — *answers the
+residual; see [DATA.md section 22](docs/DATA.md)*
+
+The residual is resolved and it is not IPC. A 437 s trace shows Geekbench's single-core
+workload running on the **mid** cluster in 95.8% of true single-threaded samples, with both
+prime cores idling at 1 017 600 for 97.8% of them — while `policy6 scaling_max_freq` sat
+unmoved at 3 283 200, the cpuset was `/top-app` with `cpus_allowed=0-7`, `Thermal Status` was
+`NONE`, and every cooling device read 0. The prime cores were available and simply never used.
+
+The worker thread carried `uclamp.max = effective uclamp.max = 466` for the whole run,
+reverting to 1024 the moment it ended. With `cpu_capacity` at **792** for mid and **1024** for
+prime, a task clamped to 466 fits inside one mid core, so the scheduler never has cause to
+promote it — and the same clamp holds the mid cores below their own ceiling (2 555 MHz average
+against 2 918 400 available).
+
+**The source is identified: `oplus_bsp_task_overload`.** The module exports `set_uclamp_max`,
+knows the cluster topology (`golden_cpu`, `goplus_cpu`, `max_cluster_id`), exposes
+`/proc/task_overload/skip_goplus_enabled` — *skip gold-plus*, i.e. the prime cluster — and
+keeps its own table at `/proc/task_overload/abnormal_task` whose columns are
+`pid uid limit_flag comm date temp freq`. That table contains:
+
+```
+30423  10xxx  466  pool-5-thread-1  2026-08-13 17:33:55  0  3283200
+18846  10xxx  466  pool-7-thread-1  2026-08-13 17:48:50  0  3283200
+```
+
+TID 30423 is the exact thread the trace recorded at `uclamp.max = 466`. Other rows show
+clamps of 346 / 376 / 436 on ordinary app threads, so this is a general runaway-thread guard
+rather than benchmark detection. `/proc/oplus_qos_sched/qos_task_uclamp` reads empty
+throughout and is **not** implicated — the earlier suspicion of it was wrong.
+
+Still unknown: the trigger condition and what selects the specific limit value. See
+[DATA.md section 23](docs/DATA.md) for the confidence grading and the kprobe setup for the
+confirming run.
+
+This finding also demotes the prime-cluster ceiling in `tune/`: the +30% it measured is most
+plausibly the *mid* cluster going from 2 400 000 to 2 918 400, not anything the prime pair did.
+
+**2. Is `limit_level 6` stock for CPH2653, or specific to this unit's build?**
 
 Nothing on this device can answer that. It needs one data point from another OnePlus 13.
 If you have one, please run [`scripts/contribute-comparison.sh`](scripts/contribute-comparison.sh)
 (read-only, no root changes, no PII) and open an issue with the output.
 
-### Correction — there is no evidence of a "second factor"
+**3. A same-version GB7 reference that is verifiable.**
 
-An earlier revision of this document argued that because a fully unclamped 4 320 000 would
-only extrapolate to ~1 680 single-core, while "healthy" Snapdragon 8 Elite units score
-2 200–3 000, frequency could not explain the whole gap and some second bottleneck (DSU clock,
-memory frequency, scheduler) had to exist.
+The 2 681 / 8 846 figure underpinning question 1 is user-supplied and could not be fetched
+programmatically. A GB7 result from another OnePlus 13, captured alongside
+`scripts/contribute-comparison.sh` output, would put question 1 on firmer ground.
 
-**That reasoning was invalid and is withdrawn.** It compared Geekbench 7 results from this
-device against Geekbench 6 reference figures. Geekbench 7 (released July 2026) rebased its
-calibration from a Core i7-12700 to a Ryzen 7 7700, and substantially rewrote its workloads
-and datasets — [independent testing found single-core scores drop across all tested platforms
-relative to Geekbench 6](https://signal65.com/research/geekbench-7-analysis-and-early-results/).
-Primate Labs states GB7 results are comparable only with other GB7 results. The widely quoted
-OnePlus 13 figures of ~2 900–3 000 single-core are Geekbench **6** numbers.
+### Correction, twice — the "second factor" is back, and is the main open question
 
-No cross-version percentage should be computed from them, and none of the measurements in
-this repository support the existence of a non-frequency bottleneck.
+This section has now been wrong in both directions. The current position:
+
+**A second, non-frequency bottleneck almost certainly exists.**
+
+The first revision argued for one by comparing this device's Geekbench **7** scores against
+Geekbench **6** reference figures. That comparison was invalid and the argument was withdrawn.
+
+The withdrawal then over-corrected. It cited [Signal65's GB7 analysis](https://signal65.com/research/geekbench-7-analysis-and-early-results/)
+for the fact that GB7 single-core scores come in lower than GB6 on identical hardware — and
+took the *direction* of that effect while never checking its *magnitude*. Signal65's paired
+measurements are:
+
+| CPU | GB7 vs GB6 single-core |
+|---|---|
+| Snapdragon X2 Elite | −15% |
+| Apple M5 | −14% |
+| Intel Core Ultra X9 388H | −10% |
+| AMD Ryzen AI 9 465 | −9% |
+
+A 9–15% recalibration was used to explain away a **2.2× discrepancy**. It cannot. Applying
+the largest observed drop to the OnePlus 13's ~3 000 GB6 single-core gives an expected GB7
+figure of roughly **2 550–2 730**. Note also that GB7 kept GB6's baseline *score* of 2 500 and
+only moved the baseline *machine* (Dell Precision 3460 / i7-12700 → Lenovo Legion /
+Ryzen 7 7700), which bounds the rescale to about that size by construction.
+
+A Geekbench 7.0.0 result for a OnePlus 13 CPH2655 at **2 681 / 8 846** sits squarely in that
+predicted range. (Reported at `browser.geekbench.com/v7/cpu/116261`; the Geekbench Browser
+returns HTTP 403 to automated fetches, so it is cited here as user-supplied and is not
+independently verified in this repository.)
+
+#### The residual is near-constant across two different ceilings
+
+Against a 2 681 reference at 4 320 000:
+
+| State | Prime ceiling | Ratio to rated | Clock-ratio prediction | Measured | Residual |
+|---|---|---|---|---|---|
+| Stock CFB | 2 438 400 | 0.564 | 1 513 | 947 | **62.6%** |
+| Tuned | 3 283 200 | 0.760 | 2 038 | 1 234 | **60.6%** |
+
+Two different clamp levels, essentially the same residual factor of ~0.61. A residual that
+does not move with clock is a **per-cycle** loss, not a duty-cycle one — which points at
+DSU/LLC clock, DDR, or the benchmark thread not actually being resident on a prime core, and
+away from anything that would show up as a low `scaling_cur_freq`.
+
+This also explains why [DATA.md section 10](docs/DATA.md)'s within-device prediction
+validated to 2.1%: a constant multiplicative factor cancels in a ratio. **Ratio agreement was
+mistaken for absolute-level agreement.** Both facts are true simultaneously — clock scaling
+within this device is clean, and the absolute level is depressed by something else.
+
+#### Consequence for the numbers quoted above
+
+`3 283 200` is **not** "full speed" and must never be described as such. `cpuinfo_max_freq` is
+`4 320 000` for the prime pair and `3 532 800` for the mid cores, so the tune's ceilings are
+deliberately conservative at **76%** and **83%** of rated. The tuned score of 1 234 is
+therefore not a healthy baseline for this SoC — it is the score at a 76% clock ceiling, with
+the unexplained ~0.61 factor still applied on top.
+
+Investigation of the residual is tracked with the read-only tracing toolchain described in
+[DATA.md section 21](docs/DATA.md).
 
 ---
 

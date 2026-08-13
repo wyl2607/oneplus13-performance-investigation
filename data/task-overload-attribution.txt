@@ -1,0 +1,215 @@
+=== /proc/task_overload/abnormal_task ===
+pid	uid	limit_flag	comm	date	temp	freq
+19029	10xxx	466  	pool-5-thread-1 	1786385229303	0    	3283200         
+6578 	0    	1024 	sh              	1786385660623	0    	2438400         
+24309	0    	1024 	sh              	1786387188267	0    	3283200         
+6828 	0    	1024 	sh              	1786388315383	0    	3283200         
+1260 	1000 	1024 	android.hardwar 	1786388523735	0    	3283200         
+22279	10xxx	466  	pool-5-thread-1 	1786388738207	0    	3283200         
+16226	10xxx	466  	pool-7-thread-1 	1786389698063	0    	3283200         
+13506	0    	1024 	sh              	1786391513455	0    	1689600         
+13485	0    	1024 	sh              	1786393448059	0    	2841600         
+2302 	1000 	1024 	android.hardwar 	1786393881443	0    	2649600         
+19778	10xxx	1024 	UnityMain       	1786396267951	0    	1401600         
+13011	10xxx	346  	DefaultDispatch 	1786396655707	0    	2438400         
+23682	10xxx	376  	pool-5-thread-1 	1786453896548	0    	2649600         
+5270 	10xxx	466  	HeapTaskDaemon  	1786458419136	0    	3283200         
+22975	1000 	1024 	ParseBatterySta 	1786464671901	0    	2649600         
+19515	10xxx	376  	SessionManager  	1786466765518	0    	2649600         
+26216	0    	1024 	sh              	1786466820922	0    	3283200         
+19515	10xxx	436  	SessionManager  	1786466845882	0    	3072000         
+28639	0    	1024 	sh              	1786466849530	0    	3283200         
+2079 	0    	1024 	sh              	1786466928458	0    	2438400         
+16969	10xxx	1024 	UnityMain       	1786484850638	0    	1401600         
+3832 	1000 	1024 	vendor.oplus.ha 	1786536564363	0    	3283200         
+27980	1000 	1024 	ParseBatterySta 	1786568169394	0    	1958400         
+27759	10xxx	1024 	UnityMain       	1786572633380	0    	1401600         
+30976	10xxx	1024 	UnityMain       	1786626489020	0    	1401600         
+16841	10xxx	1024 	UnityMain       	1786630389233	0    	1958400         
+30423	10xxx	466  	pool-5-thread-1 	1786635235185	0    	3283200         
+18846	10xxx	466  	pool-7-thread-1 	1786636130741	0    	3283200         
+
+=== /proc/task_overload/skip_goplus_enabled ===
+debug_enabled=1
+
+=== oplus_bsp_task_overload symbols (non-mapping) ===
+0000000000000000 t $d.2	[oplus_bsp_task_overload]
+0000000000000000 t $x.3	[oplus_bsp_task_overload]
+0000000000000000 t $d.4	[oplus_bsp_task_overload]
+0000000000000000 t $x.5	[oplus_bsp_task_overload]
+0000000000000000 b goplus_cpu	[oplus_bsp_task_overload]
+0000000000000000 t $d.6	[oplus_bsp_task_overload]
+0000000000000000 t $x.7	[oplus_bsp_task_overload]
+0000000000000000 t $d.8	[oplus_bsp_task_overload]
+0000000000000000 t $x.9	[oplus_bsp_task_overload]
+0000000000000000 t $d.10	[oplus_bsp_task_overload]
+0000000000000000 t $x.11	[oplus_bsp_task_overload]
+0000000000000000 b golden_cpu	[oplus_bsp_task_overload]
+0000000000000000 b golden_cpu_first	[oplus_bsp_task_overload]
+0000000000000000 b max_cluster_id	[oplus_bsp_task_overload]
+0000000000000000 b min_cluster_id	[oplus_bsp_task_overload]
+0000000000000000 t $d.12	[oplus_bsp_task_overload]
+0000000000000000 t $x.13	[oplus_bsp_task_overload]
+0000000000000000 t $d.14	[oplus_bsp_task_overload]
+0000000000000000 t $x.15	[oplus_bsp_task_overload]
+0000000000000000 t $d.16	[oplus_bsp_task_overload]
+0000000000000000 t $x.17	[oplus_bsp_task_overload]
+0000000000000000 t $d.18	[oplus_bsp_task_overload]
+0000000000000000 t $x.19	[oplus_bsp_task_overload]
+0000000000000000 t $d.20	[oplus_bsp_task_overload]
+0000000000000000 t $x.21	[oplus_bsp_task_overload]
+0000000000000000 t $d.22	[oplus_bsp_task_overload]
+0000000000000000 t $x.23	[oplus_bsp_task_overload]
+0000000000000000 d $d.24	[oplus_bsp_task_overload]
+0000000000000000 t $x.25	[oplus_bsp_task_overload]
+0000000000000000 d $d.26	[oplus_bsp_task_overload]
+0000000000000000 t $x.27	[oplus_bsp_task_overload]
+0000000000000000 d $d.28	[oplus_bsp_task_overload]
+0000000000000000 t $x.29	[oplus_bsp_task_overload]
+0000000000000000 t $d.30	[oplus_bsp_task_overload]
+0000000000000000 t $x.31	[oplus_bsp_task_overload]
+0000000000000000 t $d.32	[oplus_bsp_task_overload]
+0000000000000000 t $x.33	[oplus_bsp_task_overload]
+0000000000000000 b tol_lock	[oplus_bsp_task_overload]
+0000000000000000 b atd_count	[oplus_bsp_task_overload]
+0000000000000000 b task_info	[oplus_bsp_task_overload]
+0000000000000000 t $d.34	[oplus_bsp_task_overload]
+0000000000000000 t $x.35	[oplus_bsp_task_overload]
+0000000000000000 b parent	[oplus_bsp_task_overload]
+0000000000000000 r tsk_proc_fops	[oplus_bsp_task_overload]
+0000000000000000 r proc_skip_goplus_enabled_fops	[oplus_bsp_task_overload]
+0000000000000000 t tsk_open	[oplus_bsp_task_overload]
+0000000000000000 t $d.38	[oplus_bsp_task_overload]
+0000000000000000 t $x.39	[oplus_bsp_task_overload]
+0000000000000000 t tsk_show	[oplus_bsp_task_overload]
+0000000000000000 t tsk_write	[oplus_bsp_task_overload]
+0000000000000000 t $d.40	[oplus_bsp_task_overload]
+0000000000000000 t $x.41	[oplus_bsp_task_overload]
+0000000000000000 t _copy_from_user	[oplus_bsp_task_overload]
+0000000000000000 t $d.42	[oplus_bsp_task_overload]
+0000000000000000 t $x.43	[oplus_bsp_task_overload]
+0000000000000000 r $d.44	[oplus_bsp_task_overload]
+0000000000000000 t $x.45	[oplus_bsp_task_overload]
+0000000000000000 r $d.46	[oplus_bsp_task_overload]
+0000000000000000 t $x.47	[oplus_bsp_task_overload]
+0000000000000000 r $d.48	[oplus_bsp_task_overload]
+0000000000000000 t $x.49	[oplus_bsp_task_overload]
+0000000000000000 r $d.50	[oplus_bsp_task_overload]
+0000000000000000 t $x.51	[oplus_bsp_task_overload]
+0000000000000000 t proc_skip_goplus_enabled_read	[oplus_bsp_task_overload]
+0000000000000000 t $d.52	[oplus_bsp_task_overload]
+0000000000000000 t $x.53	[oplus_bsp_task_overload]
+0000000000000000 t proc_skip_goplus_enabled_write	[oplus_bsp_task_overload]
+0000000000000000 t $d.54	[oplus_bsp_task_overload]
+0000000000000000 t $x.55	[oplus_bsp_task_overload]
+0000000000000000 d $d.56	[oplus_bsp_task_overload]
+0000000000000000 b $d.58	[oplus_bsp_task_overload]
+0000000000000000 r $d.61	[oplus_bsp_task_overload]
+0000000000000000 r $d.62	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtab_sysctl_abnormal_enable	[oplus_bsp_task_overload]
+0000000000000000 r $d.1	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtabns_sysctl_abnormal_enable	[oplus_bsp_task_overload]
+0000000000000000 r __ksymtab_sysctl_abnormal_enable	[oplus_bsp_task_overload]
+0000000000000000 r $d.2	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtab_walt_update_cluster_id	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtabns_walt_update_cluster_id	[oplus_bsp_task_overload]
+0000000000000000 r __ksymtab_walt_update_cluster_id	[oplus_bsp_task_overload]
+0000000000000000 r $d.3	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtab_is_task_overload	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtabns_is_task_overload	[oplus_bsp_task_overload]
+0000000000000000 r __ksymtab_is_task_overload	[oplus_bsp_task_overload]
+0000000000000000 r $d.4	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtab_test_task_overload	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtabns_test_task_overload	[oplus_bsp_task_overload]
+0000000000000000 r __ksymtab_test_task_overload	[oplus_bsp_task_overload]
+0000000000000000 r $d.5	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtab_check_skip_task_goplus	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtabns_check_skip_task_goplus	[oplus_bsp_task_overload]
+0000000000000000 r __ksymtab_check_skip_task_goplus	[oplus_bsp_task_overload]
+0000000000000000 r $d.6	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtab_test_task_uid	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtabns_test_task_uid	[oplus_bsp_task_overload]
+0000000000000000 r __ksymtab_test_task_uid	[oplus_bsp_task_overload]
+0000000000000000 r $d.7	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtab_check_abnormal_freq	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtabns_check_abnormal_freq	[oplus_bsp_task_overload]
+0000000000000000 r __ksymtab_check_abnormal_freq	[oplus_bsp_task_overload]
+0000000000000000 r $d.8	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtab_check_abnormal_task_util	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtabns_check_abnormal_task_util	[oplus_bsp_task_overload]
+0000000000000000 r __ksymtab_check_abnormal_task_util	[oplus_bsp_task_overload]
+0000000000000000 r $d.9	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtab_check_abnormal_cpu_util	[oplus_bsp_task_overload]
+0000000000000000 r __kstrtabns_check_abnormal_cpu_util	[oplus_bsp_task_overload]
+0000000000000000 r __ksymtab_check_abnormal_cpu_util	[oplus_bsp_task_overload]
+0000000000000000 r $d.10	[oplus_bsp_task_overload]
+0000000000000000 r __crc_sysctl_abnormal_enable	[oplus_bsp_task_overload]
+0000000000000000 r $d.11	[oplus_bsp_task_overload]
+0000000000000000 r __crc_walt_update_cluster_id	[oplus_bsp_task_overload]
+0000000000000000 r $d.12	[oplus_bsp_task_overload]
+0000000000000000 r __crc_is_task_overload	[oplus_bsp_task_overload]
+0000000000000000 r $d.13	[oplus_bsp_task_overload]
+0000000000000000 r __crc_test_task_overload	[oplus_bsp_task_overload]
+0000000000000000 r $d.14	[oplus_bsp_task_overload]
+0000000000000000 r __crc_check_skip_task_goplus	[oplus_bsp_task_overload]
+0000000000000000 r $d.15	[oplus_bsp_task_overload]
+0000000000000000 r __crc_test_task_uid	[oplus_bsp_task_overload]
+0000000000000000 r $d.16	[oplus_bsp_task_overload]
+0000000000000000 r __crc_check_abnormal_freq	[oplus_bsp_task_overload]
+0000000000000000 r $d.17	[oplus_bsp_task_overload]
+0000000000000000 r __crc_check_abnormal_task_util	[oplus_bsp_task_overload]
+0000000000000000 r $d.18	[oplus_bsp_task_overload]
+0000000000000000 r __crc_check_abnormal_cpu_util	[oplus_bsp_task_overload]
+0000000000000000 r $d.19	[oplus_bsp_task_overload]
+0000000000000000 r _note_14	[oplus_bsp_task_overload]
+0000000000000000 r $d.20	[oplus_bsp_task_overload]
+0000000000000000 r _note_15	[oplus_bsp_task_overload]
+0000000000000000 d $d.22	[oplus_bsp_task_overload]
+0000000000000000 D sysctl_abnormal_enable	[oplus_bsp_task_overload]
+0000000000000000 T walt_update_cluster_id	[oplus_bsp_task_overload]
+0000000000000000 T is_task_overload	[oplus_bsp_task_overload]
+0000000000000000 T test_task_overload	[oplus_bsp_task_overload]
+0000000000000000 T check_skip_task_goplus	[oplus_bsp_task_overload]
+0000000000000000 T test_task_uid	[oplus_bsp_task_overload]
+0000000000000000 T check_abnormal_freq	[oplus_bsp_task_overload]
+0000000000000000 T check_abnormal_task_util	[oplus_bsp_task_overload]
+0000000000000000 T check_abnormal_cpu_util	[oplus_bsp_task_overload]
+0000000000000000 t uclamp_bucket_id	[oplus_bsp_task_overload]
+0000000000000000 t set_uclamp_max	[oplus_bsp_task_overload]
+0000000000000000 t resume_uclamp_max	[oplus_bsp_task_overload]
+0000000000000000 t get_task_cgroup_id	[oplus_bsp_task_overload]
+0000000000000000 t tol_init_cpus	[oplus_bsp_task_overload]
+0000000000000000 t set_task_state	[oplus_bsp_task_overload]
+0000000000000000 b walt_scale_demand_divisor	[oplus_bsp_task_overload]
+0000000000000000 d __this_module	[oplus_bsp_task_overload]
+
+=== uclamp-related symbols ===
+0000000000000000 t proc_task_uclamp_read	[oplus_bsp_qos_sched]
+0000000000000000 t proc_task_uclamp_write	[oplus_bsp_qos_sched]
+0000000000000000 r qos_task_latency_proc_fops	[oplus_bsp_qos_sched]
+0000000000000000 r qos_task_prio_proc_fops	[oplus_bsp_qos_sched]
+0000000000000000 r qos_task_uclamp_proc_fops	[oplus_bsp_qos_sched]
+0000000000000000 t set_uclamp_max	[oplus_bsp_task_overload]
+
+=== cpu_capacity ===
+cpu0=792
+cpu1=792
+cpu2=792
+cpu3=792
+cpu4=792
+cpu5=792
+cpu6=1024
+cpu7=1024
+
+=== /proc/oplus_qos_sched (all empty - NOT implicated) ===
+--- /proc/oplus_qos_sched/qos_level
+pid: 0, level: -1
+
+--- /proc/oplus_qos_sched/qos_lut
+
+--- /proc/oplus_qos_sched/qos_task_latency
+
+--- /proc/oplus_qos_sched/qos_task_prio
+
+--- /proc/oplus_qos_sched/qos_task_uclamp
+

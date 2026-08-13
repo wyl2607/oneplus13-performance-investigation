@@ -1,0 +1,296 @@
+trace: oneplus13_gb7_cpu_trace.csv   1369 samples over 437.1s (3.1 Hz)
+Geekbench PID present in 1369/1369 samples (pid 7311)
+loaded samples: 752   single-thread-ish: 674   multi-thread-ish: 77
+
+==============================================================================
+1. PRIME CORE BOOST
+==============================================================================
+peak prime scaling_cur_freq : 3.283 GHz  (rated 4.32 GHz)
+samples at rated 4.32 GHz   : 0/752 (0.0%)  ~0.0s
+prime freq distribution (top 8):
+     1.018 GHz    679 samples   90.3%
+     3.283 GHz     54 samples    7.2%
+     2.650 GHz     17 samples    2.3%
+     2.246 GHz      1 samples    0.1%
+     1.690 GHz      1 samples    0.1%
+
+single-thread phase on a prime core: 0/674 (0.0%)
+
+==============================================================================
+2. THREAD PLACEMENT
+==============================================================================
+hottest-thread CPU residency:
+    CPU5:   752 samples  100.0%
+
+nr_migrations of the hottest thread: 31037 -> 31037 (+0 over 437s = 0.0/s)
+
+single-thread samples with task off-prime AND both prime cores <25% busy: 630/674
+    t=  27.71s  thread on CPU5  prime_cur=1.018GHz prime_util=0%
+    t=  27.93s  thread on CPU5  prime_cur=1.018GHz prime_util=0%
+    t=  28.16s  thread on CPU5  prime_cur=1.018GHz prime_util=0%
+    t=  28.41s  thread on CPU5  prime_cur=1.018GHz prime_util=0%
+    t=  28.64s  thread on CPU5  prime_cur=1.018GHz prime_util=0%
+
+==============================================================================
+3. FREQUENCY LIMITATION  (clamp vs governor)
+==============================================================================
+
+policy6_max_freq timeline (1 distinct segments):
+      14.28s ->  362.05s  3.283 GHz
+  busy(>=80%) samples pinned AT the ceiling : 49   below the ceiling: 16
+
+policy0_max_freq timeline (1 distinct segments):
+      14.28s ->  362.05s  2.918 GHz
+  busy(>=80%) samples pinned AT the ceiling : 67   below the ceiling: 29
+
+policy6 scaling_max_freq below rated 4.32 GHz in 752/752 loaded samples
+
+==============================================================================
+4. UCLAMP
+==============================================================================
+gb_uclamp_min         : 0(1367), NA(2)
+gb_uclamp_max         : 466(1156), 1024(211), NA(2)
+gb_uclamp_eff_min     : 0(1367), NA(2)
+gb_uclamp_eff_max     : 466(1156), 1024(211), NA(2)
+
+effective uclamp (min/max) transitions: 6 segments
+       0.00s ->  319.34s  0/466   prime_cur@start=3.283GHz
+     322.18s ->  322.18s  NA/NA   prime_cur@start=1.018GHz
+     322.40s ->  322.40s  0/466   prime_cur@start=1.018GHz
+     322.67s ->  322.67s  NA/NA   prime_cur@start=1.018GHz
+     322.89s ->  363.12s  0/466   prime_cur@start=1.018GHz
+     368.24s ->  437.06s  0/1024   prime_cur@start=1.018GHz
+
+==============================================================================
+5. CPUSET / TOP-APP / OIFACE
+==============================================================================
+process cpuset transitions: 1 segments
+       0.00s ->  437.06s  cpuset=/top-app               cpus_allowed=0-7
+
+busiest-THREAD cpuset transitions: 5 segments
+       0.00s ->  319.34s  cpuset=/top-app               cpus_allowed=0-7
+     322.18s ->  322.18s  cpuset=NA                     cpus_allowed=NA
+     322.40s ->  322.40s  cpuset=/top-app               cpus_allowed=0-7
+     322.67s ->  322.67s  cpuset=NA                     cpus_allowed=NA
+     322.89s ->  437.06s  cpuset=/top-app               cpus_allowed=0-7
+
+samples in any oiface_* cpuset : 0
+samples where CPU7 is NOT in the thread's cpus_allowed: 0
+
+loaded samples in /top-app: 752/752 (100.0%)
+
+==============================================================================
+6. THERMAL
+==============================================================================
+Thermal Status transitions: 1 segments
+       0.00s ->  437.06s  NONE
+cpu_temp      : min  39.7C  max  88.8C  last  45.9C
+skin_temp     : min  34.5C  max  35.2C  last  35.2C
+battery_temp  : min   0.3C  max   0.4C  last   0.4C
+gpu_temp      : min  37.8C  max  51.3C  last  44.8C
+
+==============================================================================
+7. PERFORMANCE DROP EVENTS  (prime cur freq falling >=25% while still busy)
+==============================================================================
+12 drop events
+  t=  27.71s  3.283 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 54.4 -> 40.5C | thermal NONE -> NONE | runnable 1 -> 1
+  t= 149.75s  3.283 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 50.2 -> 41.7C | thermal NONE -> NONE | runnable 1 -> 1
+  t= 291.19s  2.650 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 64.1 -> 50.5C | thermal NONE -> NONE | runnable 13 -> 1
+  t= 291.71s  3.283 -> 2.246 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 64.5 -> 63.7C | thermal NONE -> NONE | runnable 5 -> 11
+  t= 292.46s  3.283 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 66.4 -> 52.9C | thermal NONE -> NONE | runnable 10 -> 1
+  t= 299.75s  2.650 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 54.8 -> 48.6C | thermal NONE -> NONE | runnable 2 -> 1
+  t= 300.72s  1.690 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 73.7 -> 58.7C | thermal NONE -> NONE | runnable 8 -> 1
+  t= 302.42s  3.283 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 62.9 -> 59.4C | thermal NONE -> NONE | runnable 2 -> 1
+  t= 312.55s  3.283 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 78.0 -> 59.8C | thermal NONE -> NONE | runnable 8 -> 2
+  t= 322.40s  2.650 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 74.5 -> 54.4C | thermal NONE -> NONE | runnable 4 -> 8
+  t= 342.61s  3.283 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 81.8 -> 42.8C | thermal NONE -> NONE | runnable 8 -> 1
+  t= 356.95s  3.283 -> 1.018 GHz
+      p6max 3.283 -> 3.283 GHz | uclamp_eff 0/466 -> 0/466
+      cpuset /top-app -> /top-app | cpu_temp 87.6 -> 59.0C | thermal NONE -> NONE | runnable 8 -> 1
+
+==============================================================================
+8. COOLING DEVICES  (thermal framework clamping, distinct from freq_qos)
+==============================================================================
+  cpu-cluster0 (CPU0-5 OPP clamp)               max_state_seen=0  nonzero_samples=0
+  cpu-cluster1 (CPU6-7 OPP clamp)               max_state_seen=0  nonzero_samples=0
+  ddr-cdev (DDR clamp - costs IPC, not clock)   max_state_seen=0  nonzero_samples=0
+  pause-cpu6 (core parked)                      max_state_seen=0  nonzero_samples=0
+  pause-cpu7 (core parked)                      max_state_seen=0  nonzero_samples=0
+
+==============================================================================
+8b. OPLUS game_opt  (independent freq_qos requester)
+==============================================================================
+  game_opt cpu6 max          distinct=[2147483647]  actively-capping samples=0
+  game_opt cpu7 max          distinct=[2147483647]  actively-capping samples=0
+  game_opt game_pid          {'game_pid=-1 child_num=0 ui_assist_num=0': 1369}
+  game_opt dsu_freq          {'0': 1369}
+  fake_cpu7_cpuinfo_max_freq {'0': 1369}
+  game_opt tracked no process (game_pid=-1) for the whole trace
+
+==============================================================================
+9. FREQ_QOS ATTRIBUTION  (who moved policy6 scaling_max_freq)
+==============================================================================
+  parsed 676 fqm_dump entries
+  requesters by comm:
+      UrccWorker                   400
+      gameSceneLooper              80
+      kworker/u16:4                50
+      thermal-engine-              50
+      kworker/7:1H                 50
+      sh                           26
+      kworker/1:1H                 12
+      busybox                      6
+      cnt                          1
+      req                          1
+  kernel modules named in the callstacks:
+      msm_performance              400
+      oplus_bsp_game_opt           80
+      ufs_qcom                     50
+      qti_cpufreq_cdev             50
+      cpufreq_bouncing             50
+      sched_walt                   46
+
+  cpufreq_bouncing state at end of run:
+      =====
+      clus 0 first_cpu 0 ctl 1
+      last_ts: 0
+      last_freq_update_ts: 0
+      acc: 0
+      limit_freq: 2400000
+      limit_level: 10
+      limit_thres: 50 ms
+      enable: 1
+      cur_level: 15
+      max_freq: 3532800 15
+      down_speed: 1
+      down_limit_lat: 50 ms
+      min_freq: 384000 0
+      up_speed: 1
+      up_limit_lat: 50 ms
+      freq_sorting: 1
+      freq_levels: 16
+      freq idx:	0	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15
+      freq clk:	384000	556800	748800	960000	1152000	1363200	1555200	1785600	1996800	2227200	2400000	2745600	2918400	3072000	3321600	3532800
+      last_core_boost: 0
+      last_core_boost_ts: 0
+      freq resident:	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	167962015393	37353132106	43761542071	54882888485	80800432397	81934953054843
+      =====
+      clus 1 first_cpu 6 ctl 1
+      last_ts: 0
+      last_freq_update_ts: 0
+      acc: 0
+      limit_freq: 2438400
+      limit_level: 6
+      limit_thres: 50 ms
+      enable: 1
+      cur_level: 15
+      max_freq: 4320000 15
+      down_speed: 1
+      down_limit_lat: 50 ms
+      min_freq: 1017600 0
+      up_speed: 1
+      up_limit_lat: 50 ms
+      freq_sorting: 1
+      freq_levels: 16
+      freq idx:	0	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15
+      freq clk:	1017600	1209600	1401600	1689600	1958400	2246400	2438400	2649600	2841600	3072000	3283200	3513600	3801600	4089600	4204800	4320000
+      last_core_boost: 0
+      last_core_boost_ts: 0
+      freq resident:	-1	-1	-1	-1	-1	-1	85178135578	17714260937	18439185460	18687577148	21081912084	25736172850	32221157953	40999039492	56521970954	2205948687551
+      ===CFBENABLE===
+      0
+      ===GAMEOPT===
+      game_pid=-1 child_num=0 ui_assist_num=0
+      chtb_cpu_max_freq
+      chtb_cpu_min_freq
+      cpu_load
+      cpu_max_freq
+      cpu_min_freq
+      debug_enable
+      disable_cpufreq_limit
+      dsu_freq
+      early_detect
+      fake_cpu7_cpuinfo_max_freq
+      frame_load_track
+      frame_sync
+      game_pid
+      gamt
+      geas_ctrl
+      heavy_task_info
+      multi_task
+      rt_info
+      rt_num
+      skip_gameself_setaffinity
+      task_boost
+      tlt_ctrl
+      ui_assist_thread
+      yield_opt
+      yield_pid
+
+==============================================================================
+10. SCORE vs CLOCK-RATIO PREDICTION
+==============================================================================
+  reference           : 2681 at 4.320 GHz
+  this run peak prime : 3.283 GHz  (ratio 0.760)
+  clock-ratio predict : 2038
+  measured            : 1145
+  residual factor     : 0.562
+
+  -> 44% BELOW what frequency alone explains.
+     A residual this large is not a clock problem. If it reproduces at a
+     different ceiling with a similar factor, it is per-cycle (IPC): DSU/LLC,
+     DDR, or the thread not actually resident on a prime core.
+
+==============================================================================
+RANKED DIAGNOSIS
+==============================================================================
+
+A. Prime-core boost never triggered
+   probability : 90%
+   evidence    : prime hit rated 4.32 GHz in 0.0% of loaded samples; policy6 max was below rated in 100.0%
+
+B. Thread placement wrong (benchmark not on prime)
+   probability : 85%
+   evidence    : single-thread phase off-prime 100.0% of the time; 630 samples with prime idle while the task ran elsewhere
+
+E. scaling_max_freq clamped by a limiter (freq_qos / power HAL)
+   probability : 85%
+   evidence    : policy6 scaling_max_freq < rated in 100.0% of loaded samples
+
+C. uclamp restricting the task
+   probability : 80%
+   evidence    : effective uclamp.max values seen: ['1024', '466']; 752/752 loaded samples had eff uclamp.max < 1024
+
+F. Thermal throttling
+   probability : 30%
+   evidence    : peak cpu junction 88.8C; Thermal Status never left NONE
+
+G. Other OnePlus/Oplus scheduler behaviour
+   probability : 20%
+   evidence    : residual - see logcat and the oiface cpuset groups
+
+D. cpuset / top-app state wrong
+   probability : 5%
+   evidence    : in /top-app for 100.0% of loaded samples; other groups seen: none

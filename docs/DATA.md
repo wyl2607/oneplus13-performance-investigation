@@ -324,15 +324,61 @@ corrected in section 10. The mechanistic finding does not depend on the score: t
 
 ---
 
-## 12. Geekbench version caveat (applies to section 10)
+## 12. Geekbench version caveat (applies to section 10) — REVISED 2026-08-13
 
-### Version caveat
+These are Geekbench **7** numbers on both sides of the section 10 comparison, and that part
+stands. What does not stand is the conclusion this section previously drew from it.
 
-These are Geekbench **7** numbers on both sides of the comparison. Geekbench 7 rebased its
-calibration machine and rewrote its workloads in July 2026; its results are not comparable
-with Geekbench 6. The commonly cited OnePlus 13 figures near 2 900–3 000 single-core are
-Geekbench 6 and must not be used to compute a deficit against these numbers. An earlier
-revision of this repository did exactly that and inferred a non-existent second bottleneck.
+**Still true:** GB7 rebased in July 2026 and its results are not directly comparable with GB6.
+The commonly cited OnePlus 13 figures near 2 900–3 000 single-core are Geekbench 6.
+
+**Now retracted:** "…and therefore an earlier revision inferred a *non-existent* second
+bottleneck." The second bottleneck was dismissed on the strength of a rescale whose size was
+never checked.
+
+### The rescale is 9–15%, not a halving
+
+[Signal65's paired GB6/GB7 measurements](https://signal65.com/research/geekbench-7-analysis-and-early-results/)
+on identical hardware:
+
+```
+Snapdragon X2 Elite      -15%
+Apple M5                 -14%
+Intel Core Ultra X9 388H -10%
+AMD Ryzen AI 9 465        -9%
+```
+
+GB7 also kept GB6's baseline *score* of 2 500 and only moved the baseline *machine*
+(Dell Precision 3460 / i7-12700 → Lenovo Legion / Ryzen 7 7700), which independently bounds
+the rescale to roughly this size.
+
+Applied to the OnePlus 13's ~3 000 GB6 single-core, the expected GB7 figure is **2 550–2 730**.
+A user-supplied GB7 7.0.0 result for a CPH2655 reads **2 681 / 8 846**, inside that band.
+(`browser.geekbench.com/v7/cpu/116261` — the Geekbench Browser serves HTTP 403 to automated
+fetches, so this is recorded as unverified here.)
+
+### Residual against a same-version reference
+
+| State | Prime ceiling | Ratio to 4 320 000 | Predicted | Measured | Residual |
+|---|---|---|---|---|---|
+| Stock CFB | 2 438 400 | 0.564 | 1 513 | 947 | **0.626** |
+| Tuned | 3 283 200 | 0.760 | 2 038 | 1 234 | **0.606** |
+
+The residual is essentially unchanged across two clamp levels that differ by 35%. A
+frequency-independent multiplicative loss is a **per-cycle** effect, not a duty-cycle one.
+
+### Why section 10's prediction still validated to 2.1%
+
+Section 10 predicted `947 × (3 283 200 / 2 438 400) = 1 280` and measured 1 253. That is a
+*ratio* between two states of the same device, and a constant factor cancels in a ratio.
+Clean ratio agreement was read as evidence that the absolute level was also correct. It is
+not evidence of that, and the two claims are independent.
+
+### Terminology correction
+
+`3 283 200` is **76%** of the prime cores' `cpuinfo_max_freq` of `4 320 000`, and `2 918 400`
+is **83%** of the mid cores' `3 532 800`. Anywhere in this repository that treats the tuned
+ceilings as "full speed" or treats 1 234 as a healthy SoC baseline is wrong.
 
 ---
 
@@ -733,3 +779,319 @@ The 20 s wake window was filed as a real usability problem on the reasoning that
 cold-starts immediately after unlock would miss the tune. Since cold starts do not benefit
 from the tune at all, that window costs nothing measurable, and #8 drops from a usability
 concern to a cosmetic one. The same reasoning removes most of the motivation for #10.
+
+---
+
+## 21. Scheduler/placement survey — hunting the residual from section 12
+
+Read-only survey run 2026-08-13 to find candidates for the ~0.61 per-cycle residual. Build at
+the time: `ro.build.version.oplusrom V16.1.0`, OTA `CPH2653_11.F.91_2910_202607050051`,
+fingerprint unchanged from section 9. Tune still installed and active (`cfb enable=0`,
+watchdog alive).
+
+### Topology, re-read rather than assumed
+
+```
+/sys/devices/system/cpu/cpufreq/  ->  policy0, policy6   (no policy2)
+policy0  related_cpus 0 1 2 3 4 5   cpuinfo_max_freq 3532800   governor walt
+policy6  related_cpus 6 7           cpuinfo_max_freq 4320000   governor walt
+```
+
+### `freq_qos` requesters — CFB is one of five
+
+A 5-second idle `fqm_dump` capture, entries grouped by `comm` and by the module named in the
+call stack:
+
+```
+UrccWorker        400   msm_performance      screen-state policy (normal)
+gameSceneLooper    80   oplus_bsp_game_opt   OPLUS game optimiser
+thermal-engine-    50   qti_cpufreq_cdev     thermal cooling device
+kworker/7:1H       50   cpufreq_bouncing     the documented clamp
+sh / busybox       32   sched_walt (24)      the tune's own watchdog writes
+```
+
+`gameSceneLooper` / `oplus_bsp_game_opt` had not appeared in any earlier capture in this
+repository and is not accounted for by any existing section.
+
+### `/proc/game_opt`
+
+```
+chtb_cpu_max_freq            0..5:3072000  6:4089600  7:4089600
+cpu_max_freq                 all 2147483647     (INT_MAX = not capping, at idle)
+cpu_min_freq                 all 0
+disable_cpufreq_limit        0
+dsu_freq                     0
+fake_cpu7_cpuinfo_max_freq   0
+game_pid                     game_pid=-1 child_num=0 ui_assist_num=0
+skip_gameself_setaffinity, task_boost, geas_ctrl, tlt_ctrl, gamt, yield_opt, ...
+```
+
+Two things matter here. `chtb_cpu_max_freq` caps the prime pair at `4 089 600` rather than
+`4 320 000`. And `fake_cpu7_cpuinfo_max_freq` exists at all — a node whose purpose is to
+falsify CPU7's advertised ceiling. It reads `0`, so every `4 320 000` in this repository is a
+genuine hardware value and not a synthesised one. That is worth stating explicitly because
+the whole residual argument in section 12 rests on it.
+
+### cpusets, including the OIface groups
+
+```
+top-app        0-7      foreground     0-7      restricted      0-7
+background     0-5      system-background 0-5   l-background    0-3
+oiface_fg      3-6      oiface_fg+     3-7      oiface_bg       0-2
+```
+
+**`oiface_fg` excludes CPU7.** `oiface` is running (`init.svc.oiface: running`,
+`persist.sys.oiface.enable=2`, `persist.sys.hardcoder.name=oiface`). Whether a benchmark
+thread is ever placed there is untested.
+
+### uclamp
+
+There is no `cpu.uclamp.min` / `cpu.uclamp.max` anywhere under `/sys/fs/cgroup` — this kernel
+is built without `CONFIG_UCLAMP_TASK_GROUP` — so uclamp is only observable per task, in
+`/proc/PID/task/TID/sched`:
+
+```
+uclamp.min / uclamp.max                0 / 1024
+effective uclamp.min / uclamp.max      0 / 512      (process in /restricted)
+```
+
+System-wide `/proc/sys/kernel/sched_util_clamp_{min,max}` are both `1024`, so the 512 is not
+a global setting. A capture that happened to straddle a screen-on/screen-off transition
+resolved it:
+
+```
+t=0.0-2.2s   cpuset=/foreground   eff uclamp 0/1024   p6max=3283200
+t=3.4s       cpuset=/restricted   eff uclamp 0/512    p6max=2649600
+```
+
+**Effective uclamp.max tracks the cpuset/task profile.** 512 on a backgrounded app is normal
+Android behaviour, not a fault. Whether `top-app` also yields 1024 during an actual benchmark
+is the remaining question.
+
+### Cooling devices, at idle
+
+`cpu-cluster0`, `cpu-cluster1` (max_state 15 each), `ddr-cdev`, `pause-cpu0..7`, `kgsl`, `gpu`
+all read `cur_state=0`. `ddr-cdev` is the one to watch for the residual: a DDR clamp costs
+IPC rather than clock and would be invisible to any `scaling_cur_freq` reading.
+
+### Tooling
+
+`C:\Users\redacted-user\gb7-diag` — a resident on-device sampler driven over `adb exec-out` at ~4 Hz,
+a host-side CSV logger, and an analyser. Entirely read-only. It records per-CPU frequency and
+utilisation, the busiest Geekbench thread's CPU/cpuset/affinity/uclamp/util, both process- and
+thread-level cpuset, the cooling devices above, the `game_opt` nodes, and `fqm_dump` at exit.
+
+Geekbench 7's package name is `com.primatelabs.parkdale`.
+
+---
+
+## 22. The residual is not IPC — the benchmark never runs on the prime cores
+
+437 s trace, 1368 samples at 3.1 Hz, tuned config verified live throughout (`cfb enable=0`,
+`p0max=2918400`, `p6max=3283200`, watchdog alive). Geekbench 7 scored **1145 / 6382**.
+
+### The benchmark ran on the mid cluster
+
+Taken over the 961 samples where system-wide busy load is 0.75–1.6 cores — i.e. genuinely
+single-threaded — and derived from `/proc/stat` per-CPU utilisation, so this does not depend
+on identifying the right thread:
+
+| | |
+|---|---|
+| busiest core is a **mid** core (cpu0/1/4/5) | **95.8%** of samples |
+| a **prime** core ≥70% busy | **19/961 = 2.0%** |
+| prime `scaling_cur_freq` at idle minimum 1 017 600 | **940/961 = 97.8%** |
+| prime reached 3 283 200 | 20 samples = 2.1% |
+
+The multi-core phase is the same pathology:
+
+```
+              util    freq
+cpu0-cpu5    86-90%   2896 MHz   (at the 2918400 ceiling)
+cpu6-cpu7    39-40%   1852 MHz
+```
+
+Six mid cores saturated while the two fastest cores on the SoC are 40% idle.
+
+### It is not any of the limiters this repository already documents
+
+| Mechanism | Reading during the run |
+|---|---|
+| `policy6 scaling_max_freq` | **3 283 200, constant, one segment, 14 s → 362 s** |
+| `policy0 scaling_max_freq` | 2 918 400, constant |
+| cpuset (process and thread) | `/top-app`, `cpus_allowed=0-7`, 100% of samples |
+| `oiface_*` cpusets | 0 samples |
+| `Thermal Status` | `NONE` for all 437 s |
+| `cpu-cluster0/1`, `ddr-cdev`, `pause-cpu6/7` | `cur_state=0` in every sample |
+| `game_opt cpu_max_freq` | `2147483647` (not capping) in every sample |
+| `game_opt game_pid` | `-1` in every sample |
+
+Nothing lowered the ceiling. The cores were available, unclamped, cool, and idle.
+
+### `uclamp.max = 466` on the benchmark worker
+
+The Geekbench worker thread — `pool-5-thread-1`, TID 30423, distinct from the main thread —
+carried this for the **entire** benchmark:
+
+```
+uclamp.min 0   uclamp.max 466   effective uclamp.min 0   effective uclamp.max 466
+```
+
+It reverted to `1024` at t≈368 s, immediately after the run ended and the thread exited. All
+threads read `1024` when sampled afterwards. So 466 is applied dynamically for the duration of
+the workload, not a static profile.
+
+### Why 466 is sufficient to explain everything above
+
+```
+/sys/devices/system/cpu/cpu*/cpu_capacity
+cpu0-cpu5 = 792        cpu6-cpu7 = 1024
+```
+
+**466 < 792.** A task whose utilisation is clamped to 466 fits entirely inside one mid core's
+capacity, so EAS/WALT never has a reason to migrate it to a prime core — the mid cluster can
+satisfy the clamped demand by construction. The prime cores are not blocked, not clamped and
+not hot; they are simply never asked for.
+
+The same clamp also suppresses frequency within the cluster it does use. During true
+single-thread samples the mid cores averaged **2 555 MHz against an available ceiling of
+2 918 400** — they were not pinned at their own ceiling either, which is what a
+utilisation-driven governor does when the driving utilisation is capped.
+
+### Consequence for section 12
+
+The section 12 residual was characterised as a per-cycle (IPC) loss because it did not move
+with the ceiling. That reasoning holds, but the cause is not IPC: **the ceiling being varied
+was `policy6`'s, and the benchmark was never running on `policy6`.** Changing a ceiling the
+workload never reaches cannot change the score, which is exactly the frequency-independence
+that was observed. DSU/LLC and DDR are no longer needed to explain it.
+
+This also revises section 16. Removing CFB raised the score because it lifted the *mid*
+cluster ceiling from 2 400 000 to 2 918 400 — a +21.6% mid-cluster clock change against a
+measured +30% single-core. The prime-cluster ceiling in that tune was very likely irrelevant.
+
+### Not established: who writes 466
+
+`/proc/oplus_qos_sched/` contains `qos_task_uclamp`, `qos_lut`, `qos_level`, `qos_task_prio`,
+`qos_task_latency`. `qos_task_uclamp` is the obvious candidate by name, but all of these read
+empty once the workload ends (`qos_level` reads `pid: 0, level: -1`), and the run's logcat
+contains no `uclamp` or `466` line. The attribution is **unproven**.
+
+What logcat does show is that OPLUS's game/scene framework was tracking the benchmark:
+
+```
+gameoptHal: notify complex scene com.primatelabs.parkdale#4~com.primatelabs.parkdale#1
+```
+
+`gameSceneLooper` / `oplus_bsp_game_opt` is also an active `freq_qos` requester (section 21).
+It did not cap frequency here — `game_opt cpu_max_freq` stayed at INT_MAX — but a scene
+framework that classifies the foreground app and a per-task uclamp cap appearing for exactly
+that app's worker threads are worth testing for a common origin.
+
+The next run must sample `/proc/oplus_qos_sched/*` and `qos_level` *during* the workload.
+
+---
+
+## 23. Attribution — `oplus_bsp_task_overload` and the `abnormal_task` table
+
+Section 22 established that the Geekbench worker carries `uclamp.max = 466` and that this
+explains the placement collapse, but left the writer unidentified. It is identified.
+
+### The module
+
+`/proc/kallsyms` and `/proc/modules` show a loaded OPLUS module `oplus_bsp_task_overload`
+exporting, among others:
+
+```
+t set_uclamp_max        [oplus_bsp_task_overload]
+b golden_cpu            b golden_cpu_first      b goplus_cpu
+b max_cluster_id        b min_cluster_id        b atd_count      b task_info
+```
+
+`golden` / `goplus` is Qualcomm's gold / gold-plus naming — the mid and prime clusters. The
+module therefore knows the cluster topology and has a function whose entire job is to set a
+uclamp maximum.
+
+Its procfs interface:
+
+```
+/proc/task_overload/abnormal_task        -rw-rw----  system system
+/proc/task_overload/skip_goplus_enabled  -rw-rw-rw-  root   root   -> "debug_enabled=1"
+```
+
+`skip_goplus_enabled` — *skip gold-plus* — is the prime cluster by name.
+
+### The module's own record of the clamp
+
+`abnormal_task` is a kernel-maintained table. Its header names the columns:
+
+```
+pid    uid    limit_flag  comm             date           temp  freq
+30423  10xxx  466         pool-5-thread-1  1786635235185  0     3283200
+18846  10xxx  466         pool-7-thread-1  1786636130741  0     3283200
+```
+
+**TID 30423 / `pool-5-thread-1` is the exact thread the section 22 trace observed carrying
+`uclamp.max = 466`**, and 466 is the exact value, recorded by the module itself under a column
+called `limit_flag`.
+
+Other entries show the mechanism is general and the value is variable:
+
+```
+23682  10xxx  376  pool-5-thread-1     13011  10xxx  346  DefaultDispatch
+19515  10xxx  376  SessionManager      19515  10xxx  436  SessionManager
+ 5270  10xxx  466  HeapTaskDaemon      19778  10xxx 1024  UnityMain
+```
+
+1024 entries are unclamped; 346 / 376 / 436 / 466 are clamps. Both Geekbench worker pools and
+ordinary app threads appear, so this is a general "runaway thread" guard, not benchmark
+detection.
+
+### Timing, and why the clamp was present from sample 0
+
+Converting the `date` column (ms since epoch, local time):
+
+```
+TID 30423  pool-5-thread-1  ->  2026-08-13 17:33:55
+TID 18846  pool-7-thread-1  ->  2026-08-13 17:48:50
+```
+
+The traced run spans 17:48:30 → 17:55:07. So:
+
+- **18846 was flagged 20 s into the traced benchmark** — the clamp is applied *during* the
+  workload, as it runs.
+- **30423 was flagged at 17:33:55, during the *previous* benchmark run**, and the clamp
+  persisted on the pooled thread into the next run. That is why section 22 saw `uclamp.max =
+  466` from its very first sample, and why that thread's `nr_migrations` already read 31 037
+  at trace start.
+
+Both of the cases that needed distinguishing therefore occur: a thread clamped mid-run, and a
+reused pool thread that starts a run already clamped from a previous one.
+
+### Confidence
+
+- **PROVEN** — `oplus_bsp_task_overload` records TID 30423 / `pool-5-thread-1` with
+  `limit_flag = 466`, matching the trace exactly in thread identity and value.
+- **HIGHLY LIKELY** — that module applies it to the task's `uclamp.max`. It exports
+  `set_uclamp_max`, the observed `uclamp.max` equals its recorded `limit_flag`, and no other
+  candidate wrote a matching value. The write itself has not yet been caught with a timestamp.
+- **UNKNOWN** — the trigger condition, whether any userspace daemon requests it, and what
+  selects 346 / 376 / 436 / 466. `/proc/oplus_qos_sched/qos_task_uclamp` reads empty
+  throughout and is *not* implicated; the earlier suspicion of it was wrong.
+  `gameoptHal`'s scene notifications remain unconnected to the clamp by any evidence.
+
+### Instrumentation for the confirming run
+
+kprobes registered against symbols verified in `/proc/kallsyms`, into a private tracing
+instance so the global buffer and any other tracer are untouched:
+
+```
+p:tol    set_uclamp_max            arg0=%x0:x64 arg1=%x1:u32 arg2=%x2:u32
+p:tolw   proc_task_uclamp_write
+p:ucl    __sched_setscheduler      flags=+8(%x1):x64 umin=+48(%x1):u32 umax=+52(%x1):u32
+p:uclsys __arm64_sys_sched_setattr tpid=+0(%x0):s32 flags=+8(+8(%x0)):x64 umax=+52(+8(%x0)):u32
+```
+
+`sched_attr.sched_util_min` / `sched_util_max` are at +48 / +52 by uapi definition. Probes are
+removed and the instance disabled on exit. Trace-only: nothing writes a scheduler, uclamp,
+cpuset, cpufreq or thermal tunable.
