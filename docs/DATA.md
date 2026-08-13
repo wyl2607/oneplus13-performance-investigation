@@ -1604,3 +1604,120 @@ The only nodes that could raise it are URCC's own
 `/sys/kernel/msm_performance/parameters/cpu_max_freq`, or whatever causes URCC to release. So
 "just write the ceiling" is not an available workaround, independent of whether it would be
 permitted.
+
+---
+
+## 29. URCC is the named holder, and its cap is not demand-driven
+
+Section 28 recorded the inverted state as UNKNOWN in cause, trigger and release condition. Two
+of those three are now narrowed, and one candidate explanation is falsified with a passing
+positive control. Capture in `data/urcc-demand-probe.txt`.
+
+### The holder is named, not inferred
+
+Section 28 identified URCC by elimination. `fqm_dump` names it directly. Requester counts over
+the whole ring:
+
+```
+368  UrccWorker      200 x set_cpu_min_freq [msm_performance]
+                     160 x set_cpu_max_freq [msm_performance]
+ 62  kworker/3:0H    do_input_boost [sched_walt]
+ 50  thermal-engine- cpufreq_cdev_set_state [qti_cpufreq_cdev]
+ 50  kworker/u16:1   ufs_qcom_cpufreq_dwork [ufs_qcom]
+ 38  (cpufreq_bouncing)
+```
+
+The newest cluster-1 rows carry UrccWorker's own request *and* the aggregate, and they are equal:
+
+```
+t=903109 ms  UrccWorker  this_max=1689600  smallest_max=1689600
+```
+
+`this_max == smallest_max` is the proof that URCC is the binding requester on the prime cluster,
+not merely present while something else holds it.
+
+**Reading `fqm_dump` correctly.** Column 3 is milliseconds since boot; the `utc` column is
+genuine UTC, which on a CEST device reads two hours behind the wall clock in the same row. A
+row that appears to predate the current boot usually does not — this cost a false start.
+
+### It arrives as a ramp, not as a single request
+
+The three newest cluster-1 writes, at exactly 5 005 ms spacing:
+
+```
+t=893101  2438400
+t=898106  1958400
+t=903109  1689600   <- last write; still binding 15 minutes later
+```
+
+Immediately before them, at t=886–892 s, `do_input_boost` fired repeatedly — user input. So the
+sequence is: interaction, then a stepped ramp *down* over ~15 s, then park. This is a policy
+executing to completion, not a request that was made once and leaked. Section 28's "converges
+back within ~22 s of any disturbance" is the same ramp seen from outside.
+
+The screen-on transient in this session's positive control shows the identical shape:
+
+```
+screen on +3 s   node0=1555200  node6=1958400
+        +8 s     node0=2745600  node6=2438400
+       +13 s     node0=2400000  node6=1958400
+       +18 s     node0=2400000  node6=1689600   <- parked, inverted
+```
+
+**The inverted state is URCC's screen-on steady state on this device**, reached by a
+deterministic ramp within ~20 s of any wake or input. It is not an error state.
+
+### Falsified: the cap is not waiting for prime demand
+
+The hypothesis worth testing first, because if true it needed no intervention at all: URCC ramps
+a cluster down when that cluster is idle, and the prime cluster is *always* idle because
+`oplus_bsp_task_overload` clamps app threads off it (section 27). Two vendor limiters holding
+each other in a loop, each one's precondition supplied by the other.
+
+Tested with a root-owned busy loop pinned to `taskset c0` — root is exempt from the clamp
+(section 27), so this is the only way to put genuine unclamped load on the prime pair.
+
+**Positive control first.** Section 28 established that screen-off moves this node. The probe
+performed a full off/on cycle and refused to proceed unless it saw the transition:
+
+```
+baseline   node6=1689600
+screen off node6=2649600     <- POSITIVE_CONTROL=PASS
+screen on  node6=1689600     (settled, after the ramp above)
+```
+
+Then 75 s of load on both prime cores:
+
+```
+                node6      cpu6 scaling_cur_freq   junction
+t=1977 .. 2048  1689600    1689600 (all 15 samples)  39.3 -> 58.7 degC
+```
+
+Both prime cores pegged **exactly at the ceiling** for the entire run and the junction rose
+19 °C, so the load was real and the cap was binding on it. `node6` did not move by one step.
+
+**VERDICT: falsified.** URCC's prime cap is not demand-following. It ignored maximal, sustained,
+unclamped demand on the cluster it was capping.
+
+### What this leaves
+
+| | Status |
+|---|---|
+| Holder | **PROVEN** — UrccWorker, via `set_cpu_max_freq [msm_performance]` |
+| Trigger | **NARROWED** — a deterministic ~20 s stepped ramp following wake/input |
+| Release condition | **UNKNOWN** — not demand, not load, not screen state, not thermal |
+| Is it a fault? | **Probably not** — it is reproducible steady-state screen-on policy |
+
+The coupled-limiter hypothesis was attractive and is wrong. Recording it because the reason it
+looked right — prime is genuinely always idle, and URCC genuinely does ramp — survives its
+falsification, and would otherwise get re-proposed.
+
+### Consequence for the real-workload A/B
+
+The experiment is blocked for a reason that is now precisely stated. It is not that the device
+is in a broken state that must be repaired. It is that **URCC's ceiling is an uncontrolled
+variable that moves on wake and input**, and it currently sits inverted, so an A/B on
+`uclamp.max` would be measuring uclamp against a moving and adversarial ceiling.
+
+The design fix is to hold the ceiling *constant across both arms* rather than to "fix" it —
+making URCC a controlled constant instead of a confound.

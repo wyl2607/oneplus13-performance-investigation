@@ -1,0 +1,67 @@
+=== urcc-demand-probe start Thu Aug 13 23:05:40 CEST 2026 ===
+junction zone: /sys/class/thermal/thermal_zone28/temp   shell zone: /sys/class/thermal/thermal_zone56/temp
+
+--- PHASE 0: baseline, 15 s ---
+baseline node6=1689600
+P0 t=1902 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=1996800 j=39300 shell=36200
+P0 t=1907 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=2227200 j=39000 shell=36200
+P0 t=1912 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=1996800 j=39000 shell=36200
+
+--- PHASE 1: POSITIVE CONTROL, screen off ---
+Failed to write while dumping service power: Broken pipe
+wakefulness=mWakefulness=Dozing
+P1off t=1920 node0=1996800 node6=2649600 p0max=1996800 p6max=2649600 c6cur=1017600 c4cur=1785600 j=40500 shell=36200
+P1off t=1925 node0=1996800 node6=2649600 p0max=1996800 p6max=2649600 c6cur=1017600 c4cur=1996800 j=39000 shell=36200
+P1off t=1931 node0=1996800 node6=2649600 p0max=1996800 p6max=2649600 c6cur=1017600 c4cur=1785600 j=39000 shell=36200
+P1off t=1936 node0=1996800 node6=2649600 p0max=1996800 p6max=2649600 c6cur=1017600 c4cur=1785600 j=38600 shell=36100
+
+--- PHASE 1: screen back on ---
+Failed to write while dumping service power: Broken pipe
+wakefulness=mWakefulness=Awake
+P1on t=1945 node0=1555200 node6=1958400 p0max=1555200 p6max=1958400 c6cur=1017600 c4cur=1555200 j=44400 shell=35900
+P1on t=1950 node0=2745600 node6=2438400 p0max=2745600 p6max=2438400 c6cur=1017600 c4cur=2400000 j=40100 shell=36000
+P1on t=1955 node0=2400000 node6=1958400 p0max=2400000 p6max=1958400 c6cur=1017600 c4cur=2227200 j=39300 shell=36100
+P1on t=1960 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=2227200 j=39300 shell=36100
+P1on t=1965 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=2400000 j=39000 shell=36200
+P1on t=1971 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=2400000 j=38600 shell=36200
+
+POSITIVE CONTROL RESULT: baseline=1689600 screenoff=2649600 screenon_settled=1689600
+POSITIVE_CONTROL=PASS  the probe can see this node change.
+
+--- PHASE 2: root busy loop pinned to cpu6+cpu7, 75 s ---
+uid=0  (root is exempt from task_overload, section 27)
+workers: 12192 12193
+worker 12192 affinity=pid 12192's current affinity mask: c0 uclamp_max=uclamp.max                                   :                 1024
+worker 12193 affinity=pid 12193's current affinity mask: c0 uclamp_max=uclamp.max                                   :                 1024
+P2load t=1977 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1996800 j=52100 shell=36200
+P2load t=1982 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1152000 j=54000 shell=36200
+P2load t=1987 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1363200 j=54400 shell=36200
+P2load t=1992 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1996800 j=55200 shell=36300
+P2load t=1997 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=2400000 j=55600 shell=36300
+P2load t=2002 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=2227200 j=55600 shell=36300
+P2load t=2007 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1996800 j=55200 shell=36300
+P2load t=2012 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1363200 j=55200 shell=36400
+P2load t=2017 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1152000 j=55600 shell=36400
+P2load t=2022 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1555200 j=56300 shell=36400
+P2load t=2028 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=2400000 j=56000 shell=36400
+P2load t=2033 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=2400000 j=56300 shell=36400
+P2load t=2038 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=2400000 j=58700 shell=36400
+P2load t=2043 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1555200 j=58300 shell=36400
+P2load t=2048 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1689600 c4cur=1996800 j=57900 shell=36400
+
+--- PHASE 3: stop load, 30 s recovery ---
+P3rec t=2054 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=2227200 j=45100 shell=36400
+P3rec t=2059 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=1363200 j=42800 shell=36400
+P3rec t=2064 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=1996800 j=41700 shell=36300
+P3rec t=2069 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=2227200 j=41300 shell=36300
+P3rec t=2074 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=2400000 j=40500 shell=36300
+P3rec t=2080 node0=2400000 node6=1689600 p0max=2400000 p6max=1689600 c6cur=1017600 c4cur=2400000 j=40500 shell=36300
+
+=== RESULT ===
+baseline node6   = 1689600
+screen-off node6 = 2649600      (positive control)
+screen-on node6  = 1689600
+under prime load = 1689600
+after load       = 1689600
+VERDICT: prime demand did NOT raise the URCC ceiling within 75 s.
+PROBE_DONE
