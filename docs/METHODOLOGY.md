@@ -373,3 +373,42 @@ Three separate faults, all of which read as reasonable when written:
 The last one is the general lesson. **Choose the mildest operating point that still exercises the
 mechanism.** The earlier runs used 3 283 200 because that was the number the rest of the
 repository used, not because the question needed it.
+
+---
+
+## Trap 9 — cleanup matched a name the run never used, and the clean-check believed it
+
+After an aborted experiment, three busy loops kept running under the app uid for **fifteen
+minutes**, unnoticed, while `tools/verify-clean.sh` reported the device clean. They were only
+found because an unrelated `/proc/*/fd` scan happened to list them.
+
+Two independent failures lined up:
+
+- **The teardown pattern did not match what the run launched.** Cleanup used
+  `pkill -9 -f "$MARK"`. In the run that leaked, the marker had been written as a trailing
+  `# $MARK`, which `su`'s own shell stripped as a **comment** before exec — so no process ever
+  carried it. `pkill` matched nothing and reported success. (This is the same root cause as
+  trap 7 seen from the other end: there, the missing marker made the probe target the wrong
+  process; here, it made teardown target nothing.)
+- **The clean-check tested names, not behaviour.** `verify-clean.sh` searched a hardcoded list
+  of marker strings from the harnesses that existed when it was written. A later experiment used
+  a new marker *and* renamed its worker binaries, so it fell outside the list entirely.
+
+The fix is to check the property that actually matters. `verify-clean.sh` now samples every
+non-system task's `utime+stime` over one second and reports anything above 20% of a core,
+regardless of what it is called:
+
+```
+=== any non-system process burning CPU (the check that actually matters) ===
+  none above 20% of a core
+```
+
+**Identify processes by what they are doing, not by what they are called.** Three separate
+failures tonight — the probe target, the teardown, and the clean-check — were all
+name-matching, and all three reported success while being wrong. A name is metadata the
+experiment controls and can silently lose; CPU time is the thing under test.
+
+Related: the deletion of that same directory appeared to fail with `Permission denied` on every
+file when issued as `adb shell su -c "cmd1; rm -rf ...; cmd2"`. Re-issued from a pushed script
+it succeeded immediately. Multi-level `su -c` quoting produced a plausible, entirely misleading
+error — the same hazard as trap 5. Push a script.
