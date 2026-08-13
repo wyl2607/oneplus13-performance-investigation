@@ -1721,3 +1721,94 @@ variable that moves on wake and input**, and it currently sits inverted, so an A
 
 The design fix is to hold the ceiling *constant across both arms* rather than to "fix" it —
 making URCC a controlled constant instead of a confound.
+
+---
+
+## 30. Pinning the ceiling — and the inversion turns out to mask the clamp entirely
+
+Setting up the real-workload A/B required making URCC's ceiling a controlled constant rather
+than a variable (section 29). Doing so produced a finding that reframes section 28's blocker.
+
+### The write works, and 28c was too pessimistic
+
+Section 28c argued no userspace write could raise the ceiling, because cpufreq takes `min()`
+across `freq_qos` requests. That is true for `scaling_max_freq`, which adds a *new* requester.
+It is not true for `/sys/kernel/msm_performance/parameters/cpu_max_freq`, because URCC drives
+the ceiling **through that same node** — `set_cpu_max_freq [msm_performance]` (section 29). A
+root write updates the value of the request URCC already owns instead of adding another one.
+
+```
+before   0:2400000 ... 5:2400000  6:1689600 7:1689600   p0max=2400000 p6max=1689600
+write    0:2918400 ... 5:2918400  6:3283200 7:3283200
+after    readback identical                              p0max=2918400 p6max=3283200
+```
+
+`RESULT=PIN_EFFECTIVE`. **Section 28c's claim needs the narrower wording**: writing
+`scaling_max_freq` cannot raise it; writing msm_performance's own node can. The distinction is
+which requester the write lands on, and 28c did not make it.
+
+Non-persistent, cleared by reboot, restored on every exit path.
+
+### It holds while idle, and is reclaimed under load
+
+| Condition | Result |
+|---|---|
+| 60 s idle, screen on, no input | no drift |
+| 40 s after a `keyevent BACK` | no drift |
+| **under a 37 s app workload** | **reclaimed at t = 28.6 s, back to 1 689 600 / 2 400 000** |
+
+The first smoke pair lost the last 8 s of its control arm to this before it was caught, which
+would have inflated the measured effect. Every measured run therefore re-asserts the pin at
+2 Hz for its duration, **in both arms equally**, and counts per-sample ceiling violations so a
+run that lost the ceiling is visible rather than silently averaged in.
+
+### The inverted state suppresses the clamp completely
+
+Established while validating the sampler, on a workload that had not yet been pinned — 43 s of
+`gzip -9` under app uid 10999, in URCC's stock inverted state:
+
+```
+t=0s   uclamp.max=1024  psr=5  p6max=1689600
+t=40s  uclamp.max=1024  psr=5  p6max=1689600
+natural clamp: none
+```
+
+**`oplus_bsp_task_overload` never fired.** The task ran on a mid core for its entire life and
+was never clamped.
+
+This is section 27's trigger condition seen from the other side. The guard only fires on the
+prime cluster; the scheduler only promotes to prime when prime is worth having; and with the
+prime ceiling held 710 400 kHz *below* the mid ceiling, promoting is correctly declined. So:
+
+```
+URCC inverts the clusters
+   -> the scheduler rationally keeps the task on mid
+   -> the task never runs on prime
+   -> the overload guard never fires
+   -> uclamp.max stays 1024
+```
+
+**In the inverted state the uclamp pathology does not occur at all.** The two limiters do not
+compound here — the inversion *masks* the clamp, by making the cluster that triggers it
+unattractive. This is the opposite of the compounding relationship section 25 documented
+between CFB and the guard, and it is why the section 28 experiment could not have worked: with
+the clusters inverted there was no clamp left to lift.
+
+It also means any "does the clamp affect real workloads" measurement taken without reading the
+ceiling node first can return a clean, confident, and entirely spurious null.
+
+### The probe was validated before it was believed
+
+Required after the previous round's `workload_clamp_probe.sh` reported no effect while
+monitoring an idle parent shell. `probe-selftest.sh` refuses to hand over data unless it first
+observes a clamp it set itself:
+
+```
+set uclampset -a -M 300   ->  probe reads uclamp.max=300 effective=300   PASS
+set uclampset -a -M 1024  ->  probe reads uclamp.max=1024 effective=1024 PASS
+POSITIVE_CONTROL=PASS
+```
+
+It also validates its own field parsing — `processor` is field 39 of `/proc/<pid>/stat`, which
+after stripping the `pid (comm) ` prefix is index 37 — and asserts the parsed value is a legal
+CPU id before proceeding. The natural-clamp null above was recorded only after both passed.

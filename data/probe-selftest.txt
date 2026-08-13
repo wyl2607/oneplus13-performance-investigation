@@ -1,0 +1,39 @@
+=== probe-selftest Thu Aug 13 23:21:35 CEST 2026 ===
+building 28x concatenated input...
+built: 951886264 bytes
+sum: 5c85ba019ff07ae433e48db19dcf4f30
+
+--- starting workload under app uid 10999 ---
+gzip pid=5104  uid=10999
+
+--- raw /proc/5104/stat ---
+5104 (gzip) R 5094 5086 5086 0 -1 4194304 581 0 0 0 195 3 0 0 20 0 1 0 286000 2204925952 1343 18446744073709551615 421531828224 421532166792 549566969856 0 0 0 0 0 1073775864 0 0 0 17 0 0 0 0 0 0 421532205056 421532216360 421996699648 549566973685 549566973725 549566973725 549566980071 0
+--- uclamp lines in /proc/5104/sched ---
+uclamp.min                                   :                    0
+uclamp.max                                   :                 1024
+effective uclamp.min                         :                    0
+effective uclamp.max                         :                 1024
+
+parsed processor=0
+  processor parse OK
+parsed uclamp.max=1024  effective=1024
+
+=== POSITIVE CONTROL ===
+setting a known clamp of 300 with uclampset...
+probe reads uclamp.max=300 effective=300  (expected 300)
+removing the clamp (back to 1024)...
+probe reads uclamp.max=1024 effective=1024  (expected 1024)
+POSITIVE_CONTROL=PASS  the probe observes both the application and the removal of a clamp.
+
+=== does oplus_bsp_task_overload clamp this workload on its own? ===
+watching for up to 60 s, sampling at 500 ms
+  t=0s uclamp.max=1024 psr=5 p6max=1689600
+  t=10s uclamp.max=1024 psr=5 p6max=1689600
+  t=20s uclamp.max=1024 psr=5 p6max=1689600
+  t=30s uclamp.max=1024 psr=5 p6max=1689600
+  t=40s uclamp.max=1024 psr=5 p6max=1689600
+  workload exited at sample 86
+natural clamp: none
+
+SELFTEST=PASS
+SELFTEST_DONE

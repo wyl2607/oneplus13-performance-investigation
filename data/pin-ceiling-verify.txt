@@ -1,0 +1,46 @@
+=== pin-ceiling-verify Thu Aug 13 23:16:11 CEST 2026 ===
+ORIGINAL node: 0:2400000 1:2400000 2:2400000 3:2400000 4:2400000 5:2400000 6:1689600 7:1689600 
+ORIGINAL p0max=2400000 p6max=1689600
+
+--- tool availability ---
+uclampset: /system/bin/uclampset
+gzip:      /system/bin/gzip
+taskset:   /system/bin/taskset
+cfb enable=0
+
+--- WRITE: mid=2918400 prime=3283200 ---
+writing: 0:2918400 1:2918400 2:2918400 3:2918400 4:2918400 5:2918400 6:3283200 7:3283200
+write rc=0
+readback node: 0:2918400 1:2918400 2:2918400 3:2918400 4:2918400 5:2918400 6:3283200 7:3283200 
+readback p0max=2918400 p6max=3283200
+RESULT=PIN_EFFECTIVE  prime ceiling raised 1689600 -> 3283200
+
+--- HOLD TEST A: 60 s undisturbed, no input, screen on ---
+  t=0s node6=3283200 p6max=3283200 node0=2918400 p0max=2918400
+  t=10s node6=3283200 p6max=3283200 node0=2918400 p0max=2918400
+  t=20s node6=3283200 p6max=3283200 node0=2918400 p0max=2918400
+  t=30s node6=3283200 p6max=3283200 node0=2918400 p0max=2918400
+  t=40s node6=3283200 p6max=3283200 node0=2918400 p0max=2918400
+  t=50s node6=3283200 p6max=3283200 node0=2918400 p0max=2918400
+spontaneous drift: none
+
+--- HOLD TEST B: after a user input event ---
+sent keyevent BACK
+  t=0s node6=3283200 p6max=3283200
+  t=4s node6=3283200 p6max=3283200
+  t=8s node6=3283200 p6max=3283200
+  t=12s node6=3283200 p6max=3283200
+  t=16s node6=3283200 p6max=3283200
+  t=20s node6=3283200 p6max=3283200
+  t=24s node6=3283200 p6max=3283200
+  t=28s node6=3283200 p6max=3283200
+  t=32s node6=3283200 p6max=3283200
+  t=36s node6=3283200 p6max=3283200
+drift after input: none
+
+--- RESTORE ---
+restored node: 0:2400000 1:2400000 2:2400000 3:2400000 4:2400000 5:2400000 6:1689600 7:1689600 
+restored p0max=2400000 p6max=1689600
+
+SUMMARY  pin_effective=yes  drift_idle=none  drift_after_input=none
+VERIFY_DONE
