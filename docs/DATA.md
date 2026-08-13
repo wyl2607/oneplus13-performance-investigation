@@ -1996,3 +1996,93 @@ node accepted the write, but `scaling_max_freq` stayed at 3 283 200 because the 
 installed tune watchdog (`/data/adb/service.d/oneplus13_cfb_tune.sh`, running this boot) holds
 a `freq_qos` request there, and cpufreq takes the `min()`. Raising it means editing an installed
 system script, so those points were left untaken rather than forced.
+
+---
+
+## 34. The inversion costs four times what the clamp costs
+
+Sections 29-33 treated URCC's cluster inversion as a confound to be held constant so the uclamp
+guard could be measured cleanly. That was the right experimental move and it obscured the more
+important number. The inversion is the device's stock screen-on steady state — it is what the
+owner actually runs on — and it had never been measured against anything.
+
+Three arms, same gzip workload and harness as section 31, interleaved `S A B B A S A S B`:
+
+| Arm | Ceiling | uclamp | |
+|---|---|---|---|
+| **S** | URCC's stock inverted 2 400 000 / **1 689 600** | untouched | what the phone does |
+| **A** | pinned 2 918 400 / 3 283 200 | untouched | inversion removed |
+| **B** | pinned 2 918 400 / 3 283 200 | held at 1024 | both removed |
+
+### Result
+
+| Run | Arm | Wall ms | prime % | clamped % | min uclamp | mean freq |
+|---|---|---|---|---|---|---|
+| 1 | S | 47 640 | 0.0 | 0.0 | 1024 | 2 400 000 |
+| 6 | S | 47 800 | 2.6 | 0.0 | 1024 | 2 402 244 |
+| 8 | S | **64 640** | **97.8** | **77.3** | **240** | **1 491 684** |
+| 2 | A | 30 800 | 98.9 | 52.7 | 466 | 3 093 058 |
+| 5 | A | 33 530 | 99.0 | 69.1 | 466 | 2 888 709 |
+| 7 | A | 32 120 | 100.0 | 51.1 | 466 | 3 000 102 |
+| 3 | B | 28 900 | 100.0 | 0.0 | 1024 | 3 283 200 |
+| 4 | B | 29 140 | 100.0 | 0.0 | 1024 | 3 283 200 |
+| 9 | B | 29 280 | 97.7 | 0.0 | 1024 | 3 235 855 |
+
+```
+S -> A   removing the URCC inversion : 39.7% faster
+A -> B   lifting the uclamp guard    :  9.5% faster
+S -> B   both                        : 45.5% faster
+```
+
+**The inversion is worth roughly four times the uclamp guard on this workload.** This
+repository has spent its entire effort on the guard.
+
+### Arm S is bimodal, and its bad mode is the worst state on the device
+
+Two of the three stock runs behaved as section 30 predicted: the task stayed on the mid cluster
+at 2 400 000, was never promoted, and was therefore never clamped — 47.6 and 47.8 s.
+
+Run 8 did something else. The task *did* end up on the prime cluster (97.8% residency), where
+the ceiling is 1 689 600. The guard then fired and clamped it to **240**, which is exactly
+`floor(614 x 1689600 / 4320000)` — section 33's formula evaluated at the inverted ceiling. Mean
+frequency collapsed to 1 491 684 and the run took **64.6 s**.
+
+So the stock configuration has a trap: if the scheduler does promote a task to prime, that task
+lands on cores capped *below* the mid cluster, gets clamped to a value computed from that
+already-low clock, and ends up 36% slower than if it had simply stayed on mid — and 2.2x slower
+than the same work with the ceiling pinned. **The two limiters do compound after all**, just not
+in the way section 25 described: the inversion feeds the guard a low frequency, and the guard's
+formula turns that into a punitive clamp.
+
+Section 30 said the inversion "masks" the clamp. That is true of the common case and false of
+the tail. Both statements are needed.
+
+### Statistics, honestly
+
+With n=3 per arm and one arm bimodal, only the large effect is solid:
+
+```
+S vs A   53360 vs 32150   Welch t=3.7, df~2   p~0.06   (n=3)
+S vs A   excluding run 8: 47720 vs 32150      t=19.6   p<0.01
+A vs B   32150 vs 29107   Welch t=3.8, df~2   p~0.06
+```
+
+The S->A effect is large enough that it does not depend on the outlier — excluding run 8 it is
+still **32.6% faster**, with S's two remaining runs 160 ms apart. The A->B effect at 9.5% is
+larger here than section 31's 1.4%, because arm A happened to lose frequency in all three runs
+where section 31's arm A often did not; the two are consistent within the guard's own
+run-to-run variability, and neither is a clean measurement of it. Section 32 explains why that
+variability exists at all.
+
+### What this changes
+
+The mitigation this repository ships raises `scaling_max_freq`. Section 28c and section 30
+establish that this **cannot** defeat the inversion, because URCC holds a lower `freq_qos`
+request and cpufreq takes the `min()`. So the shipped tune does not address the largest
+measured limiter on the device. The node that would address it is
+`/sys/kernel/msm_performance/parameters/cpu_max_freq`, which is not persistent and which no
+mitigation here currently writes.
+
+Not yet known, and needed before recommending anything: whether this inversion is normal OOS
+behaviour across OnePlus 13 units or specific to this one. Every measurement in this section is
+from a single device.
