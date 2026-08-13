@@ -1555,3 +1555,52 @@ display" is not a complete description.
 It also matters practically: **any measurement taken without reading this node first may be
 taken in an inverted-cluster state**, and reading `scaling_max_freq` alone will not tell you
 that, because the value looks like an ordinary low ceiling.
+
+### 28b. The tune's watchdog does not survive a reboot — PID reuse defeats its own lock
+
+Found immediately after the reboot in section 28. `cfb` read `1` and the ceilings were stock
+75 s after `boot_completed`, and `ps` showed no watchdog at all. The log's last entry was from
+the *previous* boot.
+
+`tune/oneplus13_cfb_tune.sh` guards against duplicate instances with a PID file:
+
+```sh
+if [ -f "$LOCK" ] && kill -0 "$(cat $LOCK 2>/dev/null)" 2>/dev/null; then
+  exit 0
+fi
+```
+
+Its comment claims "a stale pid file from an unclean shutdown is ignored". It is not. Across a
+reboot the kernel restarts PID allocation from low numbers, so a stored PID like `3434` is very
+likely to be **reused by an unrelated early system process**. `kill -0` then succeeds, the
+single-instance check fires, and the watchdog exits without ever running.
+
+Confirmed on this boot:
+
+```
+lockfile_contains=3434
+pid 3434 IS ALIVE  ->  script exits early
+uptime=200s  boot_completed=1  cfb=1  (never disabled)
+```
+
+This is the explanation for the repeated "the tune is not applied" observations earlier in this
+document, which had been attributed to CFB ignoring `enable=0`.
+
+A PID alone is not a valid cross-boot lock. The check needs to confirm the process is actually
+this script — comparing `/proc/<pid>/cmdline` — or the lock needs to carry a boot identifier.
+
+**Not fixed here.** Fixing it edits an installed system script and that is the user's call.
+
+### 28c. Why raising the ceiling from userspace cannot work in this state
+
+Worth stating because it is counter-intuitive and it closed off the obvious workaround.
+
+With URCC holding 1 689 600 on the prime cluster, writing `scaling_max_freq` as root **cannot**
+raise it. cpufreq takes the `min()` of every `freq_qos` request, so a userspace write adds one
+more requester rather than overriding the others — the same property this repository documents
+in its opening section for CFB.
+
+The only nodes that could raise it are URCC's own
+`/sys/kernel/msm_performance/parameters/cpu_max_freq`, or whatever causes URCC to release. So
+"just write the ceiling" is not an available workaround, independent of whether it would be
+permitted.
