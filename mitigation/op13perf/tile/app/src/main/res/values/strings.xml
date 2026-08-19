@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">op13perf</string>
+    <string name="tile_label">op13perf</string>
+    <string name="root_help_title">op13perf 磁贴</string>
+    <string name="root_help_body">本应用只提供一个快捷设置磁贴：点一下循环切换 CPU 性能档位（关闭 / 日常 / 高性能 / 极限），档位由 Magisk 模块 op13perf 实现。\n\n把磁贴加进面板：下拉通知栏 → 编辑（铅笔图标）→ 找到 op13perf 拖上去。\n\n如果磁贴显示拿不到 root，它就无法读/写 /data/adb/op13perf/state。\n\n请按下面做：\n\n1. 打开 Magisk\n2. 进入「超级用户」\n3. 找到本应用（op13perf），把开关打到允许\n\n如果之前在弹窗里点过「拒绝」，Magisk 会记住，之后不会再弹窗，必须去超级用户列表里手动改开关。Termux 刚在本机上栽过这件事。\n\n改完回到快捷设置，再点一次磁贴。</string>
+    <string name="err_timeout">等待 Magisk 授权</string>
+    <string name="err_denied">su 被拒绝，点开说明</string>
+    <string name="err_not_found">找不到 su</string>
+    <string name="err_no_module">模块未安装</string>
+    <string name="err_unknown">读状态失败</string>
+</resources>
