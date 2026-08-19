@@ -1,0 +1,22 @@
+### module parked (state=0)
+### CFB=0 (held off by this script for the whole ladder)
+### calibration: 300000 iterations took 50 cs -> N=7200000 for ~12 s
+
+ceiling ladder, mid pinned at 2918400, abort 95 C, start-below 45 C
+
+passA ceiling=3283200  time= 12350ms  held=yes cpu7@ceiling= 97%  junc 32->61 C
+passA ceiling=3513600  time= 11460ms  held=yes cpu7@ceiling= 97%  junc 35->69 C
+passA ceiling=3801600  time= 10580ms  held=yes cpu7@ceiling= 97%  junc 39->85 C
+passA ceiling=4089600  ***THERMAL ABORT at 95 C***
+passA ceiling=4320000  ***THERMAL ABORT at 99 C***
+
+--- descending pass, to expose thermal drift ---
+passB ceiling=4320000  ***THERMAL ABORT at 97 C***
+passB ceiling=4089600  ***THERMAL ABORT at 96 C***
+passB ceiling=3801600  time= 10560ms  held=yes cpu7@ceiling= 97%  junc 34->88 C
+passB ceiling=3513600  time= 11430ms  held=yes cpu7@ceiling= 97%  junc 34->74 C
+passB ceiling=3283200  time= 12240ms  held=yes cpu7@ceiling= 97%  junc 44->67 C
+
+### leak check
+clean
+### module returned to level 2

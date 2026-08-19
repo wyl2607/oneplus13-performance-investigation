@@ -1,0 +1,37 @@
+PMU counters, 2026-08-19. simpleperf stat -a --cpu 6, perf_event_paranoid = -1.
+One worker (fixed-work mksh integer loop) pinned to cpu6; mid cluster pinned 2918400.
+
+=== experiments/2026-08-19/dsu-stall-test.sh — is anything outside the core limiting? ===
+
+ceiling 3283200
+  131,316,095,774  cpu-cycles                       # 3.279660 GHz
+  743,001,974,179  instructions                     # 0.176737 cycles per instruction
+      114,785,984  armv8_pmuv3/stall_backend_mem/   # 2.867 M/sec
+  end temp 58 C
+
+ceiling 3801600
+  143,105,440,248  cpu-cycles                       # 3.574042 GHz
+  803,088,600,942  instructions                     # 0.178194 cycles per instruction
+      137,897,170  armv8_pmuv3/stall_backend_mem/   # 3.444 M/sec
+  end temp 71 C, scaling_cur_freq read back 3513600
+
+stall_backend_mem / cpu-cycles = 0.087% and 0.096%.
+IPC 5.66 and 5.61. Clock +9.0%, instructions +8.1%.
+
+=== experiments/2026-08-19/prime-budget-test.sh — shared cluster budget? ===
+Same ceiling 3801600 both times; only the number of loaded prime cores changes.
+PMU counts cpu6 in both cases.
+
+1 prime core loaded
+  132,203,222,244  cpu-cycles     # 3.773446 GHz     (99.3% of the 3801600 ceiling)
+  741,162,518,371  instructions   # 0.178373 cycles per instruction
+  end 70 C
+
+2 prime cores loaded
+  123,467,182,025  cpu-cycles     # 3.524139 GHz     (-6.6%)
+  700,220,114,619  instructions   # 0.176326 cycles per instruction
+  end 74 C
+
+Caveat: two nominally identical 1-core runs at ceiling 3801600 returned 3.574 GHz
+(dsu-stall-test) and 3.773 GHz (prime-budget-test). Sustained-clock figures from this
+device carry roughly +/-5% run-to-run spread; do not read three significant digits.

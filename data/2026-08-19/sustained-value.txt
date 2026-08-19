@@ -1,0 +1,16 @@
+### module parked; this script drives the levers itself
+sustained value: 2 prime-pinned workers, 150s per point, mid pinned 2918400
+
+=== ceiling 3283200  gate 95 C ===
+start temp 32 C after 90s idle
+RESULT 3283200 | work=468 | pause=0% | start 32 C, mean 67 C, last-60s 72 C, peak 74 C
+
+=== ceiling 3513600  gate 95 C ===
+start temp 37 C after 90s idle
+RESULT 3513600 | work=475 | pause=0% | start 37 C, mean 76 C, last-60s 78 C, peak 79 C
+
+=== ceiling 3801600  gate 97 C ===
+start temp 41 C after 90s idle
+RESULT 3801600 | work=470 | pause=0% | start 41 C, mean 77 C, last-60s 79 C, peak 79 C
+### clean: no uid 10999 processes remain
+### module returned to level 2

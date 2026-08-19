@@ -2086,3 +2086,252 @@ mitigation here currently writes.
 Not yet known, and needed before recommending anything: whether this inversion is normal OOS
 behaviour across OnePlus 13 units or specific to this one. Every measurement in this section is
 from a single device.
+
+
+## 35. The compounded state, caught in the act — 725 / 5942
+
+A Geekbench 7 run on 2026-08-19 scored **725 / 5942**, the worst single-core result on record
+for this device. The state was captured while it was still in the kernel, ten minutes after the
+run: `/proc/task_overload/abnormal_task` held three rows for the Geekbench uid, at `limit_flag`
+**240** with `freq` **1689600**, plus 278 at 1958400 and 466 at 3283200.
+
+At the same moment:
+
+```
+policy0 (cpu0-5, mid)     scaling_max_freq = 2400000
+policy6 (cpu6-7, prime)   scaling_max_freq = 1689600
+msm_performance node      0:2400000 ... 6:1689600 7:1689600
+```
+
+The prime cluster was parked **below** the mid cluster — the inversion of section 29 — and the
+guard was therefore clamping against a low prime clock, giving
+`floor(614 * 1689600 / 4320000) = 240`. Both limiters, compounding, exactly as section 34
+predicted for arm S's bad mode.
+
+### The ratio is a one-number diagnostic
+
+| state | single | multi | multi / single |
+|---|---|---|---|
+| both limiters | 725 | 5942 | **8.20** |
+| ceiling pinned, guard live | 1210 | 7626 | **6.30** |
+| both lifted | 2071 | 8166 | **3.94** |
+| healthy CPH2655 reference | 2681 | 8846 | **3.30** |
+
+Multi-core barely moves while single-core collapses, because the guard displaces a single
+runnable thread onto mid but cannot displace eight. **A multi/single ratio near 8 means both
+limiters; near 6.3 means the guard alone; near 3.9 means neither.** This costs one benchmark run
+and no instrumentation, and it is the cheapest triage this project has produced.
+
+### It is not benchmark detection
+
+The same `abnormal_task` table, in the same boot, holds clamp values of 346, 376 and 466 applied
+to ordinary worker threads belonging to five unrelated third-party applications — a social app, a
+banking app, a settings utility and two others — using the identical formula. The guard does not
+know what Geekbench is. It penalises any sustained-load thread, which is why the cost shows up in
+everyday interactive work as well, and why framing this as "cheating on benchmarks" is wrong.
+
+*(Package names are deliberately omitted; see docs/PRIVACY.md.)*
+
+## 36. What releases the inversion, and what does not
+
+Four hypotheses tested on 2026-08-19 while the inversion was active. Scripts in
+`experiments/2026-08-19/`.
+
+### Refuted: framework charging state
+
+`dumpsys battery unplug` held for 40 s. `USB powered` flipped to false, so the manipulation
+landed. The node was **byte-identical** throughout. A physical unplug is a different test and
+remains unrun. (`inv-trigger-charge.sh`)
+
+### Refuted: sustained background load
+
+A third-party app had been pegging one core for over eight minutes of CPU time. Force-stopping it
+changed nothing in 180 s of sampling, and the temperatures did not fall either.
+(`inv-trigger-load.sh`)
+
+### Refuted: restarting the URCC HAL
+
+`setprop ctl.restart vendor.urcc-hal-aidl` **appeared** to work once: after the restart, a screen
+wake left the prime cluster uncapped at 4320000 and it held for 30 s of sampling. **It did not
+reproduce.** On the second attempt the identical sequence brought prime up at 2438400 — still
+below mid at 2745600 — and it decayed to the full 1689600 / 2400000 inversion within about 10 s,
+then sat there for 60 s. **Do not build on the restart.** Note also that the wake transient
+itself briefly shows uncapped values, so a single post-wake sample proves nothing; sample for at
+least 60 s. (`inv-release-test.sh`)
+
+### Refuted: skip_goplus_enabled is not an off switch
+
+`/proc/task_overload/skip_goplus_enabled` is world-writable and its name suggests "skip
+gold-plus", i.e. skip the prime cluster. It is not a switch. It only ever reads back
+`debug_enabled=N`; a bare number sets `debug_enabled`, and `skip_goplus_enabled=1` is silently
+ignored.
+
+Tested with a positive control first: a prime-pinned spinner under an app uid was clamped to
+**466 in 3 s** at the shipped setting — a fifth exact confirmation of the section 33 formula at
+3283200. The node was then written, and a second spinner **with a different binary name** (the
+guard de-duplicates on `(uid, comm)`, section 33) was clamped to **466 in 3 s**, identical.
+Restore `debug_enabled=1` afterwards; `abnormal_task` logging may depend on it.
+(`skip-goplus-test.sh`)
+
+### What does work, unchanged
+
+Writing `/sys/kernel/msm_performance/parameters/cpu_max_freq` and re-asserting it, as section 30
+established. Nothing found in this round improves on it.
+
+## 37. The ceiling ladder — the ceiling is honoured exactly, and the wall is thermal
+
+Section 33 recorded "not measurable here: anything above 3 283 200". **That is now measured and
+the sentence is superseded.** `experiments/2026-08-19/ceiling-ladder.sh`, with the 40 W active
+cooler attached.
+
+Fixed-work pure-ALU probe (mksh integer loop — no syscalls, no memory traffic) pinned to cpu7,
+mid pinned at 2918400, ascending then descending, with a blocking cooldown gate between points:
+
+```
+ceiling    pass A     pass B     time x freq    junction rise
+3283200   12350 ms   12240 ms    4.036e10       +29 / +23 C
+3513600   11460 ms   11430 ms    4.021e10       +34 / +40 C
+3801600   10580 ms   10560 ms    4.018e10       +46 / +54 C
+4089600   ABORT 95 C ABORT 96 C
+4320000   ABORT 99 C ABORT 97 C
+```
+
+`time x freq` is constant to **0.45%** across the three delivered points. The ceiling is honoured
+exactly; nothing is stealing clock. A/B reproducibility is 0.2-0.9% with no thermal drift, and
+`cpu7` was at the ceiling for 97% of samples throughout.
+
+**4089600 and 4320000 are physically unreachable on this device.** An eleven-second
+single-threaded probe with active cooling blows past 95 C before finishing, in both directions.
+The thermal cost is strongly superlinear above 3513600. The wall is thermal, not software.
+
+## 38. Not the DSU, not memory: a shared prime-cluster power budget
+
+A sustained test (`sustained-value.sh`, two prime-pinned workers, 150 s per point, counting
+**work completed** rather than time-to-finish) produced a flat result — 468 / 475 / 470 chunks at
+3283200 / 3513600 / 3801600, within about 1% noise, with zero thermal pausing. That appeared to
+contradict section 37.
+
+### The DSU / L3 / memory hypothesis is dead
+
+`perf_event_paranoid` is -1 and `/system/bin/simpleperf` is present, so `cpu-cycles` gives the
+clock **actually delivered** rather than the clock requested. One worker on cpu6:
+
+```
+ceiling 3283200   3.2797 GHz   18.58 G instr/s   IPC 5.66   stall_backend_mem 0.087% of cycles
+ceiling 3801600   3.5740 GHz   20.08 G instr/s   IPC 5.61   stall_backend_mem 0.096% of cycles
+```
+
+Memory stalls are **under a tenth of one percent of cycles** and IPC is flat. Work scales with
+clock: +9.0% clock gives +8.1% instructions. Nothing outside the core is limiting this workload.
+`data/2026-08-19/dsu-observability.txt` records the separate finding that DSU frequency cannot be
+observed on this device at all — no `arm_dsu_pmu`, no L3/DDR devfreq, and the cluster clocks are
+driven by EPSS hardware DCVS and so are absent from `clk_summary` even with debugfs mounted.
+`/proc/game_opt/dsu_freq` is therefore not just untested but **untestable**, and this line is
+closed.
+
+### The actual limiter
+
+Same ceiling 3801600, PMU counting cpu6 both times, only the number of loaded prime cores varies:
+
+```
+1 prime core loaded    cpu6 = 3.7734 GHz   (99.3% of ceiling)   end 70 C
+2 prime cores loaded   cpu6 = 3.5241 GHz   (-6.6%)              end 74 C
+```
+
+**The prime cluster shares a sustained power budget.** Lighting up the second prime core costs
+the first one 6.6% of its clock. This reconciles everything: section 37's eleven-second ladder and
+the PMU run above are single-core and scale cleanly; the flat 150 s result is two-core and is
+budget-limited, not memory-limited.
+
+**A correction to how this was first framed.** The flat result was initially explained as "burst
+versus sustained". That explanation is wrong. The variable is **one core versus two**, not short
+versus long.
+
+The practical consequence is that a higher prime ceiling pays off **single-threaded only** — which
+is what Geekbench single-core and everyday app responsiveness are — while multi-threaded work is
+budget-limited to about 3.52 GHz whatever the ceiling says, and therefore costs roughly the same
+in heat either way.
+
+**Honesty about precision:** two nominally identical single-core runs at ceiling 3801600 returned
+3.574 and 3.773 GHz. Sustained-clock figures from this device carry roughly +/-5% run-to-run
+spread. Do not read three significant digits into them.
+
+
+## 39. The full ladder, and a toggleable mitigation
+
+All five points below are the same device, the same day, the 40 W active cooler attached, mid
+cluster pinned at 2918400, with both the URCC inversion and the uclamp guard lifted except where
+stated.
+
+| prime ceiling | single | multi | multi / single | peak junction |
+|---|---|---|---|---|
+| stock (inversion + guard) | 725 | 5942 | 8.20 | — |
+| 3283200, guard live | 1210 | 7626 | 6.30 | 92.3 C |
+| 3283200 | 2071 | 8166 | 3.94 | 98.8 C (gate fired) |
+| 3513600 | 2240 | 8679 | 3.94 | 96.1 C |
+| 3801600 | **2416** | 8596 | 3.56 | **100.0 C** |
+| healthy CPH2655 reference | 2681 | 8846 | 3.30 | — |
+
+**Stock to best: +233% single-core, +44.7% multi-core.** Multi-core reaches 97.2% of the
+reference unit; single-core reaches 90.1% of it, and scaled to rated clock
+(2416 x 4320000 / 3801600 = 2745) slightly exceeds it. The silicon is healthy; what remains is
+thermal.
+
+### The power-budget model made a quantitative prediction and it held
+
+Going from 3513600 to 3801600, section 38 measured single-core delivered clock rising from about
+3.51 to 3.77 GHz, **+7.4%**, and predicted that multi-core would not move because it is
+budget-limited. Measured: single-core **+7.9%**, multi-core **-1.0%**. This is the same kind of
+closure as the original clock-ratio prediction in the README — mechanism to number, not merely
+"it got faster".
+
+### The 100 C peak is in the multi-core phase, where the ceiling buys nothing
+
+Timeline of the 3801600 run, 30 s windows:
+
+```
+120-270 s   cpu6 2.1-2.9 GHz, at-ceiling 39-67%   peak 72.9 -> 93.4 C   (single-core phase)
+270-360 s   cpu6 1.87-2.33 GHz, at-ceiling 14%    peak 100.0 / 96.9 / 95.7 C   (multi-core phase)
+```
+
+Total exposure above 95 C was **3.0 s**, above 90 C **12.0 s**, in fragmented spikes with the
+longest continuous stretch 4-5 s. The module's gate was 95 C and never fired, because decisions
+run on an EMA that correctly ignores isolated spikes. **Peak 100 C leaves only 5 C to the 105 C
+hardware trip, which is thinner than this project's stated posture allows.**
+
+The fix is nearly free precisely because of the budget finding: the hot phase is the multi-core
+phase, and the multi-core phase gains nothing from the high ceiling. `EXTREME_GATE` is now 92000.
+
+### A step-down is the right shape of retreat, not a release
+
+The first design dropped **all** levers above the gate. That is wrong here: releasing also drops
+the uclamp lift, and the guard re-clamps within seconds — and the uclamp lift is what earns the
+multi-core score (5942 to 8596). Above the gate the module now lowers only the **ceiling**, to
+`COOL_P6`/`COOL_P0` (2841600 / 2400000), and keeps the uclamp lift and the CFB handling running.
+
+**Not yet validated by a benchmark run.** The reasoning is sound and the mechanism is measured,
+but the step-down design and the 92 C gate have not themselves been through a GB7 run.
+
+### `mitigation/op13perf/`
+
+A Magisk module: one Action button cycling off / daily / extreme, `BOOT_LEVEL` for the level
+entered at boot, thermal step-down with hysteresis and dwell, screen-off suspension, read-back
+verification of every write, and full reversion on reboot. See `mitigation/README.md` for why it
+contradicts this repository's own standing advice, and `mitigation/op13perf/README.md` for use.
+
+### Instrument failures in this round, for METHODOLOGY
+
+Five, all of which reported success while doing nothing:
+
+1. `pgrep -x com.primatelabs.parkdale` can never match — `comm` truncates at 15 characters to
+   `com.primatelabs`. This silently made an entire validation run a uclamp no-op; caught only
+   because the sample line logged the lever's own status. **Log what your lever did, not what you
+   asked it to do.**
+2. `pkill -9 -u UID` with no PATTERN matches nothing under toybox. Two workers spun at 100% for
+   nine minutes of CPU time. Killing is now done by walking `/proc` and reading each task's real
+   uid, and workers are **self-limiting** so a teardown failure cannot leak indefinitely.
+3. Ceiling values that are not real OPP steps are silently snapped down — 2918400 does not exist
+   on policy6, 2649600 does not exist on policy0. Read `scaling_available_frequencies` first.
+4. Thresholding the raw `cpu-1-1-1` sensor oscillated pause/resume four times in thirteen
+   seconds; it swings 80 to 93 C inside one second. Smooth before deciding.
+5. Grepping `clk_summary` for `l3` matches `pll3`.

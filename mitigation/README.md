@@ -158,3 +158,48 @@ Whether Performance helps compile, video export, decompression or any
 other real workload is `TODO: unmeasured`. The harnesses exist under
 `experiments/real-workloads/` and have not been run for this tree.
 Do not describe this directory as fixing those workloads.
+
+
+---
+
+## `op13perf/` — a boot service, which contradicts the warning above
+
+Added 2026-08-19. **It is a Magisk module that starts at boot and can enter a performance
+level automatically.** That is precisely what the top of this file tells you not to do, so
+the contradiction is stated here rather than buried.
+
+It was built to a device owner's explicit request, after they were shown the junction
+temperatures and said they accepted them. It is not a recommendation. If you are reading
+this looking for advice, the advice at the top of this file still stands.
+
+### What is different from the scripts above
+
+Not the risk — the risk is the same silicon getting the same hot. What is different is that
+the failure modes this project actually hit are now designed against:
+
+- **The thermal gate pauses rather than aborts.** A hard off never comes back on its own,
+  so an always-on configuration would silently degrade to stock after the first hot moment
+  and never recover. Above the gate every lever is dropped and CFB is handed back; below
+  `gate - hysteresis`, and after a minimum dwell, they are restored.
+- **The gate decides on a smoothed signal.** `cpu-1-1-1` swings 80 to 93 C inside one
+  second. A raw threshold with a 6 C hysteresis band is narrower than the sensor noise and
+  oscillated four times in thirteen seconds in testing. Decisions run on an EMA.
+- **It does nothing while the screen is off.** No levers are applied, so heat during
+  screen-off is the system's own and is not this module's to manage. The post-boot storm
+  reaches 92-93 C on a stock device with nothing installed.
+- **Foreground processes come from the kernel's `top-app` cpuset**, not from name matching.
+  `comm` truncates at 15 characters, which silently turned one whole validation run into a
+  no-op (`pgrep -x com.primatelabs.parkdale` can never match `com.primatelabs`).
+- **Every write is verified by read-back.** `held=yes/no` in `/data/adb/op13perf/status`.
+- **A reboot always returns to stock** unless `BOOT_LEVEL` says otherwise, and nothing it
+  touches is persistent kernel state.
+
+### It also absorbs a job the old tune was quietly doing
+
+`oneplus13_cfb_tune.sh` did two things, not one: it wrote the useless `scaling_max_freq`
+ceilings **and** it held `cpufreq_bouncing` disabled with a 20 s watchdog. Every measurement
+in DATA.md sections 35-38 was taken with CFB already off because of that script. Deleting the
+tune without moving CFB handling into the module would have silently regressed everything.
+CFB is now forced to 0 while a level is on and restored to 1 on OFF.
+
+See `op13perf/README.md` for the levels, the config file and the uninstall path.

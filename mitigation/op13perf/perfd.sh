@@ -1,0 +1,257 @@
+#!/system/bin/sh
+# op13perf daemon.
+#
+# Three limiters, all measured on this device on 2026-08-19:
+#   1. URCC parks the prime cluster BELOW the mid cluster (1689600 vs 2400000).
+#      Only /sys/kernel/msm_performance/parameters/cpu_max_freq can move it --
+#      scaling_max_freq loses to URCC's freq_qos request under min(). The node is
+#      non-persistent and URCC reclaims it, hence the 4 Hz re-assert.
+#   2. oplus_bsp_task_overload clamps busy threads to
+#      floor(614 * prime_cur_freq / 4320000), which pins them to the mid cluster.
+#      Lifted with uclampset on the foreground app's own pids. It is a general
+#      runaway-thread guard, not benchmark detection -- the same clamp values show
+#      up on ordinary app threads.
+#   3. cpufreq_bouncing clamps prime to 2438400 via freq_qos after 50 ms of load,
+#      which would beat our request under min(). Disabled while a level is on; the
+#      system re-enables it on every screen wake, so it needs re-checking. Restored
+#      to 1 on OFF.
+#
+# GB7 on this device: 725/5942 stock -> 1210/7626 with lever 1 -> 2071/8166 with both.
+#
+# Everything here is non-persistent kernel state and a reboot clears it. Switching
+# OFF is NOT self-reverting at idle -- writing cpu_max_freq overwrites the request
+# URCC owns, and an unloaded write held 40 s with no drift -- so OFF explicitly
+# writes the rated maxima, meaning "this module imposes no limit".
+
+STATEDIR=/data/adb/op13perf
+STATE=$STATEDIR/state
+SINCE=$STATEDIR/since
+CONF=$STATEDIR/conf
+LOG=$STATEDIR/log
+STATUS=$STATEDIR/status
+NODE=/sys/kernel/msm_performance/parameters/cpu_max_freq
+SCREEN=/sys/class/drm/card0-DSI-1/enabled
+TOPAPP=/dev/cpuset/top-app/tasks
+CFB=/sys/module/cpufreq_bouncing/parameters/enable
+
+mkdir -p "$STATEDIR"
+
+# Defaults live here, not only in the conf file, so an older conf missing a key
+# still yields a working daemon instead of an empty variable.
+BOOT_LEVEL=2
+DAILY_P6=3283200
+DAILY_P0=2918400
+DAILY_GATE=90000
+DAILY_TIMEOUT=0
+EXTREME_P6=3801600
+EXTREME_P0=2918400
+EXTREME_GATE=92000
+EXTREME_TIMEOUT=0
+COOL_P6=2841600
+COOL_P0=2400000
+THERMAL_HYST=6000
+THERMAL_DWELL=15
+PAUSE_ON_SCREEN_OFF=1
+
+[ -f "$CONF" ] || cat > "$CONF" <<'EOF'
+# 开机自动进入的档位：0=关 1=日常档 2=极限档
+BOOT_LEVEL=2
+
+# 日常档。两个频率都必须是 scaling_available_frequencies 里的真实台阶，
+# 否则内核静默向下吸附（2918400 在 policy6 上不存在，会变成 2841600）。
+DAILY_P6=3283200
+DAILY_P0=2918400
+# 红线 90：开机风暴在原厂设置下自己就能到 92 C，定 85 会导致常开时频繁误退让。
+DAILY_GATE=90000
+DAILY_TIMEOUT=0
+
+# 极限档。GB7 实测峰值 100 C，距内核跳闸点 105 只剩 5 C，所以红线从 95 收到 92。
+# 那 100 C 出现在多核阶段，而多核受集群共享功耗预算限制、本来就吃不到高上限
+# （3801600 对 3513600：单核 +7.9%，多核 −1.0%），所以在那里退让几乎不损失成绩。
+EXTREME_P6=3801600
+EXTREME_P0=2918400
+EXTREME_GATE=92000
+EXTREME_TIMEOUT=0
+
+# 过热时降到的档位。退让是「降档」不是「全撤」——解钳和 CFB 继续保持，
+# 否则 guard 会立刻把线程钳回中核，而多核成绩（5942→8596）正是靠解钳拿到的。
+COOL_P6=2841600
+COOL_P0=2400000
+
+# 超时自动关闭：0 = 不自动关，一直保持（单位秒）
+# 过热回滞：平滑后的温度需低于 红线 - 该值 才恢复
+# 过热最短停留：退让后至少保持这么多秒才允许恢复，防止在红线上反复横跳
+THERMAL_HYST=6000
+THERMAL_DWELL=15
+
+# 息屏时暂停两个杠杆（1=是）
+PAUSE_ON_SCREEN_OFF=1
+EOF
+. "$CONF"
+
+# junction sensor, by type not by index -- indices move across boots
+Z_J=""
+for z in /sys/class/thermal/thermal_zone*; do
+	read t < "$z/type" 2>/dev/null || continue
+	[ "$t" = "cpu-1-1-1" ] && Z_J="$z/temp"
+done
+
+jt() { [ -z "$Z_J" ] && echo 0 || cat "$Z_J" 2>/dev/null; }
+now() { date +%s; }
+
+log() {
+	[ -f "$LOG" ] && [ "$(stat -c %s "$LOG" 2>/dev/null || echo 0)" -gt 65536 ] && : > "$LOG"
+	echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"
+}
+
+release() {
+	R6=$(cat /sys/devices/system/cpu/cpufreq/policy6/cpuinfo_max_freq 2>/dev/null)
+	R0=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq 2>/dev/null)
+	[ -n "$R6" ] && [ -n "$R0" ] && \
+		echo "0:$R0 1:$R0 2:$R0 3:$R0 4:$R0 5:$R0 6:$R6 7:$R6" > "$NODE" 2>/dev/null
+}
+
+# Foreground pids come from the kernel's own top-app cpuset, not from name
+# matching -- comm truncates at 15 chars and this project has been burned by
+# name matching four times. uid >= 10000 filters out system processes.
+PIDS=""
+refresh_pids() {
+	set --
+	for t in $(cat "$TOPAPP" 2>/dev/null); do
+		set -- "$@" "/proc/$t/status"
+	done
+	if [ $# -eq 0 ]; then PIDS=""; return; fi
+	PIDS=$(awk 'FNR==1{tg=""} /^Tgid:/{tg=$2} /^Uid:/{if(tg!="" && $2+0>=10000) print tg}' "$@" 2>/dev/null | sort -u | head -6)
+}
+
+screen_on() {
+	[ "$PAUSE_ON_SCREEN_OFF" != "1" ] && return 0
+	[ -r "$SCREEN" ] || return 0
+	read s < "$SCREEN" 2>/dev/null
+	[ "$s" = "enabled" ]
+}
+
+log "daemon started, pid $$, sensor ${Z_J:-NONE}, BOOT_LEVEL=$BOOT_LEVEL"
+[ -f "$STATE" ] || echo 0 > "$STATE"
+
+i=0
+LAST=-1
+COOLING=0
+while :; do
+	read ST < "$STATE" 2>/dev/null || ST=0
+	case "$ST" in 1|2) : ;; *) ST=0 ;; esac
+
+	if [ "$ST" != "$LAST" ]; then
+		if [ "$ST" = 0 ]; then
+			if [ "$LAST" != "-1" ]; then
+				release
+				log "OFF -- released to rated; URCC re-applies on its next ramp"
+			else
+				log "OFF -- initial state, nothing to release"
+			fi
+			# hand CFB back to the system; OFF means stock
+			[ -w "$CFB" ] && echo 1 > "$CFB" 2>/dev/null
+			echo "off" > "$STATUS"
+		else
+			now > "$SINCE"
+			log "ON level $ST"
+		fi
+		LAST=$ST
+		COOLING=0
+		i=0
+	fi
+
+	if [ "$ST" = 0 ]; then
+		sleep 2
+		continue
+	fi
+
+	# Screen check comes BEFORE the thermal logic on purpose: with the screen off
+	# no levers are applied, so any heat is the system's own and backing off from
+	# it would be managing a fire we did not light. Observed after a reboot -- the
+	# boot storm reached 92 C at stock settings while this daemon was idle.
+	if ! screen_on; then
+		echo "paused screen-off level=$ST" > "$STATUS"
+		COOLING=0
+		sleep 2
+		continue
+	fi
+
+	if [ "$ST" = 1 ]; then
+		P6=$DAILY_P6; P0=$DAILY_P0; GATE=$DAILY_GATE; TMO=$DAILY_TIMEOUT
+	else
+		P6=$EXTREME_P6; P0=$EXTREME_P0; GATE=$EXTREME_GATE; TMO=$EXTREME_TIMEOUT
+	fi
+
+	J=$(jt)
+
+	# cpu-1-1-1 is a per-core junction sensor and it is SPIKY: measured swinging
+	# 80 <-> 93 C inside one second, which made a 6 C hysteresis band narrower than
+	# the noise and produced pause/resume oscillation four times in 13 seconds.
+	# Decisions therefore run on an exponential moving average (tau ~2 s at 4 Hz),
+	# and a resume additionally has to wait out THERMAL_DWELL.
+	[ "${AVG:-0}" -eq 0 ] 2>/dev/null && AVG=$J
+	AVG=$(( (AVG * 7 + J) / 8 ))
+
+	# Thermal management is a STEP-DOWN with hysteresis, not an auto-off and not a
+	# full release. A hard off would never come back on its own in an always-on
+	# config; a full release would also drop the uclamp lift, and the guard would
+	# re-clamp within seconds -- which is exactly what earns the multi-core score.
+	# So above the gate only the CEILING drops, to COOL_P6/COOL_P0. The uclamp lift
+	# and the CFB handling below continue to run.
+	if [ "$COOLING" = 0 ] && [ "$AVG" -gt "$GATE" ] 2>/dev/null; then
+		COOLING=1
+		COOL_AT=$(now)
+		log "THERMAL STEP-DOWN to $COOL_P6 at avg $((AVG/1000)) C / inst $((J/1000)) C (gate $((GATE/1000)) C)"
+	elif [ "$COOLING" = 1 ] && [ "$AVG" -lt "$((GATE - THERMAL_HYST))" ] 2>/dev/null &&
+	     [ "$(( $(now) - ${COOL_AT:-0} ))" -ge "$THERMAL_DWELL" ] 2>/dev/null; then
+		COOLING=0
+		log "THERMAL RESUME at avg $((AVG/1000)) C after $(( $(now) - COOL_AT ))s"
+	fi
+
+	if [ "$COOLING" = 1 ]; then
+		P6=$COOL_P6; P0=$COOL_P0
+	fi
+
+	# Timeout is optional; 0 means stay on indefinitely.
+	if [ "${TMO:-0}" -gt 0 ] 2>/dev/null; then
+		read T0 < "$SINCE" 2>/dev/null || T0=$(now)
+		EL=$(( $(now) - T0 ))
+		if [ "$EL" -gt "$TMO" ]; then
+			log "TIMEOUT AUTO-OFF after ${EL}s (limit ${TMO}s)"
+			echo "timeout ${EL}s" > "$STATUS"
+			echo 0 > "$STATE"
+			continue
+		fi
+	else
+		EL=0
+	fi
+
+	WANT="0:$P0 1:$P0 2:$P0 3:$P0 4:$P0 5:$P0 6:$P6 7:$P6"
+	echo "$WANT" > "$NODE" 2>/dev/null
+
+	if [ $((i % 8)) -eq 0 ]; then
+		[ -r "$CFB" ] && {
+			read cfb < "$CFB" 2>/dev/null
+			[ "$cfb" != "0" ] && echo 0 > "$CFB" 2>/dev/null
+		}
+		refresh_pids
+	fi
+
+	for p in $PIDS; do
+		uclampset -a -M 1024 -p "$p" >/dev/null 2>&1
+	done
+
+	if [ $((i % 8)) -eq 0 ]; then
+		# verify rather than assume -- a write that silently loses is the whole
+		# reason scaling_max_freq was the wrong node
+		GOT=$(tr -s ' ' < "$NODE" 2>/dev/null | sed 's/ *$//')
+		OK=no; [ "$GOT" = "$WANT" ] && OK=yes
+		if [ "${TMO:-0}" -gt 0 ]; then LEFT="$((TMO-EL))s"; else LEFT="常开"; fi
+		CD=""; [ "$COOLING" = 1 ] && CD=" STEPPED-DOWN(resume<$(( (GATE-THERMAL_HYST)/1000 ))C)"
+		echo "level=$ST held=$OK cfb=$(cat $CFB 2>/dev/null) prime=$P6 junc=$((J/1000))C left=$LEFT pids=$(echo $PIDS | tr '\n' ' ')$CD" > "$STATUS"
+	fi
+
+	i=$((i+1))
+	sleep 0.25
+done

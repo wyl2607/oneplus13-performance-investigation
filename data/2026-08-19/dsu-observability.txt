@@ -1,0 +1,26 @@
+DSU / L3 observability survey, 2026-08-19. experiments/2026-08-19/dsu-{survey,observe,clk}.sh
+
+Conclusion: DSU and cluster frequency CANNOT be observed on this device.
+
+  /sys/class/devfreq/          only kgsl (GPU) and kgsl-busmon. No L3, DDR or memlat.
+  /sys/kernel/debug            not mounted by default. Mounting it works, and
+                               clk_summary then lists 1031 clocks -- none of which is a
+                               cluster or DSU clock. SM8750 drives CPU and DSU from EPSS
+                               hardware DCVS, which does not register with the common
+                               clock framework. The only related entries are
+                               CPUSS_DBG_CLK and apss_cc_debug_mux, both at rate 0.
+  /sys/bus/event_source/devices
+                               armv8_pmuv3, llcc-pmu, cs_etm, kprobe/uprobe, software,
+                               tracepoint, breakpoint. NO arm_dsu_pmu, so DSU cycles
+                               cannot be counted either.
+  llcc-pmu, bwmon-llcc-prime, bwmon-llcc-gold, ddr-cdev
+                               exist as platform devices but expose only the standard
+                               driver/power/uevent sysfs boilerplate -- no frequency,
+                               no counters.
+  /proc/game_opt/dsu_freq      reads 0. Writing it is untested and untestable: with no
+                               readback anywhere there is no way to confirm an effect.
+                               game_pid is -1, so game_opt knobs are probably inert
+                               outside a registered game in any case.
+
+Note: grepping clk_summary for 'l3' matches 'pll3'. Word-boundary the search.
+Remember to `umount /sys/kernel/debug` afterwards if you mounted it.

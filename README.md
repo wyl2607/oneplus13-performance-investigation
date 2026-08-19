@@ -133,7 +133,7 @@ Every other scenario measured so far shows **no benefit at all**.
 | Geekbench 7 multi-core | +19% (5222 → 6218) | three runs, 11.5% spread |
 | *(neither figure is a healthy baseline — see the correction below)* | | |
 | **App cold start** | **none** | Settings 265 vs 276 ms, Maps 200 vs 203 ms — inside noise |
-| **Sustained all-core** | **none** | landing frequency is set by the thermal loop, not the ceiling |
+| **Sustained all-core** | **none** | shared prime-cluster power budget, not the ceiling ([section 38](docs/DATA.md)) |
 | **GPU-bound work** | **none** | prime idles at 1 017 600 during GPU load; the ceiling is never approached |
 | Geekbench 7 OpenCL | −0.68% | noise |
 
@@ -336,9 +336,15 @@ chain: root cause → mechanism → intervention → quantitative prediction →
 
 Multi-core gaining only +14% is consistent with the all-core measurements above: LMH pulls
 the prime cluster to 2 841 600 regardless of ceiling, mid cores run 2 745 600–2 918 400
-against a stock 2 400 000, so pure clock scaling predicts ~+17%. The shortfall to +14% is
-expected — multi-core is more memory- and DSU-bound than the single-threaded ALU loop used
-for the thermal characterisation.
+against a stock 2 400 000, so pure clock scaling predicts ~+17%.
+
+**Correction, 2026-08-19.** The shortfall used to be explained here as multi-core being "more
+memory- and DSU-bound". **That explanation is wrong and has been measured to be wrong.** PMU
+counters put `stall_backend_mem` at under 0.1% of cycles with IPC flat at ~5.6
+([section 38](docs/DATA.md)). The real reason is a **shared prime-cluster power budget**: at an
+identical ceiling, loading a second prime core costs the first one 6.6% of its clock
+(3.7734 → 3.5241 GHz, measured on cpu6 both times). Multi-core is budget-limited, not
+memory-limited, and no ceiling can change that.
 
 Both figures are Geekbench 7 and are compared only against Geekbench 7 results from the same
 device. See the correction below.

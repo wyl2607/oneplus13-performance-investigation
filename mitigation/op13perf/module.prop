@@ -1,0 +1,6 @@
+id=op13perf
+name=OnePlus 13 Performance Mode
+version=v1.0.0-OFF
+versionCode=1
+author=wyl2607
+description=[ 已关闭 ] 点 Action 按钮循环切换 关 / 日常 / 极限。解除 URCC 集群倒挂与 oplus_bsp_task_overload 的 uclamp 钳位。重启后一定回到关闭状态。
