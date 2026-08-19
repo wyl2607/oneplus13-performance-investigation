@@ -2376,3 +2376,70 @@ Five, all of which reported success while doing nothing:
 4. Thresholding the raw `cpu-1-1-1` sensor oscillated pause/resume four times in thirteen
    seconds; it swings 80 to 93 C inside one second. Smooth before deciding.
 5. Grepping `clk_summary` for `l3` matches `pll3`.
+
+## 40. The bare-device ladder — the measurement levels 1 and 2 shipped without
+
+2026-08-20. **No cooler attached.** Two prime-pinned workers, 150 s per point, each point
+preceded by a mandatory idle until the junction is under 52 C. Each level runs its own gate,
+its own mid frequency, and its own EMA pause logic, so the result is what the module would
+actually deliver. Stock runs first so nothing is read against an already-soaked device.
+
+| point | prime / mid | work | vs stock | pause | start | mean | last-60s | peak |
+|---|---|---|---|---|---|---|---|---|
+| stock | — (no levers) | 361 | — | 0% | 39 C | 57 C | 59 C | 64 C |
+| 1 daily | 2841600 / 2400000 | 405 | **+12.2%** | 0% | 40 C | 67 C | 69 C | 75 C |
+| 2 perf | 3283200 / 2918400 | **468** | **+29.6%** | 0% | 42 C | 78 C | 80 C | 81 C |
+| 3 extreme | 3513600 / 2918400 | 445 | +23.3% | 0% | 44 C | 78 C | 81 C | 84 C |
+
+### Not one point paused, and that was not the expected outcome
+
+Every gate — 88, 90, 92 C — went untouched, peaking 6 to 8 C below its own threshold. The
+levels were set expecting a bare device to spend part of the window stepped down. On this
+workload it never does. The gates are therefore untested by this run: they are not shown to be
+correct, only shown not to fire.
+
+### The cooler did not change the work at level 2, only the temperature
+
+Against section 38's cooled run at the same ceiling:
+
+| ceiling | cooled work | bare work | cooled peak | bare peak |
+|---|---|---|---|---|
+| 3283200 | 468 | **468** | 74 C | 81 C |
+| 3513600 | 475 | 445 | 79 C | 84 C |
+
+At 3283200 the two agree exactly. That is the prime-cluster power budget from section 38 seen
+from the other side: two loaded prime cores are budget-limited, not cooling-limited, so removing
+the cooler costs 7 C of headroom and no work at all.
+
+### The ordering inverts at 3513600, and this is the honest reading
+
+Cooled, 3513600 beat 3283200 (475 against 468). Bare, it lost (445 against 468) — a higher
+ceiling producing **less** work while running 3 C hotter, with neither point pausing.
+
+**This is −4.9%, and section 38 measured this device's run-to-run spread at roughly ±5%.** So
+the correct statement is that a higher ceiling bought nothing bare, not that it cost something.
+Separating those two needs repeat runs, which this session did not do. The direction is at least
+consistent with the budget model — a higher ceiling moves the cores to a less efficient
+voltage-frequency point, and under a fixed budget less efficient means less work — but one run
+at one point is not evidence for that mechanism.
+
+### What this does and does not settle about the levels
+
+**Settled:** levels 1 and 2 are safe bare on this workload, and level 2 is the sustained
+two-core optimum bare. Level 1's conservatism costs 15.5% of level 2's work (405 against 468).
+
+**Not settled, and the reason the levels are unchanged:**
+
+- **This is two cores, not eight.** Most of a bare device's heat comes from the mid cluster
+  under a full load, and no point here loaded it.
+- **This is 150 s, not hours.** Level 1 is the always-on level; the case against raising it is
+  accumulation over a working session, which a 150 s window cannot see.
+- **This is throughput, not responsiveness.** Section 31 and 32 already established that the
+  displacement cost falls on tasks that *sleep*, and these workers never do. Nothing here
+  measures what the levels do to app launches, scrolling or frame-driven work — which is what
+  "does my phone feel faster" actually asks.
+- **This is multi-core only.** Section 38 showed a higher ceiling pays off single-threaded and
+  not multi-threaded. Level 3's case was always single-core, and this run does not test it.
+
+So level 3 keeps its place: bare it is pointless on sustained multi-core work, which is exactly
+what its label already says.

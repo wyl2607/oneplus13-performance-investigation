@@ -1,0 +1,21 @@
+### module parked; this script drives the levers itself
+BARE DEVICE (no cooler): 2 prime-pinned workers, 150s per point
+stock runs first so the comparison is not read against a device already soaked.
+
+=== stock  (no levers applied) ===
+start temp 39 C after 90s idle
+RESULT stock       | work=361 | pause=0% | start 39 C, mean 57 C, last-60s 59 C, peak 64 C
+
+=== daily  ceiling 2841600  mid 2400000  gate 88 C ===
+start temp 40 C after 90s idle
+RESULT daily       | work=405 | pause=0% | start 40 C, mean 67 C, last-60s 69 C, peak 75 C
+
+=== perf  ceiling 3283200  mid 2918400  gate 90 C ===
+start temp 42 C after 90s idle
+RESULT perf        | work=468 | pause=0% | start 42 C, mean 78 C, last-60s 80 C, peak 81 C
+
+=== extreme  ceiling 3513600  mid 2918400  gate 92 C ===
+start temp 44 C after 90s idle
+RESULT extreme     | work=445 | pause=0% | start 44 C, mean 78 C, last-60s 81 C, peak 84 C
+### clean: no uid 10999 processes remain
+### module returned to level 1 (bare-device default)

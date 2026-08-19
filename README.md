@@ -76,6 +76,12 @@ biggest gap in this project is that it is one device.
 
 Read [`mitigation/`](mitigation/) — and read the thermal warning first.
 
+There is a Magisk module in [`mitigation/op13perf/`](mitigation/op13perf/) with three levels,
+split on whether a 40 W cooler is attached. Measured bare on 2026-08-20, 150 s of sustained
+two-core work against stock: level 1 **+12.2%**, level 2 **+29.6%**, level 3 **+23.3%** — the
+top level is a *regression* bare, because a higher prime ceiling only pays off single-threaded
+([section 40](docs/DATA.md)).
+
 Diagnosis is read-only and safe. Mitigation is not. When the clamp was lifted, CPU junction
 temperature ran at **87 °C p95, peaking at 95 °C**, while the phone's outside surface moved
 from 35.0 to 36.1 °C. Android's thermal framework escalates on *skin* temperature, so nothing
