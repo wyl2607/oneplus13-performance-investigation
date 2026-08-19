@@ -38,12 +38,16 @@ mkdir -p "$STATEDIR"
 
 # Defaults live here, not only in the conf file, so an older conf missing a key
 # still yields a working daemon instead of an empty variable.
-BOOT_LEVEL=2
-DAILY_P6=3283200
-DAILY_P0=2918400
-DAILY_GATE=90000
+BOOT_LEVEL=1
+DAILY_P6=2841600
+DAILY_P0=2400000
+DAILY_GATE=88000
 DAILY_TIMEOUT=0
-EXTREME_P6=3801600
+PERF_P6=3283200
+PERF_P0=2918400
+PERF_GATE=90000
+PERF_TIMEOUT=0
+EXTREME_P6=3513600
 EXTREME_P0=2918400
 EXTREME_GATE=92000
 EXTREME_TIMEOUT=0
@@ -54,21 +58,35 @@ THERMAL_DWELL=15
 PAUSE_ON_SCREEN_OFF=1
 
 [ -f "$CONF" ] || cat > "$CONF" <<'EOF'
-# 开机自动进入的档位：0=关 1=日常档 2=极限档
-BOOT_LEVEL=2
+# 开机自动进入的档位：0=关 1=日常档 2=高性能档 3=极限档
+# 默认 1。开机时无法知道 40W 散热器接没接，而 3 档的前提就是接着散热器，
+# 所以开机只能进裸机安全的档位。
+BOOT_LEVEL=1
 
-# 日常档。两个频率都必须是 scaling_available_frequencies 里的真实台阶，
-# 否则内核静默向下吸附（2918400 在 policy6 上不存在，会变成 2841600）。
-DAILY_P6=3283200
-DAILY_P0=2918400
-# 红线 90：开机风暴在原厂设置下自己就能到 92 C，定 85 会导致常开时频繁误退让。
-DAILY_GATE=90000
+# 档位 1 · 日常（裸机常开）。两个频率都必须是 scaling_available_frequencies
+# 里的真实台阶，否则内核静默向下吸附（2918400 在 policy6 上不存在，会变成 2841600）。
+# 这一档解除 URCC 倒挂与 uclamp 钳位（多核成绩的来源），但不追高频率。
+# TODO: 未实测。全部 GB7 阶梯都是接 40W 散热器测的，裸机零数据；这里的取值
+# 是已被实测使用过的安全台阶，不是标定结果。裸机实测后回填。
+DAILY_P6=2841600
+DAILY_P0=2400000
+# 红线 88：裸机散热差于台架，比 2 档的 90 更早退让。同样 TODO: 未实测。
+DAILY_GATE=88000
 DAILY_TIMEOUT=0
 
-# 极限档。GB7 实测峰值 100 C，距内核跳闸点 105 只剩 5 C，所以红线从 95 收到 92。
-# 那 100 C 出现在多核阶段，而多核受集群共享功耗预算限制、本来就吃不到高上限
-# （3801600 对 3513600：单核 +7.9%，多核 −1.0%），所以在那里退让几乎不损失成绩。
-EXTREME_P6=3801600
+# 档位 2 · 高性能（裸机短时）。接散热器实测 2071/8166，峰值 98.8 C（退让闸曾触发）。
+# 裸机跑这一档的持续表现未实测，预期会更早、更频繁地退让到 COOL。
+PERF_P6=3283200
+PERF_P0=2918400
+# 红线 90：开机风暴在原厂设置下自己就能到 92 C，定 85 会导致常开时频繁误退让。
+PERF_GATE=90000
+PERF_TIMEOUT=0
+
+# 档位 3 · 极限（必须接 40W 散热器）。散热器无法自动检测，只能手动选。
+# 取 3513600 而不是 3801600：接散热器实测 3801600 的 GB7 峰值 100 C，距内核跳闸点
+# 105 只剩 5 C，而它买到的只有单核 +7.9%，多核 −1.0%（多核受超大核集群共享功耗
+# 预算限制，本来就吃不到更高的上限）。3513600 实测 2240/8679，峰值 96.1 C。
+EXTREME_P6=3513600
 EXTREME_P0=2918400
 EXTREME_GATE=92000
 EXTREME_TIMEOUT=0
@@ -139,7 +157,7 @@ LAST=-1
 COOLING=0
 while :; do
 	read ST < "$STATE" 2>/dev/null || ST=0
-	case "$ST" in 1|2) : ;; *) ST=0 ;; esac
+	case "$ST" in 1|2|3) : ;; *) ST=0 ;; esac
 
 	if [ "$ST" != "$LAST" ]; then
 		if [ "$ST" = 0 ]; then
@@ -177,11 +195,11 @@ while :; do
 		continue
 	fi
 
-	if [ "$ST" = 1 ]; then
-		P6=$DAILY_P6; P0=$DAILY_P0; GATE=$DAILY_GATE; TMO=$DAILY_TIMEOUT
-	else
-		P6=$EXTREME_P6; P0=$EXTREME_P0; GATE=$EXTREME_GATE; TMO=$EXTREME_TIMEOUT
-	fi
+	case "$ST" in
+		1) P6=$DAILY_P6;   P0=$DAILY_P0;   GATE=$DAILY_GATE;   TMO=$DAILY_TIMEOUT ;;
+		2) P6=$PERF_P6;    P0=$PERF_P0;    GATE=$PERF_GATE;    TMO=$PERF_TIMEOUT ;;
+		*) P6=$EXTREME_P6; P0=$EXTREME_P0; GATE=$EXTREME_GATE; TMO=$EXTREME_TIMEOUT ;;
+	esac
 
 	J=$(jt)
 

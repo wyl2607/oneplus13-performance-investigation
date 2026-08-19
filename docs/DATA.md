@@ -2319,6 +2319,47 @@ entered at boot, thermal step-down with hysteresis and dwell, screen-off suspens
 verification of every write, and full reversion on reboot. See `mitigation/README.md` for why it
 contradicts this repository's own standing advice, and `mitigation/op13perf/README.md` for use.
 
+#### Same-day correction: three levels, and a documentation drift worth recording
+
+Reviewing the module as shipped above found its own numbers stated **three times and agreeing
+nowhere**:
+
+| | `README.md` said | `action.sh` said | `perfd.sh` did |
+|---|---|---|---|
+| daily prime | 2841600 | 2918400 | 3283200 |
+| daily gate | 90 C | 85 C | 90 C |
+| daily timeout | 常开 | 30 min | 常开 |
+| extreme prime | 3283200 | 3283200 | 3801600 |
+| extreme gate | 95 C | 98 C | 92 C |
+| `BOOT_LEVEL` default | 1 | — | 2 |
+
+The behaviour was `perfd.sh`'s, so the shipped module booted straight into a 3801600 ceiling
+while both documents said otherwise. `action.sh` now builds its level descriptions **by reading
+the conf the daemon reads**, so there is one source of numbers rather than three. This is the
+same class of failure as the instrument failures below — a report of success while something
+else was happening — except the reader was a human.
+
+Levels are now three, split on **whether the 40 W cooler is attached**, which the module cannot
+detect and the owner must therefore select:
+
+| level | context | prime | mid | gate | evidence |
+|---|---|---|---|---|---|
+| 1 daily | no cooler, always on | 2841600 | 2400000 | 88 C | **unmeasured** |
+| 2 performance | no cooler, short bursts | 3283200 | 2918400 | 90 C | 2071/8166 *with* cooler |
+| 3 extreme | **cooler required** | 3513600 | 2918400 | 92 C | 2240/8679 with cooler |
+
+`BOOT_LEVEL` now defaults to 1 and `service.sh` now accepts 3 as legal — it previously coerced
+any level above 2 to off, so a level-3 boot would have silently done nothing.
+
+**The extreme level is 3513600, not the 2416-scoring 3801600.** Section 39 measured 3801600 at
++7.9% single-core and −1.0% multi-core against 3513600, for a peak of 100.0 C with 5 C left to
+the hardware trip. The higher ceiling is measurable, reproducible, and not worth its margin.
+
+**Levels 1 and 2 have no bare-device data at all.** Every number in section 39 was taken with the
+40 W cooler attached. Level 1's values are drawn from steps already exercised as the step-down
+target rather than calibrated, and are marked `TODO: unmeasured` in the conf itself. The
+cooler-off ladder is the obvious next measurement.
+
 ### Instrument failures in this round, for METHODOLOGY
 
 Five, all of which reported success while doing nothing:

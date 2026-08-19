@@ -177,10 +177,14 @@ this looking for advice, the advice at the top of this file still stands.
 Not the risk — the risk is the same silicon getting the same hot. What is different is that
 the failure modes this project actually hit are now designed against:
 
-- **The thermal gate pauses rather than aborts.** A hard off never comes back on its own,
-  so an always-on configuration would silently degrade to stock after the first hot moment
-  and never recover. Above the gate every lever is dropped and CFB is handed back; below
-  `gate - hysteresis`, and after a minimum dwell, they are restored.
+- **The thermal gate steps down rather than aborts.** A hard off never comes back on its
+  own, so an always-on configuration would silently degrade to stock after the first hot
+  moment and never recover. Above the gate only the **ceiling** drops, to 2841600/2400000;
+  the uclamp lift and the CFB handling keep running, because a full release would let the
+  guard re-clamp within seconds and the uclamp lift is what earns the multi-core score
+  (5942 to 8596). Below `gate - hysteresis`, and after a minimum dwell, the ceiling is
+  restored. (An earlier draft of this file described a full release. That was the first
+  design and it was wrong; see DATA.md section 39.)
 - **The gate decides on a smoothed signal.** `cpu-1-1-1` swings 80 to 93 C inside one
   second. A raw threshold with a 6 C hysteresis band is narrower than the sensor noise and
   oscillated four times in thirteen seconds in testing. Decisions run on an EMA.
@@ -193,6 +197,11 @@ the failure modes this project actually hit are now designed against:
 - **Every write is verified by read-back.** `held=yes/no` in `/data/adb/op13perf/status`.
 - **A reboot always returns to stock** unless `BOOT_LEVEL` says otherwise, and nothing it
   touches is persistent kernel state.
+- **The levels split on whether the 40 W cooler is attached**, which the module cannot
+  detect. `BOOT_LEVEL` therefore defaults to the bare-device level — at boot there is no way
+  to know a cooler is on, and the top level assumes one. Note that the two bare-device
+  levels are **unmeasured**: every number in DATA.md section 39 was taken with the cooler
+  attached.
 
 ### It also absorbs a job the old tune was quietly doing
 
