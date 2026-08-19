@@ -3,4 +3,4 @@ name=OnePlus 13 Performance Mode
 version=v1.2.0-OFF
 versionCode=2
 author=wyl2607
-description=[ 已关闭 ] 点 Action 按钮循环切换 关 / 日常 / 高性能 / 极限。解除 URCC 集群倒挂与 oplus_bsp_task_overload 的 uclamp 钳位。重启后一定回到关闭状态。
+description=[ 已关闭 ] 点 Action 按钮循环切换 关 / 日常 / 高性能 / 极限。解除 URCC 集群倒挂与 oplus_bsp_task_overload 的 uclamp 钳位。重启后回到 BOOT_LEVEL 指定的档位（默认「日常档」）。

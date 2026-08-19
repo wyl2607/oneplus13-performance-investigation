@@ -40,19 +40,20 @@ echo "$next" > "$STATE"
 [ -f "$CONF" ] && . "$CONF"
 tmo() { [ "${1:-0}" -gt 0 ] 2>/dev/null && echo "$(( $1 / 60 )) 分钟自动关" || echo "常开"; }
 
+lvlname() {
+	case "$1" in 1) echo "日常档" ;; 2) echo "高性能档" ;; 3) echo "极限档" ;; *) echo "已关闭" ;; esac
+}
+LABEL=$(lvlname "$next")
+
 case "$next" in
-	0) LABEL="已关闭"
-	   DESC="[ 已关闭 ] 点 Action 循环切换 关 / 日常 / 高性能 / 极限。" ;;
-	1) LABEL="日常档"
-	   DESC="[ 日常档·裸机 ] 超大核 ${DAILY_P6}，红线 $(( ${DAILY_GATE:-0} / 1000 ))C，$(tmo ${DAILY_TIMEOUT:-0})。" ;;
-	2) LABEL="高性能档"
-	   DESC="[ 高性能档·裸机短时 ] 超大核 ${PERF_P6}，红线 $(( ${PERF_GATE:-0} / 1000 ))C，$(tmo ${PERF_TIMEOUT:-0})。" ;;
-	3) LABEL="极限档"
-	   DESC="[ 极限档·须接 40W 散热器 ] 超大核 ${EXTREME_P6}，红线 $(( ${EXTREME_GATE:-0} / 1000 ))C，$(tmo ${EXTREME_TIMEOUT:-0})。" ;;
+	0) DESC="[ 已关闭 ] 点 Action 循环切换 关 / 日常 / 高性能 / 极限。" ;;
+	1) DESC="[ 日常档·裸机 ] 超大核 ${DAILY_P6}，红线 $(( ${DAILY_GATE:-0} / 1000 ))C，$(tmo ${DAILY_TIMEOUT:-0})。" ;;
+	2) DESC="[ 高性能档·裸机短时 ] 超大核 ${PERF_P6}，红线 $(( ${PERF_GATE:-0} / 1000 ))C，$(tmo ${PERF_TIMEOUT:-0})。" ;;
+	3) DESC="[ 极限档·须接 40W 散热器 ] 超大核 ${EXTREME_P6}，红线 $(( ${EXTREME_GATE:-0} / 1000 ))C，$(tmo ${EXTREME_TIMEOUT:-0})。" ;;
 esac
 
 # reflect state in the module list itself
-sed -i "s|^description=.*|description=$DESC 解除 URCC 倒挂与 uclamp 钳位；重启后一定回到关闭。|" "$MODDIR/module.prop" 2>/dev/null
+sed -i "s|^description=.*|description=$DESC 解除 URCC 倒挂与 uclamp 钳位；重启后回到「$(lvlname "${BOOT_LEVEL:-1}")」(BOOT_LEVEL=${BOOT_LEVEL:-1})。|" "$MODDIR/module.prop" 2>/dev/null
 sed -i "s|^version=.*|version=v1.2.0-$LABEL|" "$MODDIR/module.prop" 2>/dev/null
 
 echo "切换为：$LABEL"
