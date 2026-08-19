@@ -18,13 +18,10 @@ case "$BOOT_LEVEL" in 1|2|3) : ;; *) BOOT_LEVEL=0 ;; esac
 echo "$BOOT_LEVEL" > "$STATEDIR/state"
 date +%s > "$STATEDIR/since"
 
-case "$BOOT_LEVEL" in
-	0) L="已关闭" ;;
-	1) L="日常档" ;;
-	2) L="高性能档" ;;
-	3) L="极限档" ;;
-esac
-sed -i "s|^version=.*|version=v1.2.0-$L|" "$MODDIR/module.prop" 2>/dev/null
+# Write both fields. Writing only version left the description showing whatever
+# level was last selected before the reboot.
+. "$MODDIR/desc.sh"
+write_prop "$BOOT_LEVEL" "$MODDIR/module.prop"
 
 nohup "$MODDIR/perfd.sh" >/dev/null 2>&1 &
 echo $! > "$STATEDIR/pid"

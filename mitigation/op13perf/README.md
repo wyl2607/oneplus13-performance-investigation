@@ -54,8 +54,10 @@ GB7 实测阶梯（同一天、同一台机器、**全部接 40 W 主动散热**
 改 `/data/adb/op13perf/conf` 可调。**填进去的值必须是 `scaling_available_frequencies`
 里的真实台阶**，否则内核会静默向下吸附（2918400 在 policy6 上不存在，会变成 2841600）。
 
-Action 按钮打印的档位说明是**从 conf 现读现拼**的，不是第二份手写副本。2026-08-19 之前
-README、`action.sh`、`perfd.sh` 各存一套数字，结果三份在每一项上都不一致。
+模块列表上的档位名与说明由 `desc.sh` **从 conf 现读现拼**，Action 切换和开机各调用它一次，
+不是手写副本。2026-08-19 之前 README、`action.sh`、`perfd.sh` 各存一套数字，三份在每一项上
+都不一致；实机上的表现是列表写着「日常档 2918400」而实际跑着 3801600。`version` 和
+`description` 也必须一起写——它们曾被两个脚本各写一半，同一行里自相矛盾。
 
 ## 安全设计
 
@@ -82,7 +84,7 @@ CFB 会在关闭时被写回 1，交还给系统。
 ## 文件
 
 ```
-/data/adb/modules/op13perf/     module.prop  service.sh  action.sh  perfd.sh  uninstall.sh
+/data/adb/modules/op13perf/     module.prop  service.sh  action.sh  perfd.sh  desc.sh  uninstall.sh
 /data/adb/op13perf/             state  conf  status  log  since  pid
 ```
 
