@@ -96,7 +96,43 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 **仍未验证**（都需要人在手机上操作，adb 驱动不了——ColorOS 精简了 `cmd statusbar`，没有 `list-tiles` / `click-tile`）：
 
 - ColorOS 快捷设置编辑页是否列出这个磁贴。**已加 LAUNCHER 入口降低风险**：原本刻意不做桌面图标，但 ColorOS 是否会因此藏掉磁贴没人验证过，留个图标同时也给说明页一个入口。
-- **App 进程里 `su` 能不能 exec。** 这是最关键的未知项：上面所有脚本验证走的都是 adb shell 的 root，而那是另一个 mount namespace。普通 App 看到的 `/product/bin/su` 不一定相同。如果磁贴一直显示「找不到 su」，先怀疑这个，不是脚本的问题。
+- **App 拿不到 root —— 这是当前已知的未解 bug。** 见下一节。
 - 首次 `su` 时 Magisk 弹窗的行为，以及 12 秒超时会不会在用户点允许之前先把 `su` 杀掉。**这个项目已经在 Termux 上栽过一次**：拒绝一旦被记住，Magisk 不再弹窗，表现为静默失败。真出现这情况就直接改：`magisk --sqlite "update policies set policy=2 where uid=<app uid>"`（policy 2 = 允许，1 = 拒绝）。
 - 磁贴 UI 本身：label / subtitle 的显示、0 档灰显其余点亮、`onStartListening` 在从 Magisk Action 或 Termux 切档后是否刷新。
 - Android 16 上 `startActivityAndCollapse(PendingIntent)` 能否打开说明页。
+
+
+## 已知未解问题：App 请求 su 被拒，且 Magisk 没有留下记录
+
+2026-08-20，装机后机主点磁贴报错。诊断到目前为止：
+
+```
+app uid                          10066
+app 进程里 command -v su         /product/bin/su   （-> ./magisk）
+run-as 下 su -c id               Permission denied
+magisk --sqlite select * from policies where uid=10066   → 空
+```
+
+**推翻了一半的原假设。** 之前列的头号嫌疑是「App 的 mount namespace 里看不见 `su`」——实测**看得见**，路径和 adb 侧一样。所以问题不在找不到 su，在于请求被拒。
+
+**策略表里没有 10066 这一条,是这里最值得注意的地方。** Termux 那次是有 `policy=1` 记录的（用户点了拒绝，Magisk 记住了）。这次连记录都没有，意味着从来没有产生过一个「决定」——弹窗没出现，或者出现了但没被响应，或者请求在到达 Magisk 的授权流程之前就被挡掉了。
+
+**这个测试本身有局限，不要过度解读。** `run-as` 派生自 adb shell，SELinux 上下文是 `u:r:shell:s0` 一脉，未必等同于真实 App 进程的 `u:r:untrusted_app:s0`。所以 `Permission denied` 可能是 `run-as` 环境特有的，也可能就是真实 App 的遭遇——目前**分不出来**，需要在真实点击磁贴之后立刻看 `policies` 表和 logcat 才能判定。
+
+**下一步的判定方法**（尚未执行）：点一次磁贴，然后立刻
+
+```
+adb shell su -c 'magisk --sqlite "select * from policies where uid=10066"'
+adb logcat -d | grep -iE "magisk|op13perf|su:"
+```
+
+- 出现 `policy=1` → 弹窗出现过并被拒（或超时），去 Magisk 超级用户列表手动打开即可。
+- 仍然没有记录 → 请求根本没走到授权流程，那才是真问题，与 `run-as` 的结果一致。
+
+**可以直接绕过的办法**（未执行，需要机主同意——这是给一个 App 永久 root）：
+
+```
+adb shell su -c 'magisk --sqlite "update policies set policy=2 where uid=10066"'
+```
+
+uid 不存在时 `update` 不会插入新行，所以这条只在已经有记录时有效。没有记录的情况下需要 `insert`，或者在 Magisk 的超级用户界面里操作。
