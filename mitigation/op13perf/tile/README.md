@@ -70,6 +70,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## 故障排查
 
+- **磁贴每次点都失败、也没有弹窗** = 授权被拒并被 Magisk 记住了。这是最常见的一个，见下一节。
 - **快捷设置编辑页没有这个磁贴** = 先确认 APK 已装（设置 → 应用 → op13perf）。ColorOS 对无桌面图标应用的磁贴列表行为未验证。
 - **subtitle 写着「等待 Magisk 授权」** = 授权窗可能还在，或超时把还在等的 `su` 杀掉了。先处理 Magisk 弹窗，再下拉一次。
 - **subtitle 写着「su 被拒绝」/ 弹出说明页** = Magisk 没给本应用授权，或曾经点过拒绝被记住。打开 Magisk → 超级用户 → 允许本应用。
@@ -102,37 +103,46 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - Android 16 上 `startActivityAndCollapse(PendingIntent)` 能否打开说明页。
 
 
-## 已知未解问题：App 请求 su 被拒，且 Magisk 没有留下记录
+## 装好之后：先去 Magisk 授权，不要等弹窗
 
-2026-08-20，装机后机主点磁贴报错。诊断到目前为止：
+**这是本目录最容易踩的一步，2026-08-20 一天之内在两个 App 上各踩了一次。**
 
-```
-app uid                          10066
-app 进程里 command -v su         /product/bin/su   （-> ./magisk）
-run-as 下 su -c id               Permission denied
-magisk --sqlite select * from policies where uid=10066   → 空
-```
+磁贴要读写 `/data/adb/op13perf/state`，必须有 root。Magisk 在 App 第一次请求时弹授权窗——而那个弹窗**出现在你下拉快捷设置的时候**，很容易被当成误触随手划掉，或者读到一半就超时。
 
-**推翻了一半的原假设。** 之前列的头号嫌疑是「App 的 mount namespace 里看不见 `su`」——实测**看得见**，路径和 adb 侧一样。所以问题不在找不到 su，在于请求被拒。
+**一旦被拒（或超时），Magisk 会把这个决定记下来，之后再也不弹窗。** 表现是：磁贴每次点都失败，看不出任何原因，检查代码也永远查不出问题。
 
-**策略表里没有 10066 这一条,是这里最值得注意的地方。** Termux 那次是有 `policy=1` 记录的（用户点了拒绝，Magisk 记住了）。这次连记录都没有，意味着从来没有产生过一个「决定」——弹窗没出现，或者出现了但没被响应，或者请求在到达 Magisk 的授权流程之前就被挡掉了。
+所以装完 APK 之后，**先做这一步**：
 
-**这个测试本身有局限，不要过度解读。** `run-as` 派生自 adb shell，SELinux 上下文是 `u:r:shell:s0` 一脉，未必等同于真实 App 进程的 `u:r:untrusted_app:s0`。所以 `Permission denied` 可能是 `run-as` 环境特有的，也可能就是真实 App 的遭遇——目前**分不出来**，需要在真实点击磁贴之后立刻看 `policies` 表和 logcat 才能判定。
+> Magisk → 超级用户 → 找到 op13perf → 把开关打开
 
-**下一步的判定方法**（尚未执行）：点一次磁贴，然后立刻
+想确认到底是什么状态，查这张表：
 
 ```
-adb shell su -c 'magisk --sqlite "select * from policies where uid=10066"'
-adb logcat -d | grep -iE "magisk|op13perf|su:"
+adb shell su -c 'magisk --sqlite "select * from policies where uid=<app uid>"'
 ```
 
-- 出现 `policy=1` → 弹窗出现过并被拒（或超时），去 Magisk 超级用户列表手动打开即可。
-- 仍然没有记录 → 请求根本没走到授权流程，那才是真问题，与 `run-as` 的结果一致。
-
-**可以直接绕过的办法**（未执行，需要机主同意——这是给一个 App 永久 root）：
+`<app uid>` 用 `adb shell pm list packages -U | grep op13perf` 拿到。**`policy=2` 是允许，`policy=1` 是拒绝**，没有这一行表示还没产生过决定。已经有记录时可以直接改：
 
 ```
-adb shell su -c 'magisk --sqlite "update policies set policy=2 where uid=10066"'
+adb shell su -c 'magisk --sqlite "update policies set policy=2 where uid=<app uid>"'
 ```
 
-uid 不存在时 `update` 不会插入新行，所以这条只在已经有记录时有效。没有记录的情况下需要 `insert`，或者在 Magisk 的超级用户界面里操作。
+注意 `update` 在**没有记录时不会插入新行**，那种情况下只能走 Magisk 界面。
+
+### 这次的完整诊断记录
+
+机主报告磁贴报错。诊断过程和结论：
+
+```
+app uid                              10066
+app 进程里 command -v su             /product/bin/su   （-> ./magisk）
+run-as 下 su -c id                   Permission denied
+第一次查 policies where uid=10066    空
+（机主再点一次磁贴之后）              uid=10066|policy=1
+```
+
+**被证伪的头号假设：「App 的 mount namespace 里看不见 `su`」。** 这本来是 README 里列的首要嫌疑,实测**看得见**,路径和 adb 侧完全一样。找不到 su 不是问题所在。
+
+**真实原因是授权被拒并被记住。** 第一次查表是空的,曾经让人以为「请求根本没走到授权流程」——那个推断是错的,只是当时还没点过。多点一次,记录就出现了,而且是 `policy=1`。
+
+**教训**：`policies` 表为空只说明「还没做过决定」,不说明「请求到不了授权流程」。要判定必须在**真实点击之后**再查，一次没点过的空表什么也证明不了。
