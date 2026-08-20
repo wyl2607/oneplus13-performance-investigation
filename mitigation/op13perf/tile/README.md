@@ -151,3 +151,42 @@ app 进程里 su -c id                  uid=0(root) context=u:r:magisk:s0
 **真实原因是授权被拒并被记住。** 第一次查表是空的,曾经让人以为「请求根本没走到授权流程」——那个推断是错的,只是当时还没点过。多点一次,记录就出现了,而且是 `policy=1`。
 
 **教训**：`policies` 表为空只说明「还没做过决定」,不说明「请求到不了授权流程」。要判定必须在**真实点击之后**再查，一次没点过的空表什么也证明不了。
+
+
+## ColorOS 不列出这个磁贴 —— 当前未解
+
+2026-08-20。APK 装好、root 也通了之后，机主在快捷设置编辑页**找不到 op13perf**，磁贴始终没法加进面板。
+
+**这不是本目录的代码问题。** 系统本身认得它：
+
+```
+dumpsys package dev.op13perf.tile
+  android.service.quicksettings.action.QS_TILE:
+    dev.op13perf.tile/.PerfTileService  permission android.permission.BIND_QUICK_SETTINGS_TILE
+```
+
+intent-filter、权限、图标（标准 24dp vector）都正确解析。`dumpsys activity services` 一直是 `(nothing)`——服务从未被绑定过，因为磁贴不在面板里，SystemUI 根本没有理由绑它。
+
+### 关键发现：ColorOS 用的不是 `sysui_qs_tiles`
+
+```
+settings get secure sysui_qs_tiles         ← AOSP 的 key，这台机器上是死的
+settings get secure oplus_sysui_qs_tiles   ← ColorOS 实际读的
+```
+
+往 `sysui_qs_tiles` 写任何东西都无效——写一个纯 `TESTVALUE` 进去，读回来仍是原值，系统压根不读它。**在 ColorOS 上调查磁贴，先确认自己查的是哪个 key**，否则会对着一个没人读的设置项调半天。
+
+`oplus_sysui_qs_tiles` 里本来就有第三方磁贴（Surfshark、Surfboard、NekoBox），所以 ColorOS **支持**第三方磁贴，问题不在于它一概不许。
+
+### 绕过写入能成功，但活不过 SystemUI 重启
+
+追加 `custom(dev.op13perf.tile/.PerfTileService)` 到 `oplus_sysui_qs_tiles` 写得进去，读回来也在。但重启 SystemUI 之后，这一条**被剔除了**，列表末尾回到原来的 NekoBox。
+
+所以 SystemUI 在重建时会拿自己的一份状态校验这个列表，写 settings 绕不过去。
+
+### 还没试的
+
+- **重启手机。** 目前最合理的假设是 ColorOS 在开机时扫描一次 `TileService` 并缓存可选磁贴列表，新装的应用要等下次开机才进得了编辑页。这个假设没验证过。
+- 磁贴带 LAUNCHER 图标也没用——加图标本来就是为了规避「ColorOS 藏掉无桌面图标应用」，结果编辑页仍然不列它，说明藏起来的原因不是缺图标。
+
+**在此之前，`shortcuts/` 的 Termux:Widget 桌面快捷是这台机器上已验证可用的切换入口。**
