@@ -52,6 +52,7 @@ adb shell su -c 'sh /data/local/tmp/op13perf-shortcuts/install-shortcuts.sh'
 
 ## 故障排查
 
+- **点了弹出 Termux 窗口，写着 `has bad ELF magic: 23212f73`** = shebang 指向了 Termux 加载不了的解释器。Termux:Widget 是**直接 exec 脚本文件**的，`#!/system/bin/sh` 会让它把脚本当 ELF 二进制读（`23212f73` 正是 `#!/s` 四个字符）。必须用 `#!/data/data/com.termux/files/usr/bin/sh`。2026-08-20 修复。
 - **widget 空列表** = `.shortcuts` 属主或权限不对（最常见是 root 创建后忘了把属主交还 Termux），或脚本没有可执行位。重新跑安装脚本，它会打印它探测到的 uid。
 - **点了没反应 / 提示需要 root** = Termux 没拿到 Magisk 超级用户授权。打开 Magisk → 超级用户 → 允许 Termux。
 - **有 toast 没弹出** = 未装 Termux:API（`pkg install termux-api`，并安装配套 App）。终端窗口里的 echo 仍应看得到。
@@ -61,7 +62,9 @@ adb shell su -c 'sh /data/local/tmp/op13perf-shortcuts/install-shortcuts.sh'
 
 2026-08-20 在 CPH2653 上实测。
 
-**已验证**：安装脚本（uid 探测到 10575，`.shortcuts` 里只有 5 个入口）· `状态.sh` 的完整输出 · 切档到高性能档和日常档，内核 `cpu_max_freq` 读回与目标一致 · `su` 确实在 PATH 里（`/product/bin/su`）· 拿不到 root 时脚本给出明确提示而不是静默失败。
+**已验证**：安装脚本（uid 从 Termux 家目录现读，本机为 10575；`.shortcuts` 里只有 5 个入口）· `状态.sh` 的完整输出 · 切档到高性能档和日常档，内核 `cpu_max_freq` 读回与目标一致 · `su` 确实在 PATH 里（`/product/bin/su`）· 拿不到 root 时脚本给出明确提示而不是静默失败 · **以 Termux 的 uid 直接 exec 脚本**（走 shebang，不经 `sh` 绕过）能正常跑完。
+
+**最后一条是补上的，前面那些都曾经在一个漏洞上通过。** 早先的验证一律写成 `su 10575 -c 'sh 状态.sh'`——**显式用 `sh` 调用会绕过 shebang**，于是 shebang 写错了也照样绿。而 Termux:Widget 的真实路径是直接 exec 文件、由加载器读 shebang，机主点下去看到的是 `has bad ELF magic`。测一条路径的时候，要确认自己走的就是那条路径。
 
 **仍未验证**：桌面 widget 里这五个中文文件名的实际显示 · Termux 首次请求 su 时 Magisk 弹窗的行为——这两项都需要人在手机上操作，adb 看不到。
 
