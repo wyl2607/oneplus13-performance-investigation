@@ -91,15 +91,16 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
   - 读状态 → `level=1 name=日常档 held=yes junc=37C`
   - 循环切档 → `1→2→3→0`，每次档名都取自 `desc.sh`（不是回退的硬编码）
   - 切到 0 档后内核确实释放到额定值 `6,7:4320000 / 0-5:3532800`，`status` 变 `off`
+- **App 自己的进程里能 exec `su` 并拿到 root**（`run-as dev.op13perf.tile sh -c 'su -c id'` → `uid=0(root) context=u:r:magisk:s0`）。这本来是最大的未知项。
+- **`su -c` source `conf` + `desc.sh` 后 `lvlname` 的中文输出能完整回到 App 进程**（`level=1 name=日常档`）。
 - 切档后 `held=` 取到的是**新档**的值。原实现写完 state 立刻读 status，而 daemon 每约 2 秒才刷新一次，读到的会是上一档——已加 `sleep 2.5`。
 - 0 档也能显示结温。原实现从 daemon 的 `status` 取温度，而 0 档的 `status` 只有 `off`；已改成直接读 `cpu-1-1-1` 传感器。
 
 **仍未验证**（都需要人在手机上操作，adb 驱动不了——ColorOS 精简了 `cmd statusbar`，没有 `list-tiles` / `click-tile`）：
 
+- 磁贴 UI 本身：label / subtitle 的显示、0 档灰显其余点亮、点击循环四档、`onStartListening` 在从 Magisk Action 或 Termux 切档后是否刷新。这些只能靠人下拉去看。
 - ColorOS 快捷设置编辑页是否列出这个磁贴。**已加 LAUNCHER 入口降低风险**：原本刻意不做桌面图标，但 ColorOS 是否会因此藏掉磁贴没人验证过，留个图标同时也给说明页一个入口。
-- **App 拿不到 root —— 这是当前已知的未解 bug。** 见下一节。
-- 首次 `su` 时 Magisk 弹窗的行为，以及 12 秒超时会不会在用户点允许之前先把 `su` 杀掉。**这个项目已经在 Termux 上栽过一次**：拒绝一旦被记住，Magisk 不再弹窗，表现为静默失败。真出现这情况就直接改：`magisk --sqlite "update policies set policy=2 where uid=<app uid>"`（policy 2 = 允许，1 = 拒绝）。
-- 磁贴 UI 本身：label / subtitle 的显示、0 档灰显其余点亮、`onStartListening` 在从 Magisk Action 或 Termux 切档后是否刷新。
+- ~~App 拿不到 root~~ **已解决**，是授权被拒并被记住，不是代码问题。见下一节。
 - Android 16 上 `startActivityAndCollapse(PendingIntent)` 能否打开说明页。
 
 
@@ -139,7 +140,11 @@ app 进程里 command -v su             /product/bin/su   （-> ./magisk）
 run-as 下 su -c id                   Permission denied
 第一次查 policies where uid=10066    空
 （机主再点一次磁贴之后）              uid=10066|policy=1
+（机主在 Magisk 里打开开关之后）      uid=10066|policy=2
+app 进程里 su -c id                  uid=0(root) context=u:r:magisk:s0
 ```
+
+**结局**：开关打开后 App 立刻能拿到 root，代码一行没改。中间还有一次反复——机主第一次说「开好了」时表里仍是 `policy=1`，logcat 同时有 `Magisk: su: request rejected (10066)`，是开到了别的条目上。**这类问题不要凭「我开了」下结论，查表和 logcat 各一条命令的事。**
 
 **被证伪的头号假设：「App 的 mount namespace 里看不见 `su`」。** 这本来是 README 里列的首要嫌疑,实测**看得见**,路径和 adb 侧完全一样。找不到 su 不是问题所在。
 
