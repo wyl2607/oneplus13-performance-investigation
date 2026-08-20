@@ -2443,3 +2443,53 @@ two-core optimum bare. Level 1's conservatism costs 15.5% of level 2's work (405
 
 So level 3 keeps its place: bare it is pointless on sustained multi-core work, which is exactly
 what its label already says.
+
+
+## 41. The step-down was a no-op at level 1, and real use runs far hotter than the ladder
+
+2026-08-20, during ordinary use with level 1 (daily) running, the daemon logged its first
+real thermal event:
+
+```
+18:08:05  THERMAL STEP-DOWN to 2841600 at avg 88 C / inst 95 C (gate 88 C)
+18:08:39  THERMAL RESUME at avg 81 C after 34s
+```
+
+**Two separate findings, and neither was visible from section 40's ladder.**
+
+### The step-down did nothing at level 1
+
+`COOL_P6`/`COOL_P0` were 2841600/2400000 — **identical to level 1's own frequencies**. So when
+level 1 hit its gate, it "stepped down" onto itself. The log printed a step-down, `status`
+reported `STEPPED-DOWN`, and the kernel ceiling did not move by a single OPP step. Every layer
+reported success while nothing happened, which is the same failure mode as the five instrument
+failures in section 39 — this time in the mitigation rather than in the measurement.
+
+Fixed by dropping the retreat one step below the lowest level in use: `COOL_P6=2649600`,
+`COOL_P0=2227200`, both real OPP steps. A check now asserts the retreat is strictly below all
+three levels on both clusters.
+
+Verified by forcing it rather than by reading the code — gate temporarily lowered to 30 C so a
+retreat was unavoidable:
+
+```
+before   6,7:2841600  0-5:2400000
+stepped  6,7:2649600  0-5:2227200    status: STEPPED-DOWN(resume<24C)
+restored 6,7:2841600  0-5:2400000
+```
+
+### Real use reaches 95 C where the ladder reached 75 C
+
+Section 40 measured level 1 at a 75 C peak over 150 s of two-core work and concluded the gates
+were never approached. Ordinary use hit **95 C instantaneous, 88 C smoothed**, on the same level,
+within an hour.
+
+Section 40 already listed why it could not license conclusions about the levels — two cores not
+eight, 150 s not hours, throughput not responsiveness. This is that caveat coming true, and the
+gap is 20 C. **The ladder is a lower bound on temperature, not an estimate of it.** Whatever real
+workload produced this (the phone was in the owner's hands, not under a harness) loads the SoC
+substantially harder than two pinned prime workers do.
+
+That also means the gates finally did something real: 88 C is not a hypothetical trip point on
+this device, it is reachable in a pocket. The retreat being a no-op until now was therefore not
+harmless.
