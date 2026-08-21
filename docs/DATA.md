@@ -2493,3 +2493,109 @@ substantially harder than two pinned prime workers do.
 That also means the gates finally did something real: 88 C is not a hypothetical trip point on
 this device, it is reachable in a pocket. The retreat being a no-op until now was therefore not
 harmless.
+
+## 42. Under an eight-core load no ceiling is the active constraint, and the retreat cuts the wrong cluster
+
+Section 40 measured levels 1 and 2 on a bare device with two prime-pinned workers. That harness
+cannot see `policy0` at all — it owns cpu0-5, six of the eight cores, and no worker ever ran
+there. Level 1 is the always-on level and it holds those six cores at 2400000 against a rated
+3532800, 68 %. Section 41 then found real use reaching 95 C where that ladder reached 75 C, and
+named the reason: two cores are not eight.
+
+So this is the eight-core measurement, one worker pinned per core, 150 s per point, bare device.
+
+### Two instrument faults, both fixed before any data was taken
+
+**The step-down was implemented as a full release.** `mitigation/op13perf/README.md` said a gate
+trip "撤掉全部杠杆并把 CFB 交还系统". `perfd.sh` does not do that — it lowers the ceiling to
+`COOL_P6`/`COOL_P0` and keeps the uclamp lift and CFB=0 running, because dropping the lift lets the
+guard re-clamp threads onto the mid cluster within seconds. The 2026-08-20 harness implemented the
+README's version, and this experiment inherited it. It would have charged every level for a
+retreat the module never performs. Copying last run's harness copies last run's assumptions.
+
+**A TERM handler that only cleans up does not end a sh script.** sh runs the handler and resumes
+at the interrupted line. Stopping an early run printed a full teardown and left it running; it ran
+six more minutes alongside its replacement, two harnesses sharing one `cpu_max_freq` node, one
+output file, and a `kill_uid` that matches on uid and cannot tell whose workers it is killing. The
+wreckage was legible only because the two disagreed — the same point came out as `work=861` and as
+`work=0`. A quieter overlap would have produced one plausible number. The handler now exits, and a
+`mkdir` lock with a liveness check refuses a second instance outright.
+
+### Every ceiling above the daily level buys nothing
+
+| point | P6 / P0 | work | mid | prime | stepped-down | last-60s | peak |
+|---|---|---|---|---|---|---|---|
+| stock | — | 861 | 566 | 295 | 0 % | 67 C | 90 C |
+| d-base | 2841600 / 2400000 | **1043** | 685 | 358 | 28 % | 89 C | 91 C |
+| d-mid1 | 2841600 / 2745600 | 1025 | 672 | 353 | **100 %** | 88 C | 90 C |
+| d-mid2 | 2841600 / 2918400 | 1006 | 659 | 347 | **100 %** | 90 C | 91 C |
+| d-p6up | 3283200 / 2400000 | 1013 | 683 | 330 | 36 % | 91 C | 92 C |
+| perf | 3283200 / 2918400 | 1019 | 686 | 333 | 3 % | 90 C | 92 C |
+
+The five levered points span 1006 to 1043 — 3.7 %, inside this device's run-to-run spread of about
+5 %. **They are not distinguishable**, and their ceilings range from 2841600 to 3283200. Raising a
+ceiling under this load does not raise anything. Section 38 found the prime cluster's two cores
+sharing a power budget; at eight cores the budget binds everywhere, and the ceiling stops being the
+active constraint at all.
+
+Two of the points make that concrete. `d-mid1` and `d-mid2` differ only in a mid ceiling neither
+of them ever reached: both spent **100 %** of the window stepped down, so both actually ran at
+`COOL`, and their measured clocks are identical. `d-p6up` raised the prime ceiling by two steps
+and the prime cluster's own work *fell*, 358 to 330 — hotter, so the gate fired sooner, so
+everything clocked lower.
+
+**The daily level as shipped is the best of the five.** Its `TODO: 未实测` closes not as "the
+guess was fine" but as "nothing above it was available to buy."
+
+Stock to any levered point is +17 to +21 %, far outside the spread, and that part is real. It is
+not explained here: the clock sampler (see below) lacks the resolution to attribute it, and no
+experiment in this run separates frequency from thread placement.
+
+### The retreat cuts the cluster that pays, not the one that doesn't
+
+At `COOL` the mid cluster sat exactly on `COOL_P0` (2227200) while the prime cluster sat at
+2438400, well below its `COOL_P6` of 2649600. So the prime half of the retreat is inert and the mid
+half costs six cores. Measured directly, gate parked at 96 C so every point is a fixed pair:
+
+| point | P6 / P0 | work | mid | prime | last-60s | peak |
+|---|---|---|---|---|---|---|
+| s-anchor (daily) | 2841600 / 2400000 | 1003 | 672 | 331 | 88 C | 92 C |
+| s-cool-now (retreat) | 2649600 / 2227200 | 949 | 637 | 312 | 89 C | 91 C |
+| **s-prime-cut** | **2438400 / 2400000** | **1050** | 715 | 335 | 89 C | 91 C |
+| s-mid-cut | 2841600 / 2227200 | 1008 | 660 | 348 | 91 C | 93 C |
+| s-deep | 2438400 / 1996800 | 879 | 573 | 306 | **83 C** | **87 C** |
+
+Cutting one cluster hands the budget to the other, and the two directions are not symmetric:
+
+- cut the mid cluster one step → prime work +5.1 %, mid −1.8 %, total +0.5 %, and **3 C hotter**
+- cut the prime cluster two steps → mid work +6.4 %, prime +1.2 %, total **+4.7 %**, 1 C hotter
+
+The prime cores are less efficient at their end of the curve, so budget spent there returns less
+work and more heat. `s-prime-cut` beats `s-mid-cut` by 4.2 % *while running 2 C cooler* — a
+Pareto move, not a trade.
+
+Two consequences for the shipped config:
+
+1. **The retreat as configured is the worst pairing measured**: −5.4 % against the level it
+   retreats from, for no temperature reduction at all. `s-deep` shows cooling is available —
+   −5 C — but only by cutting the mid cluster to 1996800, and it costs 12.4 %. `COOL_P0=2227200`
+   sits where it hurts without helping.
+2. **The daily level's prime ceiling looks two steps too high.** +4.7 % is on the spread boundary,
+   from single runs in a fixed order with start temperatures 2 C apart, so it is a direction and
+   not yet a number. An alternating A/B replication follows before any conf change.
+
+### The clock sampler is not trustworthy at this resolution
+
+Each point reports `scaling_cur_freq` per policy, sampled once a second over the tail window. The
+same pair of ceilings read p6=2596800 in one run and p6=2060800 in another while work differed by
+3.8 %. It is a cluster-wide instantaneous value under an eight-core load and it jitters more than
+the effect it is being asked to resolve. It is reported for the qualitative fact it does support —
+measured clocks land far below every ceiling set here — and nothing quantitative rests on it.
+
+### What this does and does not license
+
+Eight pinned workers for 150 s is sustained all-core throughput. It is not an hour, it is not
+interactive responsiveness, and it is emphatically not what a phone does in a pocket. Section 41's
+95 C came from ordinary use, not from a harness. The claims here are about ceilings under a
+saturating load; a level's value at one or two busy cores is a different measurement that this run
+does not make.
