@@ -23,6 +23,7 @@
 # URCC owns, and an unloaded write held 40 s with no drift -- so OFF explicitly
 # writes the rated maxima, meaning "this module imposes no limit".
 
+MODDIR=${0%/*}
 STATEDIR=/data/adb/op13perf
 STATE=$STATEDIR/state
 SINCE=$STATEDIR/since
@@ -111,6 +112,14 @@ PAUSE_ON_SCREEN_OFF=1
 EOF
 . "$CONF"
 
+# The module list's two fields are written from here because every switching path
+# ends at this daemon: the Magisk Action button, the Termux widget and the QS tile
+# all just write $STATE and let the poll below pick it up. action.sh used to be the
+# only writer, so any switch that did not come from that button left the list
+# describing the level the device booted into -- measured 2026-08-21 as a device
+# sitting at level 2 while the list still read "日常档 2841600".
+. "$MODDIR/desc.sh"
+
 # junction sensor, by type not by index -- indices move across boots
 Z_J=""
 for z in /sys/class/thermal/thermal_zone*; do
@@ -178,6 +187,7 @@ while :; do
 			now > "$SINCE"
 			log "ON level $ST"
 		fi
+		write_prop "$ST" "$MODDIR/module.prop"
 		LAST=$ST
 		COOLING=0
 		i=0
