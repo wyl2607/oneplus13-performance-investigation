@@ -1,0 +1,23 @@
+### module parked; this script drives the levers itself
+BARE DEVICE, 8 workers (one per core), 150s per point, alternating A/B/A/B
+A = daily level as shipped (prime 2841600).  B = prime cut to 2438400.
+
+=== A1  p6 2841600  p0 2400000  gate 96 C ===
+start temp 42 C after 120s idle
+RESULT A1 | work=1054 (mid=705 prime=349) | stepped-down=0% | clk p6=2390400 p0=2356800 | start 42 C, mean 89 C, last-60s 91 C, peak 92 C
+
+=== B1  p6 2438400  p0 2400000  gate 96 C ===
+start temp 43 C after 120s idle
+RESULT B1 | work=1024 (mid=697 prime=327) | stepped-down=0% | clk p6=2124800 p0=2342400 | start 43 C, mean 87 C, last-60s 89 C, peak 90 C
+
+=== A2  p6 2841600  p0 2400000  gate 96 C ===
+start temp 45 C after 120s idle
+RESULT A2 | work=978 (mid=664 prime=314) | stepped-down=0% | clk p6=2246400 p0=2227200 | start 45 C, mean 87 C, last-60s 91 C, peak 92 C
+
+=== B2  p6 2438400  p0 2400000  gate 96 C ===
+start temp 44 C after 120s idle
+RESULT B2 | work=1036 (mid=710 prime=326) | stepped-down=0% | clk p6=2310400 p0=2342400 | start 44 C, mean 87 C, last-60s 90 C, peak 91 C
+
+=== done ===
+### clean: no uid 10999 processes remain
+### module returned to level 1

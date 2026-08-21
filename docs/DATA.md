@@ -2580,9 +2580,11 @@ Two consequences for the shipped config:
    retreats from, for no temperature reduction at all. `s-deep` shows cooling is available —
    −5 C — but only by cutting the mid cluster to 1996800, and it costs 12.4 %. `COOL_P0=2227200`
    sits where it hurts without helping.
-2. **The daily level's prime ceiling looks two steps too high.** +4.7 % is on the spread boundary,
-   from single runs in a fixed order with start temperatures 2 C apart, so it is a direction and
-   not yet a number. An alternating A/B replication follows before any conf change.
+2. ~~**The daily level's prime ceiling looks two steps too high.**~~ **Withdrawn — see section 43.**
+   +4.7 % was on the spread boundary, from single runs in a fixed order. The alternating A/B
+   replication put the shipped ceiling's own spread at 7.5 % and the A/B difference at 2.5 %,
+   t = 1.06. The asymmetry above (`s-prime-cut` over `s-mid-cut`, 4.2 %) rests on the same single
+   runs and falls with it.
 
 ### The clock sampler is not trustworthy at this resolution
 
@@ -2599,3 +2601,66 @@ interactive responsiveness, and it is emphatically not what a phone does in a po
 95 C came from ordinary use, not from a harness. The claims here are about ceilings under a
 saturating load; a level's value at one or two busy cores is a different measurement that this run
 does not make.
+
+## 43. The replication: the harness cannot resolve what section 42 claimed to have found
+
+Section 42's actionable result was that lowering the daily level's prime ceiling from 2841600 to
+2438400 buys +4.7 % throughput at the same temperature. That is a conf change, so it was replicated
+before being made: two runs of each arm, alternating A/B/A/B so any drift over the session splits
+evenly, cooldown tightened to 46 C with a 120 s minimum so the points start from the same thermal
+state rather than merely a legal one.
+
+| run | arm | P6 / P0 | work | last-60s |
+|---|---|---|---|---|
+| s-anchor | A | 2841600 / 2400000 | 1003 | 88 C |
+| A1 | A | 2841600 / 2400000 | **1054** | 91 C |
+| A2 | A | 2841600 / 2400000 | **978** | 91 C |
+| s-prime-cut | B | 2438400 / 2400000 | 1050 | 89 C |
+| B1 | B | 2438400 / 2400000 | 1024 | 89 C |
+| B2 | B | 2438400 / 2400000 | 1036 | 90 C |
+
+```
+A  mean 1011.7  sd 31.6  range 76 (7.5 %)   temp mean 90.0 C
+B  mean 1036.7  sd 10.6  range 26 (2.5 %)   temp mean 89.3 C
+B - A = +25.0 work (+2.5 %),  pooled sd 28.9,  SE 23.6,  t = 1.06 (df 4)
+```
+
+**The shipped configuration's own run-to-run spread is three times the difference being measured.**
+The same ceilings, the same harness, the same evening produced 1054 and 978. Section 42's +4.7 %
+came from comparing two single runs, one from each arm, and it is not there.
+
+Withdrawn with it: the prime-cut/mid-cut asymmetry (4.2 %, same single runs) and the "Pareto move"
+reading of it. What survives from that section is what does not depend on differences of this size:
+
+- the five levered points in the first table span 3.7 % — a **null** result, which a large spread
+  only strengthens;
+- stock to any levered point is +17 to +21 %, several times the spread;
+- `d-mid1` and `d-mid2` spending **100 %** of the window stepped down is a count, not a throughput
+  difference;
+- `s-deep` running 6 C cooler than `s-cool-now` is a temperature difference, and temperature
+  repeats to within 1 C here (A1/A2 both 91 C, B1/B2 89/90 C). So "the retreat as configured does
+  not cool" (1 C, inside noise) and "cutting the mid cluster to 1996800 does cool" (6 C) both hold.
+
+One observation is recorded without being claimed: B's spread is a third of A's (sd 10.6 vs 31.6).
+A variance comparison at n = 3 is weak evidence, and it is written down as a hypothesis for a
+future run, not as a finding.
+
+### What this means for the config
+
+**Nothing changes.** The daily level keeps 2841600 / 2400000 — not because it was shown best, but
+because nothing was shown better, and a conf value should not move on t = 1.06.
+
+The retreat is a separate question and this run does not settle it either. `COOL_P0=2227200` was
+shown not to cool *under a saturating eight-core load*, which is the one load where the ceiling is
+not the active constraint anyway. Whether it cools at one or two busy cores — the load a retreat
+actually exists for — is unmeasured, and changing it on eight-core evidence would repeat the
+mistake section 42 made at a larger scale.
+
+### The harness needs a different figure of merit before it can answer this
+
+A 7.5 % spread on a 150 s window means this design can only resolve effects larger than roughly
+10 %. Section 42's null result is safe at that resolution; nothing finer is. Any future attempt at
+tuning the daily level needs either far longer windows, many more repetitions, or — more likely
+the right answer — a different question, since eight saturated cores have now been shown to be the
+regime where ceilings do not matter. The unmeasured regime is the one the level exists for: one or
+two busy cores, burst rather than sustained, responsiveness rather than throughput.
