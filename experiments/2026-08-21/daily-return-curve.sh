@@ -46,6 +46,7 @@ DWELL=15
 COOL_P6=2649600
 COOL_P0=2227200
 OUT=/data/local/tmp/daily-return-curve.txt
+LOCK=/data/local/tmp/drc.lock
 
 Z_J=""
 for z in /sys/class/thermal/thermal_zone*; do
@@ -87,6 +88,7 @@ finish() {
 	kill_uid
 	S=$(survivors)
 	rm -rf $TMP
+	rm -rf $LOCK
 	echo 1 > /data/adb/op13perf/state 2>/dev/null
 	if [ -n "$S" ]; then
 		say "!!! LEAK: uid $UID_T still has pids: $S"
@@ -95,7 +97,29 @@ finish() {
 	fi
 	say "### module returned to level 1"
 }
-trap finish EXIT INT TERM
+
+# A signal handler that only cleans up does NOT end the script: sh runs the
+# handler and then RESUMES at the line the signal interrupted. Killing this
+# script with TERM printed a clean teardown and left it running -- two instances
+# then shared one frequency node, one output file, and killed each other's
+# workers for six minutes, producing two contradictory stock results. The handler
+# has to exit, and something has to stop a second instance from starting at all.
+on_signal() { finish; trap - EXIT; exit 143; }
+trap on_signal INT TERM
+trap finish EXIT
+
+if mkdir "$LOCK" 2>/dev/null; then
+	echo $$ > "$LOCK/pid"
+else
+	read OP < "$LOCK/pid" 2>/dev/null
+	if [ -n "$OP" ] && [ -d "/proc/$OP" ]; then
+		echo "refusing to start: instance $OP is already running"
+		trap - EXIT INT TERM
+		exit 2
+	fi
+	echo "taking over a stale lock from pid ${OP:-?}"
+	echo $$ > "$LOCK/pid"
+fi
 
 : > $OUT
 echo 0 > /data/adb/op13perf/state
