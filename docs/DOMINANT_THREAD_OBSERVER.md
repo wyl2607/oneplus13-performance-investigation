@@ -319,10 +319,13 @@ transitions where responsiveness matters.**
 Prime share of the rank1 thread: scroll 0 %, wake 0 %, game 1–2 %, launch 9 %, switch 10 %. The
 game's dominant render thread ended on CPU 2–5 in 216 of 231 windows.
 
-### 4. The controlled pair — duty cycle alone decides the cluster
+### 4. The controlled pair — changing the sleep/wake pattern was enough to flip the cluster
 
 Same uid, same cgroup, same module state, back to back; the only difference is whether the thread
-ever sleeps.
+ever sleeps. Changing only the sleep/wake pattern was sufficient to flip placement in this
+controlled pair. That names the input, not the mechanism: wake, enqueue, util history, placement
+decision and scheduler state all move together downstream of it, and a 250 ms sampler cannot say
+which of them carries the effect.
 
 | worker | duty | prime share | runq_wait median | p90 | max |
 |---|---|---|---|---|---|

@@ -84,10 +84,12 @@ The game's dominant render thread ran on CPU 2-5 in 216 of 231 windows and on a
 prime core in 3.
 
 ================================================================================
-4. The controlled pair: duty cycle alone decides the cluster
+4. The controlled pair: changing the sleep/wake pattern flipped the cluster
 ================================================================================
 Same uid, same cgroup, same module state, same shell, same machine, back to back.
-The only difference is whether the thread ever sleeps.
+The only difference is whether the thread ever sleeps. Changing only the
+sleep/wake pattern was sufficient to flip placement in this controlled pair --
+which names the input, not the mechanism.
 
 | worker            | duty  | prime share | runq_wait median | p90     | max     |
 |-------------------|-------|-------------|------------------|---------|---------|
@@ -99,6 +101,11 @@ A thread that never sleeps gets the prime cluster and never waits. The same
 thread, doing 4.6 ms of the same work and then sleeping 20 ms, never reaches the
 prime cluster in 230 windows across both module states, and picks up the highest
 runqueue wait measured anywhere in this session.
+
+Wake, enqueue, util history, CPU selection and any later migration all change
+together with the sleep/wake pattern, and every one of them happens between two
+250 ms samples. Attributing the flip to the duty-cycle number itself would be a
+mechanism claim this instrument cannot support; that is what S2a is for.
 
 That is the S1 result that matters. The regime DATA.md 42-43 left open is not
 limited by a frequency ceiling; in it the dominant thread is not on the cores the

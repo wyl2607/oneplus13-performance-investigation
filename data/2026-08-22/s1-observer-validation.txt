@@ -76,7 +76,7 @@ TERM really ends it, checked against a demonstrated production rate:
   no END line, process dead, no leftover observer processes, lock removed.
 
 ================================================================================
-3. V3 -- top-app identity                                    PARTIAL (see gap)
+3. V3 -- top-app identity                                                  PASS
 ================================================================================
 system_server (uid 1000) was present in /dev/cpuset/top-app/cgroup.procs during
 the whole session and never appeared in the observer's TGID set -- the uid>=10000
@@ -94,10 +94,40 @@ top_app_changed, exercised by really changing the kernel cpuset membership
   45 windows: 30 with the two-app set, 15 with the three-process set, none joined
   across the transition.
 
-GAP: a real app-to-app switch was not exercised. The device was locked
-(deviceLocked=1) for the whole session and app launch/switch needs an unlock.
-Whether Android's own cpuset transition produces a clean single event or a
-flapping sequence is therefore still unmeasured.
+The gap this section first reported -- no real app-to-app switch, because the
+device was locked (deviceLocked=1) and launch/switch needs an unlock -- was
+closed afterwards on an unlocked device, and the verdict above is PASS on that
+later run, not on the synthetic cpuset move alone.
+
+Real app-to-app switching, five launches inside one 46 s trace
+(Chrome -> Clock -> Calculator -> Settings -> Chrome), with the kernel cpuset
+sampled independently at 250 ms alongside the observer:
+
+  distinct app-UID TGID sets seen by the independent sampler   7
+  distinct sets reported by the observer                       6
+  top_app_changed events emitted                               6
+  windows joined across a transition                           0
+  system_server (uid 1000) in the observer's TGID set          never
+
+The one set the observer did not report existed for less than a single 250 ms
+window. A transition shorter than the interval is collapsed into its neighbours;
+that is sampling, not a parse defect, but a consumer counting transitions has to
+know it. Android's own cpuset transition did not flap: each real switch produced
+one event, not a burst.
+
+Two properties of top-app on this ROM came out of the same trace, and both bound
+what any conclusion from this tool can mean:
+  - top-app is not one app: up to seven application processes were resident at
+    once, so "the dominant thread of the foreground app" is really "the dominant
+    thread of the top-app cpuset".
+  - a system-UID foreground app is invisible: launching Settings (uid 1000)
+    leaves the observer with only the residual app-UID processes.
+
+PROVENANCE: the per-window raw lines of this 46 s run were written to
+/data/local/tmp/dto-v, which was removed during device restore before the run
+was committed. What survives is the derived counts above and the same result in
+docs/DOMINANT_THREAD_OBSERVER.md section V3. The nine traces under
+data/2026-08-22/s1-traces/ are S1 collection runs, not this validation run.
 
 ================================================================================
 4. V4 -- /proc/<tid>/stat field offset                       FAIL -> fixed -> PASS
