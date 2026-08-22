@@ -1,9 +1,11 @@
 # S1 dominant-thread observer
 
-Status: **V1–V6 validated on device 2026-08-22; S1 collection not started**  
+Status: **V1–V6 validated and S1 collected on device, 2026-08-22**  
 Branch: `feature/dominant-thread-observer`  
-Tool: `tools/dominant-thread-observer.sh`  
-Evidence: `data/2026-08-22/s1-observer-validation.txt`
+Tool: `tools/dominant-thread-observer.sh`, analyzer `tools/analyze-dominant-thread.py`  
+Evidence: `data/2026-08-22/s1-observer-validation.txt`,
+`data/2026-08-22/s1-dominant-thread-traces.txt`, raw traces in
+`data/2026-08-22/s1-traces/`
 
 This is the first implementation step after the eight-core ceiling work closed as a null result in
 `DATA.md` sections 42–43.
@@ -174,8 +176,13 @@ META|version=1|duration_s=30|interval_ms=250|top_n=5|kernel=...|read_only=yes
 ### WINDOW
 
 ```text
-WINDOW|seq=N|t_cs=...|wall_ms=...|tgids=...
+WINDOW|seq=N|t_cs=...|wall_ms=...|threads=...|busy_threads=...|total_runtime_ms=...|total_runq_wait_ms=...|tgids=...
 ```
+
+`threads` and the two totals cover **every** thread compared in the window, not
+only the `top_n` that are reported. Without that denominator the concentration
+question cannot be answered at all: `top_n` truncation hides how much of the
+window the tail is holding.
 
 ### THREAD
 
@@ -217,7 +224,7 @@ Run on the OnePlus 13 on 2026-08-22. Full numbers in
 |---|---|---|
 | V1 zero performance writes | **PASS** | A/B/A and B/A/B, 165 s of 1 Hz sampling over ~60 nodes, perfd live |
 | V2 lock and signals | **PASS after a fix** | exit 130 was being swallowed; see below |
-| V3 top-app correctness | **PARTIAL** | UID filter and transition path proven; a real app switch was not run |
+| V3 top-app correctness | **PASS** | driven against two independent ground truths through five real app switches |
 | V4 stat field offset | **PASS after a fix** | wrong CPU on ") " thread names; see below |
 | V5 uclamp | **PASS** | observer matches a direct read on a guard-imposed 500 and on set 700 / 640 |
 | V6 overhead | **PASS in the S1 regime** | clean at one busy core, contaminating at eight |
@@ -262,43 +269,109 @@ the contamination agree, which is what makes both numbers believable.
 **This tool may not support any throughput conclusion under a saturating load.** It is valid for the
 one-to-two busy core regime S1 is about.
 
-### What V3 still owes
+### V3, completed against real app switches
 
-The device was locked (`deviceLocked=1`) for the whole session, so app launch and app switching
-could not be driven. What is proven: TGIDs come from the kernel cpuset, `system_server` (uid 1000)
-sat in `top-app/cgroup.procs` throughout and never entered the observer's TGID set, and
-`top_app_changed` fires exactly once on entry and once on exit when cpuset membership really
-changes. What is not proven: whether Android's own app-to-app transition produces one clean event or
-a flapping sequence.
+Five launches (Chrome, Clock, Calculator, Settings, Chrome) inside one 46 s trace, with the kernel
+cpuset sampled independently at 250 ms alongside.
 
-## 7. What S1 should tell us
+- ground truth saw **7** distinct app-UID TGID sets; the observer reported **6** of them and emitted
+  6 `top_app_changed` events. The one it missed existed for less than a single window. Transitions
+  shorter than the interval are collapsed, which is sampling, not a defect — but a consumer counting
+  transitions must know it.
+- no window was ever joined across a transition.
+- `system_server` (uid 1000) sat in `top-app/cgroup.procs` for the entire session and never entered
+  the observer's TGID set.
 
-After validation, collect short traces from at least these classes:
+Two facts about `top-app` on this ROM came out of the same trace, and both constrain what the tool
+means:
+
+1. **It is not one app.** Up to seven application processes were in it simultaneously. "The dominant
+   thread of the foreground app" is really "the dominant thread of the top-app cpuset".
+2. **A system-UID foreground app is invisible.** Launching Settings (uid 1000) leaves the observer
+   with only the residual app-UID processes.
+
+## 7. S1 — what the traces say
+
+Ten traces, 250 ms / top 10, each in both module states where the comparison is meaningful. Numbers
+and method in `data/2026-08-22/s1-dominant-thread-traces.txt`.
+
+### 1. Are real windows dominated by one or two threads? Mostly no.
+
+| trace | rank1 share of window CPU | top-2 share | windows where top-2 ≥ 80 % |
+|---|---|---|---|
+| app launch | 50 % | 85 % | 52 % |
+| app switch | 44 % | 68 % | 30 % |
+| scroll | 30–34 % | 54–57 % | 24–27 % |
+| game (title screen) | 23 % | 39 % | **0 of 462** |
+
+App launch is the only real workload that matches the premise. The game runs a median of **21 busy
+threads per window** and never once put 80 % of a window into two threads.
+
+### 2. Is the dominant TID stable? Only in steady state.
+
+Game: 94–96 % consecutive-window persistence, the same render thread leading 224 of 231 windows.
+Launch and switch: 20–31 % persistence and 11–16 distinct leaders. **A controller that picks the
+busiest thread would be chasing a different thread four windows out of five, during exactly the
+transitions where responsiveness matters.**
+
+### 3. Do dominant threads run on CPU 6–7? Almost never.
+
+Prime share of the rank1 thread: scroll 0 %, wake 0 %, game 1–2 %, launch 9 %, switch 10 %. The
+game's dominant render thread ended on CPU 2–5 in 216 of 231 windows.
+
+### 4. The controlled pair — duty cycle alone decides the cluster
+
+Same uid, same cgroup, same module state, back to back; the only difference is whether the thread
+ever sleeps.
+
+| worker | duty | prime share | runq_wait median | p90 | max |
+|---|---|---|---|---|---|
+| continuous | 100 % | **100 %** | 0.000 ms | 0.093 | 0.457 |
+| wake-heavy, module on | ~38 % @ 40 Hz | **0 %** | 0.480 ms | 2.371 | 9.038 |
+| wake-heavy, module off | ~38 % @ 40 Hz | **0 %** | 0.369 ms | 2.225 | 6.391 |
+
+**This is the S1 result.** The regime sections 42–43 left open is not limited by a frequency
+ceiling, because in it the dominant thread is not on the cores the ceiling governs at all. And the
+shipped module does not change that: the wake-heavy worker is identical with it on and off.
+
+### 5. Does the oplus clamp explain the placement? Not established.
+
+With the module on, `uclamp_max != 1024` appears in **0 of 705** reported rank1 rows — the 4 Hz
+`uclampset -a -M 1024` erases the clamp, so no module-on trace can say anything about it.
+
+With the module off the clamp appears on the 100 %-duty worker, and the two runs disagree:
 
 ```text
-app launch / cold-ish start
-continuous scroll
-UI animation / app switch
-wake-heavy synthetic worker
-continuous compute worker
-one representative game
+compute-off, within-run   uclamp 1024 (n=47): prime 98 %, runq 0.047 ms
+                          uclamp  346 (n=69): prime  3 %, runq 0.414 ms
+attribution run           uclamp 1024 (n=69): prime 100 %, runq 0.030 ms
+                          uclamp  346 (n=15): prime 100 %, runq 0.063 ms
 ```
 
-Questions:
+Near-perfect association in one run, none in the other. The visible difference is that the second
+run's thread never migrated at all — consistent with V5's finding that the effective clamp is
+latched at enqueue, so a thread that is never re-placed keeps its core. The A/B/A probe meant to
+settle it had no headroom, because its phase A was already at 100 % prime.
 
-1. Are real foreground workloads dominated by one or two threads in 250 ms windows?
-2. Do the dominant TIDs remain stable, or rotate through worker pools?
-3. How often do dominant threads end a window on CPUs 6–7 versus 0–5?
-4. Are high `runq_wait` windows associated with mid-cluster placement or clamp state?
-5. Do sleeping/waking workloads show the task-overload clamp pattern more clearly than continuous
-   workers, as previous causal experiments predict?
-6. Which thread-selection rule is robust enough for a controller: load, name/class, wake density,
-   or a combination?
+**One observation, not reproduced. No S2 arm may be justified on it.** Settling it needs
+wake/placement events, not 250 ms sampling.
 
-S1 is successful even if the answer is “thread identity is too unstable for targeted affinity.” A
-negative result prevents us from building a fragile controller.
+The wake-heavy worker was **never clamped in either module state**, 0 of 230 windows. Whatever keeps
+it off the prime cluster, it is not the guard.
 
----
+### 6. Which thread-selection rule is robust enough for a controller?
+
+None of load, name, or identity on its own. Load picks a thread that changes four windows out of
+five during launch and switch. Name matching is already banned in this repository for good reason.
+The only stable target found is a steady-state renderer, which is also the case that needs the least
+help. **S1's honest answer is closer to "thread identity is too unstable for targeted affinity"
+during transitions** — which, per the section this document opened with, is a successful S1.
+
+### What the traces do not cover
+
+The game trace is a title screen, not gameplay: entering resumed a 48.5 GB asset download over
+mobile data and was stopped. `top-app` is a seven-process set, not one app. System-UID foreground
+apps are invisible. One session, one device, one trace per cell except the synthetic pair.
 
 ## 8. S2 handoff — what Claude or the next implementation should build
 
@@ -336,6 +409,20 @@ junction peak / thermal burden
 
 Only after those arms establish that placement/boost matters should P6 ceiling be reintroduced as a
 variable in the one/two-busy-core regime.
+
+### What S1 changed about this list
+
+- **C (bounded task uclamp.min) is the arm the evidence points at.** The wake-heavy worker is never
+  clamped and never reaches the prime cluster; raising the floor is the only one of these levers
+  that acts on that. B (limiter repair) demonstrably does nothing for it — measured, module on
+  versus off, identical.
+- **E (targeted affinity) is the weakest arm.** The dominant TID rotates every one to two windows
+  during launch and app switch, so there is often no stable target to aim at.
+- **Whatever the arms are, the metric cannot come from this observer under load.** V6 puts it at
+  45 % of one core and a measured +9.2 % contamination at eight busy cores.
+- **Instrumentation gap first.** Both open questions — why the clamp moved placement in one run and
+  not another, and what a boost would do at a wakeup — are about events between samples. A 250 ms
+  sampler cannot see them. S2 should start by adding a wake/placement tracer, not by adding a lever.
 
 ---
 
