@@ -1,8 +1,9 @@
 # S1 dominant-thread observer
 
-Status: **scaffold / device validation required**  
+Status: **V1–V6 validated on device 2026-08-22; S1 collection not started**  
 Branch: `feature/dominant-thread-observer`  
-Tool: `tools/dominant-thread-observer.sh`
+Tool: `tools/dominant-thread-observer.sh`  
+Evidence: `data/2026-08-22/s1-observer-validation.txt`
 
 This is the first implementation step after the eight-core ceiling work closed as a null result in
 `DATA.md` sections 42–43.
@@ -22,7 +23,7 @@ This tool answers that question **without changing performance state**.
 The observer may read:
 
 ```text
-/dev/cpuset/top-app/tasks
+/dev/cpuset/top-app/cgroup.procs
 /proc/<pid>/task/<tid>/stat
 /proc/<pid>/task/<tid>/schedstat
 /proc/<pid>/task/<tid>/status
@@ -106,11 +107,14 @@ help decide which exact tracing instrument is worth adding in S2.
 Foreground ownership comes from the kernel's own:
 
 ```text
-/dev/cpuset/top-app/tasks
+/dev/cpuset/top-app/cgroup.procs
 ```
 
-For each entry the observer reads `Tgid` and `Uid` from `/proc/<tid>/status`, keeps application
+For each entry the observer reads `Tgid` and `Uid` from `/proc/<pid>/status`, keeps application
 UIDs (`uid >= 10000`), then enumerates `/proc/<tgid>/task/*`.
+
+`cgroup.procs` rather than `tasks`: both were measured against each other on-device and return the
+identical TGID set, but `tasks` lists every thread, which meant 163 `status` reads instead of 3.
 
 This deliberately avoids process-name matching. This repository has already had repeated bugs from
 `comm` truncation and name-based identification.
@@ -127,6 +131,9 @@ scheduler behaviour.
 ---
 
 ## 4. Usage
+
+Exit codes: `0` completed, `2` bad arguments or environment, `3` another instance holds the lock,
+`130` ended by INT/TERM.
 
 Run explicitly through `sh`; executable mode is not required:
 
@@ -175,7 +182,7 @@ WINDOW|seq=N|t_cs=...|wall_ms=...|tgids=...
 Header:
 
 ```text
-FIELDS|THREAD|seq|rank|tgid|tid|uid|comm|runtime_ms|runtime_pct|runq_wait_ms|slices|cpu_start|cpu_end|allowed|uclamp_min|uclamp_max|migrations_total|vol_ctx_total|nonvol_ctx_total
+FIELDS|THREAD|seq|rank|tgid|tid|uid|comm|runtime_ms|runtime_pct|runq_wait_ms|slices|cpu_start|cpu_end|allowed|uclamp_min|uclamp_max|uclamp_max_eff|migrations_total|vol_ctx_total|nonvol_ctx_total
 ```
 
 Each `THREAD` row is one dominant thread in that window.
@@ -188,7 +195,12 @@ Important interpretation:
 - `cpu_start`, `cpu_end`: CPUs reported at the two snapshots; **not** a migration count;
 - `migrations_total`: cumulative scheduler migration counter at enrichment time;
 - context-switch fields are cumulative totals at enrichment time;
-- `uclamp_*` and `allowed` are current state at enrichment time.
+- `uclamp_*` and `allowed` are current state at enrichment time;
+- `uclamp_max` is what the task requested, `uclamp_max_eff` is what the scheduler last latched.
+  **They diverge.** A continuously running thread the oplus guard had clamped to 500 still read
+  `effective=1024` in 17 of 30 samples and only picked up 500 once it was dequeued, because the
+  effective value is latched at enqueue. Reading only `uclamp_max` would claim a clamp that is not
+  being applied; reading only `uclamp_max_eff` would miss one that is about to be. Carry both.
 
 The totals are intentionally not converted to deltas inside the hot path. A later analyzer can
 calculate deltas for TIDs that persist across windows without making the observer read expensive
@@ -196,70 +208,68 @@ files for every thread twice per interval.
 
 ---
 
-## 6. S1 validation checklist
+## 6. S1 validation — results
 
-Before this tool is allowed to support a scheduling conclusion, validate all of the following on the
-OnePlus 13.
+Run on the OnePlus 13 on 2026-08-22. Full numbers in
+`data/2026-08-22/s1-observer-validation.txt`; the summary is here.
 
-### V1 — zero performance writes
+| gate | verdict | what it rests on |
+|---|---|---|
+| V1 zero performance writes | **PASS** | A/B/A and B/A/B, 165 s of 1 Hz sampling over ~60 nodes, perfd live |
+| V2 lock and signals | **PASS after a fix** | exit 130 was being swallowed; see below |
+| V3 top-app correctness | **PARTIAL** | UID filter and transition path proven; a real app switch was not run |
+| V4 stat field offset | **PASS after a fix** | wrong CPU on ") " thread names; see below |
+| V5 uclamp | **PASS** | observer matches a direct read on a guard-imposed 500 and on set 700 / 640 |
+| V6 overhead | **PASS in the S1 regime** | clean at one busy core, contaminating at eight |
 
-Run a before/after snapshot of the nodes already tracked by the repository and confirm the observer
-changes none of them.
+### The shell was the biggest finding
 
-At minimum:
+`/system/bin/sh` is mksh R59 and **`printf` is not a builtin** — it is `/system/bin/printf`, and a
+fork costs 6.4 ms on this device. The scaffold called it once per scanned thread, so one snapshot of
+a 135-thread app cost 960 ms and the nominal 250 ms cadence actually ran at 1.4 s. Nothing in a
+per-thread path may fork. `echo` is a builtin and the same snapshot costs 20 ms.
 
-```text
-/sys/kernel/msm_performance/parameters/cpu_max_freq
-/sys/module/cpufreq_bouncing/parameters/enable
-/dev/cpuctl/top-app/cpu.uclamp.min (if present)
-/dev/cpuctl/top-app/cpu.uclamp.max (if present)
-```
+### Six defects, all reverse-verified
 
-The observer itself must not attempt to “restore” these. It never owned them.
+1. per-thread `printf` in the snapshot loop — 48× the necessary cost. Restoring that one line takes
+   median `wall_ms` from 260 back to 760.
+2. enrichment forked a subshell, two awks and a `tr` per ranked thread, 19 ms each.
+3. the window timestamp was taken before the snapshot, so `wall_ms` excluded the scan and inflated
+   every `runtime_pct`.
+4. a fixed `sleep` made the real cadence *interval + scan*, never the interval.
+5. `trap cleanup EXIT` replaced the signal handler's `exit 130` with `0`, because mksh takes the
+   status of the EXIT trap's last command. A caller could not tell an aborted trace from a finished
+   one.
+6. `${line#*) }` — shortest match — returned a wrong, plausible-looking CPU for threads whose name
+   contains `") "`. Two such threads (`AdWorker(NG) #1`) were live during the session. It reported
+   `processor = -1` for them, and a deliberately re-broken build reported CPU **17** on an
+   eight-core device, in 20 of 20 windows.
 
-### V2 — lock and signal behaviour
+### Measured limits — read before trusting a trace
 
-Verify:
+The observer costs **45 % of one core** at 250 ms / top 5 while scanning ~516 top-app threads
+(62 % before the enrichment was batched into one awk). Counted as `utime+stime+cutime+cstime`, since
+two thirds of it is forked children and `schedstat` does not see them.
 
-1. second observer refuses to start;
-2. `TERM` ends the first observer rather than merely running cleanup and continuing;
-3. lock/work directory disappears;
-4. no child process survives.
+| regime | A vs B | verdict |
+|---|---|---|
+| one busy core, n=6 | 6400 vs 6390 ms, −0.16 %, t = −0.63 | no detectable contamination |
+| eight busy cores, n=10 | 18300 vs 19987 ms, **+9.22 %, t = 2.86** | real contamination |
 
-### V3 — top-app correctness
+0.45–0.62 core against eight cores predicts 5.6–7.8 %, and +9.2 % was measured. The self-cost and
+the contamination agree, which is what makes both numbers believable.
 
-Open several ordinary apps and switch between them. Confirm:
+**This tool may not support any throughput conclusion under a saturating load.** It is valid for the
+one-to-two busy core regime S1 is about.
 
-- reported TGIDs correspond to the kernel top-app group;
-- transitions produce `top_app_changed` events;
-- system processes are filtered by UID rather than names.
+### What V3 still owes
 
-Do not publish raw app/thread names from private daily-use traces without redaction.
-
-### V4 — stat field correctness
-
-Cross-check `cpu_start/cpu_end` for one known pinned test thread against an independent read of
-`/proc/<tid>/stat` / `taskset` behaviour. A field-offset error here would silently poison every later
-placement conclusion.
-
-### V5 — uclamp correctness
-
-Create a controlled app-UID worker using the repository's existing trigger methodology and confirm
-the observer reports the same `uclamp.max` value as a direct `/proc/<tid>/sched` read.
-
-### V6 — overhead
-
-Measure the observer against an otherwise identical workload:
-
-```text
-A: workload only
-B: workload + observer @ 250 ms / top 5
-```
-
-If the performance difference is material, increase the interval or reduce enrichment. The observer
-must be cheaper than the effects it is intended to measure.
-
----
+The device was locked (`deviceLocked=1`) for the whole session, so app launch and app switching
+could not be driven. What is proven: TGIDs come from the kernel cpuset, `system_server` (uid 1000)
+sat in `top-app/cgroup.procs` throughout and never entered the observer's TGID set, and
+`top_app_changed` fires exactly once on entry and once on exit when cpuset membership really
+changes. What is not proven: whether Android's own app-to-app transition produces one clean event or
+a flapping sequence.
 
 ## 7. What S1 should tell us
 
