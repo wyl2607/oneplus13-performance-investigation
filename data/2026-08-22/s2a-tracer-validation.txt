@@ -1,0 +1,187 @@
+S2a scheduler-event-tracer -- T1..T6 device validation
+OnePlus 13 (CPH2653), kernel 6.6.118-android15-8, module op13perf at its shipped
+level for the whole session; no performance parameter was written.
+
+S1's rule applies here too: an instrument is not free until it has been measured,
+and a defect is only fixed when reverting that one line brings the failure back.
+
+  T1 correctness            PASS  (three instruments agree)
+  T2 filtering correctness  PASS  (0 foreign rows; wrong filter yields wrong task)
+  T3 signals / lock / clean PASS
+  T4 dropped-event detect   PASS  (loss forced, reported, exit 5)
+  T5 tracer overhead        NO EFFECT DETECTED, bounded (see below)
+  T6 timestamp ordering     PASS, and it caught a real trap
+
+================================================================================
+1. T1 -- does the trace agree with something that is not the trace
+================================================================================
+Wake-heavy worker (uid 10999, top-app cpuset, burst 2000, sleep 20 ms), 10 s,
+traced while two independent instruments watched the same thread.
+
+  duty cycle
+    reconstructed from the trace's own run segments      40.58 %
+    /proc/<tid>/stat utime+stime ticks                   40.00 %
+    /proc/<tid>/schedstat run_ns delta                   39.91 %
+
+  CPU the thread ran on
+    trace, first_run_cpu over 295 wake cycles
+        cpu0 50 (17 %)  cpu1 83 (28 %)  cpu4 69 (23 %)  cpu5 93 (32 %)   prime 0
+    independent /proc/<tid>/stat field 39, 200 samples at 20 Hz
+        cpu0 37 (19 %)  cpu1 53 (27 %)  cpu4 44 (22 %)  cpu5 64 (32 %)
+        cpu3  2 (1 %)                                                    prime 0
+
+  schedstat also reported 499 run slices against the trace's 295 wake cycles,
+  which is the right relationship: a cycle can be preempted and resumed.
+
+================================================================================
+2. T2 -- is the kernel-side filter actually filtering
+================================================================================
+Correct filter, wake-heavy worker, 3 s:
+  rows mentioning the target tid                         1052
+  rows NOT mentioning the target tid                        0
+
+Reverse verification, same worker alive, tracer pointed at tid 1 (init):
+  entries                                                  13
+  rows mentioning the worker's tid                          0
+
+So the filter is doing the selecting, not the reader. A filter aimed elsewhere
+returns that elsewhere -- it does not return the target and it does not return
+nothing, which would have been the ambiguous result.
+
+================================================================================
+3. T3 -- lock, signals, cleanup
+================================================================================
+  second instance while one runs        exit 3, "tracer already running as pid N"
+  TERM                                  exit 130
+  INT                                   exit 130
+  after either signal: instance gone (bootreceiver hsuart wifi remain, which are
+                       the ROM's), lock directory gone
+  restart after an aborted run          exit 0
+  stale lock with a dead pid in it      reclaimed, exit 0
+
+The EXIT trap is `trap 'rc=$?; cleanup; exit $rc' EXIT`, not `trap cleanup EXIT`.
+S1 measured why: mksh takes the status of the EXIT trap's last command, so a
+handler ending in a successful rm turns exit 130 into exit 0 and no caller can
+tell an aborted trace from a completed one.
+
+================================================================================
+4. T4 -- does it notice when the kernel throws events away
+================================================================================
+Wake-heavy worker plus --energy, 4 s, buffer swept. Buffer size is per CPU.
+
+  buffer_kb   entries   overrun   loss   exit   rows kept
+        8       646       977     YES      5       646
+       16       986       650     YES      5       986
+       64      1746         0     none     0      1746
+      256      1492         0     none     0      1492
+     4096      1619         0     none     0      1619
+
+At 8 KB the kernel dropped more events than it kept, and the run still produced
+a file that looks perfectly well-formed -- 646 plausible rows, in order, with no
+gap that any parser could see. That is the failure this test exists for. The
+tracer counts overrun, commit overrun and dropped across all eight per-CPU
+buffers before reading anything, writes them into the header, and exits 5 with
+
+  "The trace is incomplete and no causal conclusion may be drawn from it."
+
+The floor on --buffer-kb is 8 rather than something comfortable, precisely so
+this test can be run against the real tracer instead of a copy of it. Anything
+below 256 prints a note that it is a loss-test size.
+
+================================================================================
+5. T5 -- what the tracer costs the thing it is watching
+================================================================================
+Throughput metric is the worker's own completed-burst count, written once at
+exit, never inside the loop. A and B alternate back to back inside each rep.
+
+  wake-heavy worker, ~310 traced events/s, 9 s per run
+    A (no tracer)   285.5 bursts
+    B (tracer)      280.8 bursts
+    n = 22 per arm  delta -1.66 %   t = -0.93
+
+  continuous worker, ~10 traced events/s, 9 s per run
+    A               2885.5 bursts
+    B               2840.5 bursts
+    n = 6 per arm   delta -1.56 %   t = -0.97
+
+No effect detected in either regime. The honest statement is a bound, not a
+clean bill: with sd ~20 bursts and n=22, this experiment could only have
+resolved an effect larger than about 4 %. It did not resolve one.
+
+That bound is enough for what S2a claims, because unlike the S1 observer this
+tracer has no per-item userspace path at all -- it enables, sleeps, disables and
+copies the buffer once. Its cost is the kernel's per-event reserve and the
+filter test, and only for one thread. The S1 observer's 45 % of a core came from
+scanning ~516 threads every 250 ms in shell; there is no equivalent here.
+
+Not claimed: that it is free under a saturating eight-core load. That was never
+measured for this tracer and S1's V6 is not transferable to it.
+
+================================================================================
+6. T6 -- timestamps, and the trap that does not announce itself
+================================================================================
+A fresh tracefs instance defaults to trace_clock=local. `local` is a per-CPU
+clock. A wake recorded on the waker's CPU and a switch-in recorded on the
+target's CPU are then timestamped by two different clocks.
+
+Same worker, same events, same 5 s, the only difference being the clock:
+
+                                       global        local
+  ts_inversions in the merged trace         0            0
+  wake cycles reconstructed               145          143
+  wake_to_run p50                       66 us        67 us
+  selected CPU == first-run CPU         97.93 %       0.00 %
+
+Under `local` nothing looks wrong. There are no inversions, the cycle count is
+right, the latency distribution is nearly identical -- and every causal pairing
+is destroyed. A run on the default clock would have reported that the CPU a
+thread first runs on is essentially never the CPU the scheduler selected, i.e.
+exactly the opposite of section 3 of s2a-wake-path.txt.
+
+Two consequences, both now in the tracer:
+  - it writes `global` and re-reads trace_clock to confirm the write took,
+    refusing to run otherwise;
+  - a monotonicity check is NOT a sufficient test for this, because the ftrace
+    reader merges the per-CPU buffers in timestamp order and therefore always
+    produces a monotone file. ts_inversions is still reported, but it is not
+    what caught this.
+
+================================================================================
+7. Defects found while building this, each verified by reverting one line
+================================================================================
+D7  Worker rename wrote a trailing newline.
+    `echo w-wake > /proc/self/comm` -- this kernel does NOT strip the newline.
+    The thread is then named "w-wake\n" and its own /proc/<tid>/stat becomes a
+    TWO-LINE file. Evidence: `wc -l /proc/<tid>/stat` = 2, and
+    `awk '{print $14+$15}'` returned two numbers instead of one, which made
+    every arithmetic use of it fail with an unhelpful mksh error rather than a
+    wrong number. Fixed with `echo -n`. This breaks any field-offset reader of
+    /proc/<tid>/stat, including the S1 observer.
+
+D8  The worker's own loop condition forked.
+    `while [ $(cut -d. -f1 /proc/uptime) -lt $END ]` forks `cut` once per outer
+    iteration, at S1's measured ~6.4 ms per fork. The "continuous" worker
+    measured 57 % duty instead of ~100 %; after replacing it with the builtin
+    `read _u _r < /proc/uptime` the same worker measured 103 %. The S1 lesson
+    was "nothing in the per-thread path may fork"; the loop's own deadline test
+    is in that path.
+
+D9  Analyzer read zero-padded CPU numbers as octal.
+    ftrace prints `target_cpu=002`. `int("002", 0)` raises in Python, because
+    base 0 reads the leading zero as an octal prefix, and the analyzer's
+    tolerant parser turned that into None. Only `target_cpu=000` survived, so
+    the selected-CPU histogram read `{0: 27}` out of 284 cycles and
+    "selected CPU == first-run CPU" read 9.5 %. Both look like findings.
+    After the fix the same trace gives a spread across CPU 0..5 and 99.3 %.
+    This is the S1 D6 shape again: a wrong value that looks like a legitimate
+    reading, not like garbage.
+
+D10 The harness deleted the run directory before the worker's own launcher had
+    printed its result. Two T5 batches came back with empty burst counts. The
+    fix is to wait for the launcher process and read its stdout, not to poll a
+    file that a cleanup trap owns.
+
+Also re-encountered, and worth restating because it cost time again:
+  `pkill -f <pattern>` matches the command line of the shell that is running it.
+  `pkill -f tval.sh` from inside a script whose own cmdline contains tval.sh
+  kills that script. Cleanup now matches /proc/<pid>/comm instead.

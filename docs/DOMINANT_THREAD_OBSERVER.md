@@ -427,6 +427,25 @@ variable in the one/two-busy-core regime.
   not another, and what a boost would do at a wakeup — are about events between samples. A 250 ms
   sampler cannot see them. S2 should start by adding a wake/placement tracer, not by adding a lever.
 
+### What S2a changed about this list
+
+S2a built that tracer. See `docs/SCHEDULER_EVENT_TRACER.md`; three things here are now measured
+rather than open.
+
+- **The placement is made at wake selection**, not corrected afterwards: the CPU `sched_wakeup`
+  names is the CPU the thread first runs on in 97.6–99.3 % of cycles. The prime cluster is never a
+  candidate — WALT's cluster search opens and closes at index 0, and `misfit` is 0 in every enqueue
+  record for this thread.
+- **C is still the right arm, but the planned values are wrong.** A burst sweep puts the
+  demand at which this thread starts reaching the prime cluster at roughly 500, and decisive by 616.
+  `uclamp.min` of 128 / 256 / 384 is entirely below that; at demand 401–424 the prime share is still
+  only 8–15 %. That matrix would have returned a null result that looked like "the lever does
+  nothing".
+- **The clamp question cannot be closed by tracing.** There is no `task_overload` and no `uclamp`
+  tracepoint anywhere in this kernel's 1932 events. Numeric uclamp at the enqueue instant needs a
+  kprobe, which S2a validated to 4 µs — the value was not the interesting field, the `active` bit
+  was.
+
 ---
 
 ## 9. Product architecture implication
