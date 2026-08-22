@@ -1,0 +1,204 @@
+S2a -- the wake path of a wake-heavy thread, at event resolution
+OnePlus 13 (CPH2653), kernel 6.6.118-android15-8, Qualcomm WALT scheduler.
+Module op13perf left at its shipped level throughout; nothing was tuned.
+
+S1 asked why a wake-heavy foreground thread never reaches the prime cluster and
+could not answer, because wake, enqueue, CPU selection, switch-in and migration
+all happen between two 250 ms samples. This is those events.
+
+Instrument: tools/scheduler-event-tracer.sh, validated in
+s2a-tracer-validation.txt. Reconstruction: tools/analyze-wake-cycles.py.
+Workers: tools/wake-pair-worker.sh -- same uid, same cgroup, same shell, same
+arithmetic, back to back, differing only in whether the thread ever sleeps.
+
+================================================================================
+1. The pair, measured
+================================================================================
+                              continuous            wake-heavy
+  duty (from the trace)         ~100 %                42.8 %
+  wake cycles in 10 s                0                   284
+  WALT demand p50                7 999 488 ns      1 663 463 ns
+  pred_demand_scaled p50               779                 191
+  enqueue CPU                    cpu7, 34 of 34    cpu0..5, 343 of 343
+  prime share                        100 %                 0 %
+  misfit flag on enqueue         0 of 68             0 of 686
+
+The continuous worker produced 102 events in ten seconds and not one
+sched_switch: it never slept and was never preempted. Every one of its events is
+a dequeue/enqueue pair on cpu7 raised by a `uclampset` process at about 3.4 Hz,
+which is the module's perfd doing `uclampset -a -M 1024` over top-app.
+
+================================================================================
+2. One wake cycle, in full
+================================================================================
+Ordering below is real: trace_clock is `global`, see T6.
+
+  sched_waking          in the waker's context; target_cpu is still the task's
+                        previous CPU
+  sched_find_best_target WALT's cluster search: start_cpu, order_index,
+                        end_index, candidates
+  sched_task_util       the placement decision: util, candidates, prev_cpu,
+                        best_energy_cpu, fastpath, start_cpu
+  sched_enq_deq_task    enqueue on the chosen CPU, with demand,
+                        pred_demand_scaled and misfit
+  sched_wakeup          target_cpu is now the chosen CPU
+  sched_switch          next_pid == target: it is running, on [cpu]
+  ... run, possibly preempted and resumed ...
+  sched_switch          prev_pid == target, prev_state=S: it sleeps
+
+Measured span from sched_waking to the first switch-in, three independent runs
+of the same worker:
+
+  run              cycles   p50      p90      p95      p99      max
+  pair-wake          284    76 us   101 us   143 us   218 us    249 us
+  T1                 295    55 us   100 us   108 us   210 us   1282 us
+  T6 global          145    66 us   100 us   165 us   221 us    249 us
+
+sched_stat_wait, the runqueue wait the kernel itself attributes to this thread:
+p50 0.0 us, p95 83..101 us across the same runs.
+
+================================================================================
+3. Selection, or migration? Selection.
+================================================================================
+  selected CPU (sched_wakeup target_cpu) == CPU it first ran on
+      pair-wake   99.3 %      T1   97.6 %      T6   97.9 %
+
+  any migration between the wake and the first run
+      pair-wake   11.6 %      T1   16.3 %      T6   15.9 %
+  migrations per cycle, mean
+      pair-wake   0.28        T1   0.51        T6   0.37
+
+Those migrations are the wakeup placing the task, not a later correction: the
+sched_migrate_task lands between sched_task_util and sched_wakeup, and the CPU
+it moves to is the CPU sched_wakeup then names.
+
+**CPU 0-5 is chosen when the thread is woken. It is not put there and then
+moved.** Nothing migrates it up afterwards either, because it is never misfit.
+
+================================================================================
+4. Why the search never reaches the prime cluster
+================================================================================
+sched_find_best_target, wake-heavy worker, 283 placements:
+
+  start_cpu   = 0     in 283 of 283
+  order_index = 0     in 283 of 283
+  end_index   = 0     in 283 of 283
+  skip        = -1    in 283 of 283
+  candidates  = single-CPU masks, all inside 0x3f:
+                0x20 (cpu5) 93, 0x10 (cpu4) 89, 0x2 (cpu1) 67,
+                0x1 (cpu0) 28, 0x8 (cpu3) 4, 0x4 (cpu2) 3
+                0x40 / 0x80 (cpu6, cpu7): never
+
+sched_task_util over the same placements:
+  util p50 180, task_boost 0, low_latency 0, stune_boosted 0, need_idle 0,
+  placement_boost 0 -- in all 284.
+
+So the prime cluster is not evaluated and rejected. It is never a candidate.
+The search window opens at cluster index 0 and closes at cluster index 0, and
+no boost, no ux hint and no frame-boost path ever widened it: sched_assist's
+set_ux_task_to_prefer_cpu and frame_boost's find_frame_boost_cpu were enabled
+and filtered on this thread and fired zero times.
+
+The contrast, from the continuous worker traced from birth (comm-glob filter,
+cold-continuous.txt):
+
+  util 538  start_cpu=6 order_index=1  candidates=0x1   -> runs on cpu0
+  util 633  start_cpu=6 order_index=1  candidates=0x2   -> cpu1
+  util 655  enqueue on cpu0 records    misfit=1
+            sched_migrate_task orig_cpu=0 dest_cpu=7
+  util/pred settles at 777..780, cpu7, misfit=0, and it never leaves for the
+  remaining ~8 s
+
+Two different mechanisms carry it up: the cluster search start moves to the
+prime cluster, and the misfit flag hands it to the load balancer. Both are
+downstream of the same input -- WALT's task demand -- and the wake-heavy thread
+never gets near either.
+
+================================================================================
+5. Where the threshold actually is
+================================================================================
+Same worker, same 20 ms sleep, burst size swept so only the demand changes.
+6 s traced per point, no event loss at any point.
+
+  burst   duty%   wake Hz   pred_demand p50   prime first-run %   start_cpu=6
+   2000    38.1     29.3          158               0.0            0 of 176
+   4000    50.3     22.9          215               0.7            1 of 138
+   6000    59.0     19.0          256               1.8            3 of 114
+   8000    58.9     19.1          401               7.8           17 of 115
+  11000    63.2     16.5          424              15.2           20 of  99
+  15000    65.5     16.2          499              43.3           36 of  97
+  20000    64.5     17.1          616              82.5           84 of 103
+
+Prime share and start_cpu move together, monotonically, with demand. The
+crossover is around pred_demand 500 (43 %) and it is decisive by 616 (83 %).
+cpu_capacity is 792 on cpu0-5 and 1024 on cpu6-7.
+
+This is the number the next phase needs, and it is not the number the S2b plan
+assumed. A bounded uclamp.min arm of 128 / 256 / 384 sits entirely below the
+crossover: at pred_demand 401-424 this thread still lands on the prime cluster
+in 8-15 % of wakes. Such a matrix would return "uclamp.min changes nothing" and
+that would be an artefact of the values, not a property of the lever.
+
+Wake latency across the sweep: p50 30-35 us while placement stays in cluster 0,
+rising to ~51 us once wakes start landing on the prime cluster. Landing on prime
+is not free at wake time.
+
+================================================================================
+6. Requested vs effective uclamp, aligned to the placement instant
+================================================================================
+No tracepoint on this kernel emits a numeric uclamp value -- all 1932 were
+searched. The only uclamp-adjacent field at the decision point is
+sched_task_util's `stune_boosted` bool, which was 0 in all 284 placements.
+
+The numeric values were obtained instead with a kprobe on uclamp_eff_value,
+reading uclamp_req[] and uclamp[] out of the task_struct at byte offsets derived
+from the device's own /sys/kernel/btf/vmlinux by tools/btf-offsets.py:
+
+  task_struct.pid 1560   .uclamp_req 848   .uclamp 856   sizeof(uclamp_se) 4
+  uclamp_se: value bits 0-10, bucket_id 11-15, active bit 16, user_defined 17
+
+Validation, 4 s on the wake-heavy worker:
+  kprobe rows                                     2470
+  rows carrying a pid other than the target          0
+  decoded requested min / max                    0 / 1024
+  decoded effective min / max                    0 / 1024
+  requested user_defined                         1 in all 2470  <- perfd's
+                                                 `uclampset -a -M 1024`
+  agreement with /proc/<tid>/sched               exact, before and after
+
+Alignment with the placement instant:
+  placements in the window                         103
+  placements with a uclamp read within 200 us      102
+  median |dt|                                      4 us   (max 7 us)
+
+So yes: requested and effective uclamp can be read at the enqueue instant, to
+about 4 us. And the interesting field is not the value here -- both are 1024 --
+but `active`:
+
+  effective active over all 2470 reads             1 in 2062, 0 in 408
+  effective active AT the placement instant        1 in 50, 0 in 52
+
+S1 inferred from a 250 ms poll that the effective copy latches at enqueue and
+that requested and effective can disagree for a long time. That inference now
+has a 4 us measurement behind it: at about half of this thread's placements the
+effective copy is not yet active.
+
+Cost: the probe fires 24 times per placement for a single thread, which is why
+it is off unless --uclamp-offsets is passed.
+
+================================================================================
+7. What this does NOT establish
+================================================================================
+- Nothing here says the oplus task_overload clamp is or is not involved. It has
+  no tracepoint at all on this kernel (searched all 1932), so S1's withdrawn
+  clamp/placement conclusion stays withdrawn.
+- The sweep changes demand by changing the workload. It does not show what
+  happens when demand is held and uclamp.min is raised instead; whether WALT's
+  start_cpu and misfit tests use the clamped util is a separate measurement and
+  is the first thing S2b has to check.
+- These are synthetic workers, not an app. S1 already measured that real
+  foreground windows are 3-4 thread workloads with a rotating leader, so a
+  single-thread wake path is a mechanism study, not a prediction about apps.
+- The device was in Dozing wakefulness with the screen off for the whole
+  session, with ~9 % of eight cores busy in the background. Wake latency under a
+  loaded, screen-on device was not measured.
