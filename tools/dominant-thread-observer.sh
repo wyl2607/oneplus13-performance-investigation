@@ -158,20 +158,31 @@ snapshot_fast() {
 
 # Rank only threads that exist in both snapshots. Output:
 #   delta_runtime_ns delta_wait_ns delta_slices tid tgid cpu0 cpu1
+#
+# The same pass writes window totals over ALL compared threads, not just the
+# top_n that survive the head. Without that denominator the first S1 question --
+# "is a real window dominated by one or two threads?" -- is unanswerable, because
+# top_n truncation hides how much runtime the tail holds. Written from inside the
+# existing awk, so it costs no extra fork.
 rank_window() {
 	prev=$1
 	cur=$2
 	out=$3
-	awk '
+	awk -v agg="$TMP/agg" '
 		NR == FNR {
 			r[$1]=$3; w[$1]=$4; s[$1]=$5; c[$1]=$6
 			next
 		}
 		($1 in r) {
 			dr=$3-r[$1]; dw=$4-w[$1]; ds=$5-s[$1]
-			if (dr >= 0 && dw >= 0 && ds >= 0)
+			if (dr >= 0 && dw >= 0 && ds >= 0) {
+				cmp++
+				if (dr > 0) { busy++; tot += dr }
+				totw += dw
 				print dr, dw, ds, $1, $2, c[$1], $6
+			}
 		}
+		END { print cmp+0, busy+0, tot+0, totw+0 > agg }
 	' "$prev" "$cur" 2>/dev/null | sort -nr -k1,1 | head -n "$TOPN" > "$out"
 }
 
@@ -296,7 +307,10 @@ while [ "$(now_cs)" -lt "$DEADLINE" ]; do
 	WALL_CS=$((T1 - T0))
 	[ "$WALL_CS" -gt 0 ] || WALL_CS=1
 	rank_window "$PREV" "$CUR" "$RANKED"
-	echo "WINDOW|seq=$SEQ|t_cs=$T1|wall_ms=$((WALL_CS * 10))|tgids=${TG1//$'\n'/,}"
+	read a_cmp a_busy a_tot a_totw < "$TMP/agg" 2>/dev/null
+	ns_ms "${a_tot:-0}"; win_ms=$MS
+	ns_ms "${a_totw:-0}"; win_wait_ms=$MS
+	echo "WINDOW|seq=$SEQ|t_cs=$T1|wall_ms=$((WALL_CS * 10))|threads=${a_cmp:-0}|busy_threads=${a_busy:-0}|total_runtime_ms=$win_ms|total_runq_wait_ms=$win_wait_ms|tgids=${TG1//$'\n'/,}"
 
 	enrich_ranked "$RANKED"
 	rank=0
