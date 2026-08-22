@@ -98,11 +98,12 @@ top_tgids() {
 	' "$@" 2>/dev/null | sort -nu
 }
 
-# Fast snapshot. Keep this deliberately small: all expensive status/sched reads
-# are deferred until after ranking, and are done only for top_n threads.
+# Fast snapshot. Keep this deliberately minimal: no comm/status/sched enrichment
+# here. Those extra reads are deferred until after ranking and performed only for
+# top_n threads.
 #
-# Columns (space-delimited; comm is sanitized):
-#   tid tgid comm runtime_ns runqueue_wait_ns timeslices cpu
+# Columns:
+#   tid tgid runtime_ns runqueue_wait_ns timeslices cpu
 snapshot_fast() {
 	out=$1
 	tgids=$2
@@ -114,35 +115,35 @@ snapshot_fast() {
 			tid=${d##*/}
 			[ -r "$d/schedstat" ] && [ -r "$d/stat" ] || continue
 			read runtime wait slices < "$d/schedstat" 2>/dev/null || continue
-			line=$(cat "$d/stat" 2>/dev/null) || continue
-			# /proc/<tid>/stat field 2 (comm) is parenthesized and can contain
-			# spaces. Strip through the closing ") " before splitting fields.
+			IFS= read -r line < "$d/stat" 2>/dev/null || continue
+			# /proc/<tid>/stat starts with: pid (comm) state ... processor ...
+			# Android app thread names practically never contain ") "; V4 in the
+			# design doc independently verifies this field offset on-device before
+			# placement conclusions are allowed.
 			rest=${line#*) }
 			set -- $rest
 			cpu=${37:-NA}
-			comm=$(cat "$d/comm" 2>/dev/null | tr ' |\t' '___')
-			[ -n "$comm" ] || comm=NA
-			printf '%s %s %s %s %s %s %s\n' \
-				"$tid" "$p" "$comm" "$runtime" "$wait" "$slices" "$cpu" >> "$out"
+			printf '%s %s %s %s %s %s\n' \
+				"$tid" "$p" "$runtime" "$wait" "$slices" "$cpu" >> "$out"
 		done
 	done
 }
 
 # Rank only threads that exist in both snapshots. Output:
-#   delta_runtime_ns delta_wait_ns delta_slices tid tgid comm cpu0 cpu1
+#   delta_runtime_ns delta_wait_ns delta_slices tid tgid cpu0 cpu1
 rank_window() {
 	prev=$1
 	cur=$2
 	out=$3
 	awk '
 		NR == FNR {
-			r[$1]=$4; w[$1]=$5; s[$1]=$6; c[$1]=$7
+			r[$1]=$3; w[$1]=$4; s[$1]=$5; c[$1]=$6
 			next
 		}
 		($1 in r) {
-			dr=$4-r[$1]; dw=$5-w[$1]; ds=$6-s[$1]
+			dr=$3-r[$1]; dw=$4-w[$1]; ds=$5-s[$1]
 			if (dr >= 0 && dw >= 0 && ds >= 0)
-				print dr, dw, ds, $1, $2, $3, c[$1], $7
+				print dr, dw, ds, $1, $2, c[$1], $6
 		}
 	' "$prev" "$cur" 2>/dev/null | sort -nr -k1,1 | head -n "$TOPN" > "$out"
 }
@@ -150,10 +151,11 @@ rank_window() {
 # Enrich one already-ranked TID. These are totals/current state rather than
 # interval deltas. That is intentional: the fast path remains cheap, while a
 # future analyzer can difference totals for TIDs that persist across windows.
+# Output fields are space-delimited; comm is sanitized for that contract.
 enrich_tid() {
 	tid=$1
 	uid=NA; allowed=NA; vctx=NA; nvctx=NA
-	umin=NA; umax=NA; mig=NA
+	umin=NA; umax=NA; mig=NA; comm=NA
 	if [ -r "/proc/$tid/status" ]; then
 		set -- $(awk '
 			/^Uid:/ { uid=$2 }
@@ -173,7 +175,12 @@ enrich_tid() {
 		' "/proc/$tid/sched" 2>/dev/null)
 		umin=${1:-NA}; umax=${2:-NA}; mig=${3:-NA}
 	fi
-	printf '%s %s %s %s %s %s %s\n' "$uid" "$allowed" "$umin" "$umax" "$mig" "$vctx" "$nvctx"
+	if [ -r "/proc/$tid/comm" ]; then
+		IFS= read -r comm < "/proc/$tid/comm" 2>/dev/null || comm=NA
+		comm=$(printf '%s' "$comm" | tr ' |\t' '___')
+		[ -n "$comm" ] || comm=NA
+	fi
+	printf '%s %s %s %s %s %s %s %s\n' "$uid" "$allowed" "$umin" "$umax" "$mig" "$vctx" "$nvctx" "$comm"
 }
 
 START=$(now_cs) || { echo "ERROR: cannot read /proc/uptime" >&2; exit 2; }
@@ -226,15 +233,16 @@ while [ "$(now_cs)" -lt "$DEADLINE" ]; do
 		"$SEQ" "$T1" "$((WALL_CS * 10))" "$(echo "$TG1" | tr '\n ' ',_')"
 
 	rank=0
-	while read dr dw ds tid tgid comm cpu0 cpu1; do
+	while read dr dw ds tid tgid cpu0 cpu1; do
 		[ -n "$tid" ] || continue
 		rank=$((rank + 1))
 		set -- $(enrich_tid "$tid")
 		uid=${1:-NA}; allowed=${2:-NA}; umin=${3:-NA}; umax=${4:-NA}
-		mig=${5:-NA}; vctx=${6:-NA}; nvctx=${7:-NA}
-		runtime_ms=$(awk -v n="$dr" 'BEGIN { printf "%.3f", n / 1000000 }')
-		wait_ms=$(awk -v n="$dw" 'BEGIN { printf "%.3f", n / 1000000 }')
-		pct=$(awk -v n="$dr" -v cs="$WALL_CS" 'BEGIN { printf "%.1f", (n / (cs * 10000000)) * 100 }')
+		mig=${5:-NA}; vctx=${6:-NA}; nvctx=${7:-NA}; comm=${8:-NA}
+		set -- $(awk -v r="$dr" -v w="$dw" -v cs="$WALL_CS" 'BEGIN {
+			printf "%.3f %.1f %.3f", r / 1000000, (r / (cs * 10000000)) * 100, w / 1000000
+		}')
+		runtime_ms=${1:-NA}; pct=${2:-NA}; wait_ms=${3:-NA}
 		printf 'THREAD|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
 			"$SEQ" "$rank" "$tgid" "$tid" "$uid" "$comm" "$runtime_ms" "$pct" \
 			"$wait_ms" "$ds" "$cpu0" "$cpu1" "$allowed" "$umin" "$umax" "$mig" "$vctx" "$nvctx"
