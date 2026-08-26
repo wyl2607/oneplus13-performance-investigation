@@ -1,0 +1,12 @@
+workload_id,role,event_markers_required,notes
+app_launch_cold,interaction_transition,yes,Cold launch from force-stopped state; redact package identity in committed data
+app_launch_warm,interaction_transition,yes,Warm launch from recent-task/background state
+app_switch,interaction_transition,yes,Repeated foreground-app switch with explicit start/end marker
+browser_scroll,interaction_transition,yes,Scroll/fling interaction in a stable page state
+camera_launch,interaction_transition,yes,Camera app launch only; do not capture private image content
+steady_game_title,steady_negative,no,Rendered title/menu scene; redact identifying thread names
+steady_gameplay,steady_negative,no,Gameplay if resources are available; separate from title-screen rendering
+video_playback,steady_negative,no,Steady local or streamed video playback after startup settles
+background_download,background_negative,no,Foreground remains stable while network/download work proceeds
+synthetic_compute,synthetic_control,no,Uninterrupted top-app arithmetic worker used as mechanism control
+synthetic_wake,synthetic_control,no,Wake-heavy top-app worker matching the S1 mechanism control

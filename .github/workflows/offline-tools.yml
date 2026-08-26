@@ -1,0 +1,91 @@
+name: offline-tools
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/offline-performance-lab
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile offline Python tools
+        run: |
+          python -m py_compile \
+            tools/make-gb7-repro-plan.py \
+            tools/analyze-gb7-repro.py \
+            tools/analyze-s2b.py \
+            tools/fit-prime-admission.py \
+            tools/simulate-burst-policy.py \
+            tools/simulate-burst-controller.py \
+            tools/extract-observer-features.py \
+            tools/summarize-observer-features.py \
+            tools/build-observer-workload-report.py \
+            tools/build-observer-manifest-report.py \
+            tools/evaluate-observer-detector-candidates.py \
+            tools/make-burst-detector-holdout-plan.py
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Smoke-test GB7 plan generation
+        run: |
+          python tools/make-gb7-repro-plan.py --blocks 2 -o /tmp/plan.csv
+          test "$(wc -l < /tmp/plan.csv)" -eq 9
+      - name: Smoke-test burst-detector holdout plan
+        run: |
+          python tools/make-burst-detector-holdout-plan.py \
+            --repeats 4 \
+            --seed 20260826 \
+            --output /tmp/burst-holdout-plan.csv
+          test "$(wc -l < /tmp/burst-holdout-plan.csv)" -eq 89
+      - name: Smoke-test prime-admission model
+        run: |
+          python tools/fit-prime-admission.py \
+            experiments/walt-prime-model/s2a-pr13-burst-sweep.csv \
+            --predict 512 --predict 640 --json > /tmp/prime-model.json
+          python - <<'PY'
+          import json
+          data = json.load(open('/tmp/prime-model.json'))
+          assert data['predictions']['512.0']['status'] == 'OK'
+          assert data['predictions']['640.0']['status'] == 'OUT_OF_MODEL_DOMAIN'
+          assert data['counterfactual_uclamp_validated'] is False
+          PY
+      - name: Fetch pinned S1 observer sources
+        if: matrix.python-version == '3.12'
+        run: |
+          git fetch --no-tags origin \
+            feature/dominant-thread-observer:refs/remotes/origin/feature/dominant-thread-observer
+      - name: Build pinned S1 real-workload report
+        if: matrix.python-version == '3.12'
+        run: |
+          python tools/build-observer-manifest-report.py \
+            --repo . \
+            --output /tmp/s1-real-workloads.json \
+            --summary
+      - name: Evaluate detector candidates
+        if: matrix.python-version == '3.12'
+        run: |
+          python tools/evaluate-observer-detector-candidates.py \
+            --repo . \
+            --output /tmp/s1-detector-candidates.json \
+            --summary
+      - name: Upload S1 offline reports
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: s1-offline-reports
+          path: |
+            /tmp/s1-real-workloads.json
+            /tmp/s1-detector-candidates.json
+          if-no-files-found: error

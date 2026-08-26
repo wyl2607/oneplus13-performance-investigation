@@ -1,0 +1,1 @@
+run_id,block,arm,cycle_id,requested_min,effective_min,pred_demand,start_cpu,candidate_mask,misfit,selected_cpu,first_run_cpu,wake_latency_us,initial_junction_c,peak_junction_c
