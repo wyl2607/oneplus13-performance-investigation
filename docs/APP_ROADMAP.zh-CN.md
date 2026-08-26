@@ -2,11 +2,34 @@
 
 > 本文件负责回答：从当前 Magisk + shell 研究项目，如何一步步变成可以给其他用户使用的成熟 App。
 
+## 状态更新（S1-S2d 完成后，2026-08-26）
+
+写这份文档时，"burst/responsiveness baseline" 和 "controller-state 架构" 都还没有证据。
+S1-S2d（`docs/S2_RESEARCH_SUMMARY.md`）跑完之后，这两个前提已经建立：
+
+**MEASURED（已在真机上确认，不是假设）：**
+
+- wake-heavy synthetic 负载下的 placement 失败模式（S1/S2a）；
+- placement 决策发生在 wake 阶段的 `find_best_target`，而不是之后的迁移（S2a）；
+- `uclamp.min` 是 placement 的因果杠杆，但**不是**通过抬高 WALT `pred_demand`
+  实现的——这个假设已被 S2b 直接证伪（S2b）；
+- `min_util` 在 placement 阶段的传导路径，`misfit` 标志被排除为主因（S2c）；
+- placement 存在硬阈值，从 `(448, 512]` 收窄到 `(504, 512]`（S2c/S2d）；
+- 阈值以下的吞吐提升主要来自 DVFS/频率地板效应，而不是 placement 本身——
+  这一点在 S2d 用 `time_in_state` 直接测量，不再是推断（S2d）。
+
+**仍然 NOT ESTABLISHED：** 这些结论都来自合成 wake-pair worker，尚未在真实
+App 负载上验证；真实工作负载下的 detector（C2/C4）也还没有做冻结规则的
+holdout 验证。
+
+这两点决定了下面第 13 节的开发顺序不再是 "workload-aware uclamp"
+这种笼统占位符，而是具体的 R3-R8 阶段（见第 13 节）。
+
 ---
 
 # 1. 产品化阶段
 
-## Stage 0 — Research Prototype（当前）
+## Stage 0 — Research Prototype（已完成核心部分）
 
 形态：
 
@@ -20,17 +43,20 @@ manual A/B
 
 目标：
 
-- 找清 vendor limiter；
-- 建立可信实验体系；
-- 确定 CPU P6/P0 sweet spot；
-- 确定 thermal PBO 状态机；
-- 把所有“为什么这么设”变成可复现实验，而不是经验参数。
+- 找清 vendor limiter； **[已完成，见 docs/ROOT_CAUSE.md]**
+- 建立可信实验体系； **[已完成，见 docs/METHODOLOGY.md]**
+- 确定 CPU P6/P0 sweet spot； **[部分完成——见 docs/DATA.md，八核饱和吞吐方向已关闭]**
+- 确定 thermal PBO 状态机； **[未完成]**
+- 把所有"为什么这么设"变成可复现实验，而不是经验参数；
+- 确定 wake-heavy/burst 场景下 scheduler placement 的因果机制与阈值。
+  **[已完成，见 docs/S2_RESEARCH_SUMMARY.md：S1-S2d]**
 
 退出条件：
 
 - Daily / thermal 策略不再有已知逻辑漂移；
 - CPU 主线至少有一套重复 A/B 支撑的 stable 候选；
-- stock restore 完整验证。
+- stock restore 完整验证；
+- burst/responsiveness 的 placement 机制与阈值已经用真机数据确认 **[已满足，S2d]**。
 
 ---
 
@@ -569,24 +595,37 @@ OnePlus 13 Beta 只有同时满足以下条件才发布：
 
 # 13. 当前开发顺序
 
-产品化路线必须服从研究证据：
+产品化路线必须服从研究证据。S1-S2d 完成后（见开头"状态更新"），
+下一步不再是笼统的 "workload-aware uclamp"，而是具体的 Stage R3-R8：
 
 ```text
-NOW
+DONE (S1-S2d, docs/S2_RESEARCH_SUMMARY.md)
 │
-├─ CPU P6 sweet spot
-├─ thermal HOT1/HOT2
-├─ workload-aware uclamp
-├─ R2/R3/... 外部仓库研究
-│
-▼
-Controller Core
+├─ placement 因果机制确认（S2b）
+├─ min_util 传导路径 + misfit 排除（S2c）
+├─ 阈值收窄到 (504, 512]（S2d）
+├─ DVFS-vs-placement 效应拆分，MEASURED（S2d）
 │
 ▼
-Read-only App
-│
+Stage R3 — real-app mechanism pilot
+│   把 S2b-S2d 的合成 wake-pair worker 结论，换成真实前台 App
+│   负载重新验证（推荐 uclamp.min=512）
 ▼
-OnePlus 13 Stable Beta
+Stage R4 — frozen C2/C4 holdout
+│   experiments/burst-detector-holdout/ 的 88-run 冻结规则 holdout，
+│   验证 C2 (ROTATION_OR_LEADER) / C4 (INTERACTION_SHAPE) 两个候选
+▼
+Stage R5 — low-overhead production signal
+│   从 250ms shell observer 迁移到可以在生产环境常驻的低开销信号源
+▼
+Stage R6 — bounded burst controller
+│   接入 tools/simulate-burst-controller.py 的状态机，
+│   用 R4 验证过的 detector 驱动，而不是抽象 burst_signal
+▼
+Stage R7 — real workload A/B
+│   controller 在真实工作负载下的端到端 A/B（吞吐、延迟、功耗、温度）
+▼
+Stage R8 — OnePlus 13 Stable Beta
 │
 ├─ optional GPU UV
 ├─ optional custom kernel/SCX
@@ -597,5 +636,11 @@ Auto Calibration
 ▼
 More OPlus SM8750 devices
 ```
+
+R3-R8 与本文件 Stage 1-3（Controller Core / Read-only App / Stable Beta）
+是同一条主线在不同粒度上的描述：R3-R5 属于 Stage 0 收尾，R6-R7 属于
+Stage 1（Controller Core），R8 对应 Stage 3。不要把 R3-R8 和
+`docs/PERFORMANCE_OPTIMIZATION_PLAN.zh-CN.md` 里编号相同的 R1/R2/R9
+外部仓库研究阶段混淆——那是另一条独立的调研序号。
 
 真正 OC 保持在独立 Lab lane，除非未来数据证明它在日常热预算下存在明确 Pareto 收益。
