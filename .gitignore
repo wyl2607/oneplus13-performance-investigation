@@ -2,3 +2,4 @@
 raw/
 scratch/
 vmlinux.btf
+__pycache__/
