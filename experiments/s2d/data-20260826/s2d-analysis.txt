@@ -1,0 +1,135 @@
+# 28 OK runs loaded
+
+## Run-level table
+run_id,block,uclamp_min,n_cycles,first_run_prime_pct,candidate_prime_pct,wake_p50,wake_p95,pred_demand_p50,cycles_per_second,mid_weighted_freq,prime_weighted_freq,peak_temp
+s2d-thr-r04,1,0,431,0.00,0.00,82.00,173.50,108.00,28.73,925769.57,1038000.00,41.70
+s2d-thr-r02,1,448,570,0.00,0.00,62.00,142.55,150.00,38.00,1686815.94,1034232.49,43.20
+s2d-thr-r01,1,464,572,0.00,0.00,66.00,139.90,152.00,38.13,1722654.12,1038330.98,42.80
+s2d-thr-r07,1,480,575,0.00,0.00,65.00,137.00,152.00,38.33,1730689.01,1025003.92,41.70
+s2d-thr-r06,1,496,575,0.00,0.00,65.00,144.00,152.00,38.33,1745345.17,1017600.00,39.30
+s2d-thr-r05,1,504,575,0.00,0.00,64.00,139.00,151.00,38.33,1755520.00,1022030.77,42.40
+s2d-thr-r03,1,512,585,81.88,81.71,57.00,280.20,104.00,39.00,1044407.31,1538948.08,55.20
+s2d-thr-r10,2,0,433,0.00,0.00,84.00,195.20,101.00,28.87,936545.88,1017600.00,39.30
+s2d-thr-r14,2,448,570,0.00,0.00,56.00,129.00,149.00,38.00,1705269.11,1039254.79,49.80
+s2d-thr-r08,2,464,573,0.00,0.00,63.00,134.00,152.00,38.20,1781694.70,1028904.44,39.70
+s2d-thr-r09,2,480,572,0.00,0.00,65.00,136.00,151.00,38.13,1732485.86,1017600.00,41.30
+s2d-thr-r13,2,496,573,0.00,0.00,65.00,137.40,152.00,38.20,1732875.20,1020230.14,39.30
+s2d-thr-r11,2,504,576,0.00,0.00,64.00,137.00,153.00,38.40,1743753.52,1025645.95,39.70
+s2d-thr-r12,2,512,578,96.19,96.19,97.00,344.15,103.00,38.53,851896.74,1564205.86,42.40
+s2d-thr-r21,3,0,430,0.00,0.00,84.00,163.00,98.00,28.67,909529.64,1017600.00,39.70
+s2d-thr-r20,3,448,575,0.00,0.00,64.00,134.30,152.00,38.33,1745190.84,1020018.80,40.50
+s2d-thr-r16,3,464,579,0.69,0.69,54.00,148.20,151.00,38.60,1905214.37,1069730.38,48.60
+s2d-thr-r17,3,480,570,0.00,0.00,65.00,148.10,151.00,38.00,1704210.06,1017600.00,43.20
+s2d-thr-r18,3,496,577,0.00,0.00,63.00,134.00,152.00,38.47,1777683.77,1028090.98,40.50
+s2d-thr-r15,3,504,573,0.00,0.00,65.00,135.00,153.00,38.20,1749837.02,1022974.49,40.90
+s2d-thr-r19,3,512,580,93.28,93.28,79.50,344.20,104.00,38.67,911668.97,1548400.00,42.40
+s2d-thr-r28,4,0,440,0.00,0.00,68.00,200.25,107.50,29.33,1012978.01,1065325.36,57.10
+s2d-thr-r27,4,448,570,0.00,0.00,65.00,148.10,151.00,38.00,1697993.72,1040607.33,45.10
+s2d-thr-r22,4,464,571,0.00,0.00,65.00,137.00,152.00,38.07,1714819.60,1024989.43,39.70
+s2d-thr-r25,4,480,572,0.00,0.00,65.00,140.90,152.00,38.13,1717021.41,1017600.00,40.50
+s2d-thr-r23,4,496,577,0.00,0.00,65.00,136.00,151.00,38.47,1728025.08,1042565.01,39.70
+s2d-thr-r24,4,504,576,0.00,0.00,62.00,133.00,150.00,38.40,1734508.69,1017600.00,39.70
+s2d-thr-r26,4,512,580,86.03,86.03,67.00,357.05,105.00,38.67,946737.50,1502609.24,41.30
+
+## Per-arm summary (n=4 blocks each)
+
+--- uclamp.min=0  n_runs=4 ---
+  first_run_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  candidate_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  wake_p50               mean=     79.50  median=     83.00  sd=    7.72  n=4
+  wake_p95               mean=    182.99  median=    184.35  sd=   17.67  n=4
+  pred_demand_p50        mean=    103.62  median=    104.25  sd=    4.92  n=4
+  cycles_per_second      mean=     28.90  median=     28.80  sd=    0.30  n=4
+  mid_weighted_freq      mean= 946205.78  median= 931157.73  sd=45878.91  n=4
+  prime_weighted_freq    mean=1034631.34  median=1027800.00  sd=22609.76  n=4
+  peak_temp              mean=     44.45  median=     40.70  sd=    8.50  n=4
+
+--- uclamp.min=448  n_runs=4 ---
+  first_run_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  candidate_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  wake_p50               mean=     61.75  median=     63.00  sd=    4.03  n=4
+  wake_p95               mean=    138.49  median=    138.42  sd=    8.49  n=4
+  pred_demand_p50        mean=    150.50  median=    150.50  sd=    1.29  n=4
+  cycles_per_second      mean=     38.08  median=     38.00  sd=    0.16  n=4
+  mid_weighted_freq      mean=1708817.40  median=1701631.41  sd=25408.88  n=4
+  prime_weighted_freq    mean=1033528.35  median=1036743.64  sd= 9414.67  n=4
+  peak_temp              mean=     44.65  median=     44.15  sd=    3.92  n=4
+
+--- uclamp.min=464  n_runs=4 ---
+  first_run_prime_pct    mean=      0.17  median=      0.00  sd=    0.35  n=4
+  candidate_prime_pct    mean=      0.17  median=      0.00  sd=    0.35  n=4
+  wake_p50               mean=     62.00  median=     64.00  sd=    5.48  n=4
+  wake_p95               mean=    139.77  median=    138.45  sd=    6.11  n=4
+  pred_demand_p50        mean=    151.75  median=    152.00  sd=    0.50  n=4
+  cycles_per_second      mean=     38.25  median=     38.17  sd=    0.24  n=4
+  mid_weighted_freq      mean=1781095.70  median=1752174.41  sd=87965.42  n=4
+  prime_weighted_freq    mean=1040488.81  median=1033617.71  sd=20282.62  n=4
+  peak_temp              mean=     42.70  median=     41.25  sd=    4.20  n=4
+
+--- uclamp.min=480  n_runs=4 ---
+  first_run_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  candidate_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  wake_p50               mean=     65.00  median=     65.00  sd=    0.00  n=4
+  wake_p95               mean=    140.50  median=    138.95  sd=    5.49  n=4
+  pred_demand_p50        mean=    151.50  median=    151.50  sd=    0.58  n=4
+  cycles_per_second      mean=     38.15  median=     38.13  sd=    0.14  n=4
+  mid_weighted_freq      mean=1721101.58  median=1723855.21  sd=13209.74  n=4
+  prime_weighted_freq    mean=1019450.98  median=1017600.00  sd= 3701.96  n=4
+  peak_temp              mean=     41.67  median=     41.50  sd=    1.13  n=4
+
+--- uclamp.min=496  n_runs=4 ---
+  first_run_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  candidate_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  wake_p50               mean=     64.50  median=     65.00  sd=    1.00  n=4
+  wake_p95               mean=    137.85  median=    136.70  sd=    4.33  n=4
+  pred_demand_p50        mean=    151.75  median=    152.00  sd=    0.50  n=4
+  cycles_per_second      mean=     38.37  median=     38.40  sd=    0.13  n=4
+  mid_weighted_freq      mean=1745982.30  median=1739110.18  sd=22358.05  n=4
+  prime_weighted_freq    mean=1027121.53  median=1024160.56  sd=11218.91  n=4
+  peak_temp              mean=     39.70  median=     39.50  sd=    0.57  n=4
+
+--- uclamp.min=504  n_runs=4 ---
+  first_run_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  candidate_prime_pct    mean=      0.00  median=      0.00  sd=    0.00  n=4
+  wake_p50               mean=     63.75  median=     64.00  sd=    1.26  n=4
+  wake_p95               mean=    136.00  median=    136.00  sd=    2.58  n=4
+  pred_demand_p50        mean=    151.75  median=    152.00  sd=    1.50  n=4
+  cycles_per_second      mean=     38.33  median=     38.36  sd=    0.09  n=4
+  mid_weighted_freq      mean=1745904.81  median=1746795.27  sd= 8989.14  n=4
+  prime_weighted_freq    mean=1022062.80  median=1022502.63  sd= 3346.03  n=4
+  peak_temp              mean=     40.67  median=     40.30  sd=    1.28  n=4
+
+--- uclamp.min=512  n_runs=4 ---
+  first_run_prime_pct    mean=     89.35  median=     89.66  sd=    6.56  n=4
+  candidate_prime_pct    mean=     89.30  median=     89.66  sd=    6.62  n=4
+  wake_p50               mean=     75.12  median=     73.25  sd=   17.25  n=4
+  wake_p95               mean=    331.40  median=    344.17  sd=   34.67  n=4
+  pred_demand_p50        mean=    104.00  median=    104.00  sd=    0.82  n=4
+  cycles_per_second      mean=     38.72  median=     38.67  sd=    0.20  n=4
+  mid_weighted_freq      mean= 938677.63  median= 929203.23  sd=80631.09  n=4
+  prime_weighted_freq    mean=1538540.80  median=1543674.04  sd=26122.42  n=4
+  peak_temp              mean=     45.33  median=     42.40  sd=    6.60  n=4
+
+## Threshold bisection (mean across 4 blocks)
+  uclamp.min | first_run_prime% | cycles/s | mid_freq(kHz) | prime_freq(kHz) | wake_p95
+           0 |             0.00 |    28.90 |        946206 |         1034631 |   182.99
+         448 |             0.00 |    38.08 |       1708817 |         1033528 |   138.49
+         464 |             0.17 |    38.25 |       1781096 |         1040489 |   139.77
+         480 |             0.00 |    38.15 |       1721102 |         1019451 |   140.50
+         496 |             0.00 |    38.37 |       1745982 |         1027122 |   137.85
+         504 |             0.00 |    38.33 |       1745905 |         1022063 |   136.00
+         512 |            89.35 |    38.72 |        938678 |         1538541 |   331.40
+
+## DVFS-vs-placement split
+  uclamp.min=   0: cycles/s= 28.90  pct_of_0to512_span=   0.0%  first_run_prime=  0.00%
+  uclamp.min= 448: cycles/s= 38.08  pct_of_0to512_span=  93.5%  first_run_prime=  0.00%
+  uclamp.min= 464: cycles/s= 38.25  pct_of_0to512_span=  95.2%  first_run_prime=  0.17%
+  uclamp.min= 480: cycles/s= 38.15  pct_of_0to512_span=  94.2%  first_run_prime=  0.00%
+  uclamp.min= 496: cycles/s= 38.37  pct_of_0to512_span=  96.4%  first_run_prime=  0.00%
+  uclamp.min= 504: cycles/s= 38.33  pct_of_0to512_span=  96.1%  first_run_prime=  0.00%
+  uclamp.min= 512: cycles/s= 38.72  pct_of_0to512_span= 100.0%  first_run_prime= 89.35%
+
+## Threshold interval search
+  highest reliably inactive (<20% first_run_prime): 504
+  lowest reliably active (>=80% first_run_prime): 512
+  THRESHOLD INTERVAL: 504 < T <= 512

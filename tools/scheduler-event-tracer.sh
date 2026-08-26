@@ -43,9 +43,17 @@
 # placement does (measured ~23 times per placement for one thread), so it is off
 # unless asked for.
 #
+# --freq adds power:cpu_frequency (DVFS transition events for every CPU) so a
+# transition can be correlated against this thread's own wake cycles. Unlike
+# every other event here it carries no pid and cannot be filtered to the
+# target thread -- it is systemwide by construction, one event per real
+# frequency change on any CPU. Off by default: added for S2d
+# (docs/S2D_THRESHOLD_DVFS.md) after an explicit overhead A/B, and every
+# existing S2b/S2c invocation (which never passes --freq) is unaffected.
+#
 # usage:
 #   su -c 'sh scheduler-event-tracer.sh {--tid TID | --comm GLOB} [--duration S]
-#          [--out FILE] [--buffer-kb KB] [--energy] [--label L]
+#          [--out FILE] [--buffer-kb KB] [--energy] [--freq] [--label L]
 #          [--uclamp-offsets PID,UCLAMP_REQ,UCLAMP,SE_SIZE]'
 #
 # defaults:
@@ -63,6 +71,7 @@ DURATION=10
 OUT=""
 BUFKB=4096
 ENERGY=0
+FREQ=0
 LABEL=""
 UCLAMP_OFF=""
 I=""
@@ -79,6 +88,7 @@ while [ $# -gt 0 ]; do
 		--buffer-kb) BUFKB=$2; shift 2 ;;
 		--label)     LABEL=$2; shift 2 ;;
 		--energy)    ENERGY=1; shift ;;
+		--freq)      FREQ=1; shift ;;
 		--uclamp-offsets) UCLAMP_OFF=$2; shift 2 ;;
 		-h|--help)   sed -n '2,30p' "$0"; exit 0 ;;
 		*)           echo "ERROR: unknown argument $1" >&2; exit 2 ;;
@@ -165,6 +175,8 @@ sched_assist/set_ux_task_to_prefer_cpu
 frame_boost/find_frame_boost_cpu"
 [ "$ENERGY" = 1 ] && EVENTS="$EVENTS
 schedwalt/sched_compute_energy"
+[ "$FREQ" = 1 ] && EVENTS="$EVENTS
+power/cpu_frequency"
 
 I="$T/instances/$INST_NAME"
 [ -d "$I" ] && { echo "ERROR: instance $I already exists; refusing to reuse it" >&2; I=""; exit 3; }
@@ -196,8 +208,9 @@ fi
 
 for e in $EVENTS; do
 	case "$e" in
-		sched/sched_switch) F=$FILTER_SWITCH ;;
-		*)                  F=$FILTER_OTHER ;;
+		power/cpu_frequency) continue ;; # no pid field: systemwide by construction, never filtered
+		sched/sched_switch)  F=$FILTER_SWITCH ;;
+		*)                   F=$FILTER_OTHER ;;
 	esac
 	echo "$F" > "$I/events/$e/filter" || { echo "ERROR: $e rejected filter '$F'" >&2; exit 2; }
 	GOT=$(cat "$I/events/$e/filter")
@@ -272,6 +285,7 @@ emit() {
 	echo "# events=$(echo "$EVENTS" | tr '\n' ',')"
 	echo "# filter=$FILTER_DESC"
 	[ -n "$UCLAMP_OFF" ] && echo "# uclamp_kprobe=uclamp_eff_value offsets=$UCLAMP_OFF"
+	echo "# freq=$FREQ"
 	echo "# entries=$ENTRIES overrun=$OVERRUN commit_overrun=$COMMIT_OVERRUN dropped=$DROPPED"
 	echo "#$PERCPU"
 	echo "# loss=$([ $((OVERRUN + DROPPED + COMMIT_OVERRUN)) -eq 0 ] && echo none || echo YES)"
