@@ -1,0 +1,23 @@
+name: sched_enq_deq_task
+ID: 1111
+format:
+	field:unsigned short common_type;	offset:0;	size:2;	signed:0;
+	field:unsigned char common_flags;	offset:2;	size:1;	signed:0;
+	field:unsigned char common_preempt_count;	offset:3;	size:1;	signed:0;
+	field:int common_pid;	offset:4;	size:4;	signed:1;
+
+	field:char comm[16];	offset:8;	size:16;	signed:0;
+	field:pid_t pid;	offset:24;	size:4;	signed:1;
+	field:int prio;	offset:28;	size:4;	signed:1;
+	field:int cpu;	offset:32;	size:4;	signed:1;
+	field:bool enqueue;	offset:36;	size:1;	signed:0;
+	field:unsigned int nr_running;	offset:40;	size:4;	signed:0;
+	field:unsigned int rt_nr_running;	offset:44;	size:4;	signed:0;
+	field:unsigned int cpus_allowed;	offset:48;	size:4;	signed:0;
+	field:unsigned int demand;	offset:52;	size:4;	signed:0;
+	field:unsigned int pred_demand_scaled;	offset:56;	size:4;	signed:0;
+	field:bool compat_thread;	offset:60;	size:1;	signed:0;
+	field:bool mvp;	offset:61;	size:1;	signed:0;
+	field:bool misfit;	offset:62;	size:1;	signed:0;
+
+print fmt: "cpu=%d %s comm=%s pid=%d prio=%d nr_running=%u rt_nr_running=%u affine=%x demand=%u pred_demand_scaled=%u is_compat_t=%d mvp=%d misfit=%d", REC->cpu, REC->enqueue ? "enqueue" : "dequeue", REC->comm, REC->pid, REC->prio, REC->nr_running, REC->rt_nr_running, REC->cpus_allowed, REC->demand, REC->pred_demand_scaled, REC->compat_thread, REC->mvp, REC->misfit

@@ -1,0 +1,117 @@
+# scheduler-event-tracer
+# label=coldstart continuous burst=2000
+# tid= comm= comm_glob=w-continuous alive_at_end=no
+# tids_matched=pid=0,pid=16,pid=18142,pid=22,pid=27,pid=7273,pid=9341,
+# duration_s=8 uptime_start=165563.17 762394.76 uptime_end=165571.19 762447.95
+# trace_clock=global buffer_size_kb_per_cpu=4099 instance=s2a
+# events=sched/sched_waking,sched/sched_wakeup,sched/sched_wakeup_new,sched/sched_switch,sched/sched_migrate_task,sched/sched_stat_wait,sched/sched_process_exit,schedwalt/sched_task_util,schedwalt/sched_enq_deq_task,schedwalt/sched_find_best_target,sched_assist/set_ux_task_to_prefer_cpu,frame_boost/find_frame_boost_cpu,
+# filter=comm ~ w-continuous (sched_switch: prev_comm||next_comm)
+# entries=86 overrun=0 commit_overrun=0 dropped=0
+#
+# cpu0 entries=39 overrun=0 commit_overrun=0 dropped=0
+# cpu1 entries=6 overrun=0 commit_overrun=0 dropped=0
+# cpu2 entries=3 overrun=0 commit_overrun=0 dropped=0
+# cpu3 entries=0 overrun=0 commit_overrun=0 dropped=0
+# cpu4 entries=24 overrun=0 commit_overrun=0 dropped=0
+# cpu5 entries=6 overrun=0 commit_overrun=0 dropped=0
+# cpu6 entries=0 overrun=0 commit_overrun=0 dropped=0
+# cpu7 entries=8 overrun=0 commit_overrun=0 dropped=0
+# loss=none
+# tracer: nop
+#
+# entries-in-buffer/entries-written: 86/86   #P:8
+#
+#                                _-----=> irqs-off/BH-disabled
+#                               / _----=> need-resched
+#                              | / _---=> hardirq/softirq
+#                              || / _--=> preempt-depth
+#                              ||| / _-=> migrate-disable
+#                              |||| /     delay
+#           TASK-PID     CPU#  |||||  TIMESTAMP  FUNCTION
+#              | |         |   |||||     |         |
+    w-continuous-7273    [001] d.h2. 116244.251799: sched_find_best_target: pid=7273 comm=w-continuous start_cpu=6 candidates=0x1 most_spare_cap=0 order_index=1 end_index=0 skip=-1 running=1 min_util=538 spare_rq_cpu=0 min_runnable=0
+    w-continuous-7273    [001] d.h2. 116244.251801: sched_task_util: pid=7273 comm=w-continuous util=538 prev_cpu=1 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=4584 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=6 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+    w-continuous-7273    [001] d..2. 116244.255805: sched_switch: prev_comm=w-continuous prev_pid=7273 prev_prio=120 prev_state=R ==> next_comm=migration/1 next_pid=27 next_prio=0
+     rcu_preempt-16      [000] d..2. 116244.255808: sched_enq_deq_task: cpu=1 dequeue comm=w-continuous pid=7273 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=4210313 pred_demand_scaled=538 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [000] d..2. 116244.255810: sched_migrate_task: comm=w-continuous pid=7273 prio=120 orig_cpu=1 dest_cpu=0
+     rcu_preempt-16      [000] d..2. 116244.255813: sched_enq_deq_task: cpu=0 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=4210313 pred_demand_scaled=538 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [000] d..2. 116244.255815: sched_stat_wait: comm=w-continuous pid=7273 delay=11302 [ns]
+     rcu_preempt-16      [000] d..2. 116244.255816: sched_switch: prev_comm=rcu_preempt prev_pid=16 prev_prio=98 prev_state=I ==> next_comm=w-continuous next_pid=7273 next_prio=120
+    w-continuous-7273    [000] d.h2. 116244.259789: sched_find_best_target: pid=7273 comm=w-continuous start_cpu=6 candidates=0x2 most_spare_cap=0 order_index=1 end_index=0 skip=-1 running=1 min_util=633 spare_rq_cpu=1 min_runnable=0
+    w-continuous-7273    [000] d.h2. 116244.259789: sched_task_util: pid=7273 comm=w-continuous util=633 prev_cpu=0 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=1406 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=6 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+    w-continuous-7273    [000] dNh2. 116244.263808: sched_find_best_target: pid=7273 comm=w-continuous start_cpu=6 candidates=0x2 most_spare_cap=1 order_index=1 end_index=0 skip=-1 running=1 min_util=633 spare_rq_cpu=1 min_runnable=0
+    w-continuous-7273    [000] dNh2. 116244.263808: sched_task_util: pid=7273 comm=w-continuous util=633 prev_cpu=0 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=885 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=6 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+    w-continuous-7273    [000] d..2. 116244.263840: sched_switch: prev_comm=w-continuous prev_pid=7273 prev_prio=120 prev_state=R ==> next_comm=kworker/0:7 next_pid=18142 next_prio=120
+     kworker/0:7-18142   [000] d..2. 116244.263884: sched_stat_wait: comm=w-continuous pid=7273 delay=47188 [ns]
+     kworker/0:7-18142   [000] d..2. 116244.263890: sched_switch: prev_comm=kworker/0:7 prev_pid=18142 prev_prio=120 prev_state=I ==> next_comm=w-continuous next_pid=7273 next_prio=120
+    w-continuous-7273    [000] d..2. 116244.263978: sched_switch: prev_comm=w-continuous prev_pid=7273 prev_prio=120 prev_state=R ==> next_comm=migration/0 next_pid=22 next_prio=0
+     migration/0-22      [000] d..2. 116244.263981: sched_stat_wait: comm=w-continuous pid=7273 delay=8386 [ns]
+     migration/0-22      [000] d..2. 116244.263985: sched_switch: prev_comm=migration/0 prev_pid=22 prev_prio=0 prev_state=S ==> next_comm=w-continuous next_pid=7273 next_prio=120
+    w-continuous-7273    [000] d.h2. 116244.267792: sched_find_best_target: pid=7273 comm=w-continuous start_cpu=6 candidates=0x1 most_spare_cap=0 order_index=1 end_index=0 skip=-1 running=1 min_util=655 spare_rq_cpu=1 min_runnable=0
+    w-continuous-7273    [000] d.h2. 116244.267792: sched_task_util: pid=7273 comm=w-continuous util=655 prev_cpu=0 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=1094 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=6 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+    w-continuous-7273    [000] d..2. 116244.269656: sched_switch: prev_comm=w-continuous prev_pid=7273 prev_prio=120 prev_state=R ==> next_comm=kworker/0:7 next_pid=18142 next_prio=120
+          <idle>-0       [007] d.h2. 116244.269766: sched_enq_deq_task: cpu=0 dequeue comm=w-continuous pid=7273 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=5118173 pred_demand_scaled=655 is_compat_t=0 mvp=0 misfit=1
+          <idle>-0       [007] d.h2. 116244.269792: sched_migrate_task: comm=w-continuous pid=7273 prio=120 orig_cpu=0 dest_cpu=7
+          <idle>-0       [007] d.h2. 116244.269851: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=5118173 pred_demand_scaled=655 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [007] dN.2. 116244.269936: sched_stat_wait: comm=w-continuous pid=7273 delay=93073 [ns]
+          <idle>-0       [007] d..2. 116244.269951: sched_switch: prev_comm=swapper/7 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-continuous next_pid=7273 next_prio=120
+    w-continuous-7273    [007] d..2. 116244.275878: sched_switch: prev_comm=w-continuous prev_pid=7273 prev_prio=120 prev_state=R ==> next_comm=kworker/7:3 next_pid=9341 next_prio=120
+     kworker/7:3-9341    [007] d..2. 116244.275887: sched_stat_wait: comm=w-continuous pid=7273 delay=18177 [ns]
+     kworker/7:3-9341    [007] d..2. 116244.275893: sched_switch: prev_comm=kworker/7:3 prev_pid=9341 prev_prio=120 prev_state=I ==> next_comm=w-continuous next_pid=7273 next_prio=120
+       uclampset-7410    [000] d..2. 116245.283561: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7410    [000] d..2. 116245.283569: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7410    [000] d..2. 116245.283571: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7474    [000] d..2. 116245.590181: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7474    [000] d..2. 116245.590188: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7474    [000] d..2. 116245.590191: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7489    [004] d..2. 116245.885991: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7489    [004] d..2. 116245.885996: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7489    [004] d..2. 116245.885998: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7500    [005] d..2. 116246.173871: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7500    [005] d..2. 116246.173877: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7500    [005] d..2. 116246.173879: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7510    [004] d..2. 116246.458181: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7510    [004] d..2. 116246.458185: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7510    [004] d..2. 116246.458187: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7519    [004] d..2. 116246.742435: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7519    [004] d..2. 116246.742441: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7519    [004] d..2. 116246.742444: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7528    [004] d..2. 116247.030158: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7528    [004] d..2. 116247.030166: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7528    [004] d..2. 116247.030169: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7539    [004] d..2. 116247.317810: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7539    [004] d..2. 116247.317816: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7539    [004] d..2. 116247.317819: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7549    [001] d..2. 116247.647320: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7549    [001] d..2. 116247.647327: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=779 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7549    [001] d..2. 116247.647329: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7570    [004] d..2. 116247.966118: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=777 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7570    [004] d..2. 116247.966123: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=777 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7570    [004] d..2. 116247.966125: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7583    [000] d..2. 116248.260009: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=780 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7583    [000] d..2. 116248.260014: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=780 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7583    [000] d..2. 116248.260016: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7604    [004] d..2. 116248.550444: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7604    [004] d..2. 116248.550449: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7604    [004] d..2. 116248.550451: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7610    [000] d..2. 116248.836834: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=780 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7610    [000] d..2. 116248.836841: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=780 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7610    [000] d..2. 116248.836843: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7625    [002] d..2. 116249.126187: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7625    [002] d..2. 116249.126192: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7625    [002] d..2. 116249.126194: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7637    [004] d..2. 116249.415115: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7637    [004] d..2. 116249.415120: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7637    [004] d..2. 116249.415121: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7643    [000] d..2. 116249.703328: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7643    [000] d..2. 116249.703333: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7643    [000] d..2. 116249.703334: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7660    [000] d..2. 116250.030012: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=777 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7660    [000] d..2. 116250.030017: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=777 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7660    [000] d..2. 116250.030018: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7685    [000] d..2. 116250.332632: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7685    [000] d..2. 116250.332638: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=778 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7685    [000] d..2. 116250.332640: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]
+       uclampset-7694    [005] d..2. 116250.628800: sched_enq_deq_task: cpu=7 dequeue comm=w-continuous pid=7273 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=780 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7694    [005] d..2. 116250.628806: sched_enq_deq_task: cpu=7 enqueue comm=w-continuous pid=7273 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=7999488 pred_demand_scaled=780 is_compat_t=0 mvp=0 misfit=0
+       uclampset-7694    [005] d..2. 116250.628809: sched_stat_wait: comm=w-continuous pid=7273 delay=0 [ns]

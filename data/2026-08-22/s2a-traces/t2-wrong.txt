@@ -1,0 +1,43 @@
+# scheduler-event-tracer
+# label=T2 wrong target (init)
+# tid=1 comm=init comm_glob= alive_at_end=yes
+# duration_s=3 uptime_start=165872.96 764578.77 uptime_end=165875.98 764599.51
+# trace_clock=global buffer_size_kb_per_cpu=4099 instance=s2a
+# events=sched/sched_waking,sched/sched_wakeup,sched/sched_wakeup_new,sched/sched_switch,sched/sched_migrate_task,sched/sched_stat_wait,sched/sched_process_exit,schedwalt/sched_task_util,schedwalt/sched_enq_deq_task,schedwalt/sched_find_best_target,sched_assist/set_ux_task_to_prefer_cpu,frame_boost/find_frame_boost_cpu,
+# filter=pid==1 (sched_switch: prev_pid||next_pid)
+# entries=13 overrun=0 commit_overrun=0 dropped=0
+#
+# cpu0 entries=7 overrun=0 commit_overrun=0 dropped=0
+# cpu1 entries=6 overrun=0 commit_overrun=0 dropped=0
+# cpu2 entries=0 overrun=0 commit_overrun=0 dropped=0
+# cpu3 entries=0 overrun=0 commit_overrun=0 dropped=0
+# cpu4 entries=0 overrun=0 commit_overrun=0 dropped=0
+# cpu5 entries=0 overrun=0 commit_overrun=0 dropped=0
+# cpu6 entries=0 overrun=0 commit_overrun=0 dropped=0
+# cpu7 entries=0 overrun=0 commit_overrun=0 dropped=0
+# loss=none
+# tracer: nop
+#
+# entries-in-buffer/entries-written: 13/13   #P:8
+#
+#                                _-----=> irqs-off/BH-disabled
+#                               / _----=> need-resched
+#                              | / _---=> hardirq/softirq
+#                              || / _--=> preempt-depth
+#                              ||| / _-=> migrate-disable
+#                              |||| /     delay
+#           TASK-PID     CPU#  |||||  TIMESTAMP  FUNCTION
+#              | |         |   |||||     |         |
+                    app-371-371     [001] d..5. 116553.661781: sched_waking: comm=app-1 pid=1 prio=120 target_cpu=001
+                    app-371-371     [001] d..5. 116553.661786: sched_find_best_target: pid=1 comm=init start_cpu=0 candidates=0x1 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=21 spare_rq_cpu=-1 min_runnable=4294967295
+                    app-371-371     [001] d..5. 116553.661788: sched_task_util: pid=1 comm=init util=21 prev_cpu=1 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=3 placement_boost=0 latency=1614 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=0 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+                    app-371-371     [001] d..5. 116553.661788: sched_migrate_task: comm=app-1 pid=1 prio=120 orig_cpu=1 dest_cpu=0
+                    app-371-371     [001] d..6. 116553.661794: sched_enq_deq_task: cpu=0 enqueue comm=app-1 pid=1 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=166424 pred_demand_scaled=30 is_compat_t=0 mvp=0 misfit=0
+                    app-371-371     [001] d..6. 116553.661798: sched_wakeup: comm=app-1 pid=1 prio=120 target_cpu=000
+         app-5654-5654    [000] d..2. 116553.661872: sched_stat_wait: comm=app-1 pid=1 delay=73437 [ns]
+         app-5654-5654    [000] d..2. 116553.661880: sched_switch: prev_comm=app-5654 prev_pid=5654 prev_prio=130 prev_state=S ==> next_comm=app-1 next_pid=1 next_prio=120
+                      app-1-1       [000] d..2. 116553.662650: sched_switch: prev_comm=app-1 prev_pid=1 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+                  app-17-17      [000] d..2. 116553.662656: sched_stat_wait: comm=app-1 pid=1 delay=16094 [ns]
+                  app-17-17      [000] d..2. 116553.662661: sched_switch: prev_comm=app-17 prev_pid=17 prev_prio=98 prev_state=S ==> next_comm=app-1 next_pid=1 next_prio=120
+                      app-1-1       [000] d..2. 116553.662832: sched_enq_deq_task: cpu=0 dequeue comm=app-1 pid=1 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=166424 pred_demand_scaled=30 is_compat_t=0 mvp=0 misfit=0
+                      app-1-1       [000] d..2. 116553.662852: sched_switch: prev_comm=app-1 prev_pid=1 prev_prio=120 prev_state=S ==> next_comm=app-1242 next_pid=1242 next_prio=130
