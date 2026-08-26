@@ -1,0 +1,6 @@
+workload_id,role,event_markers_required,mechanisms,default_app_slot,notes
+cold_launch,interaction_transition,yes,active-set;process,APP_A,am start -W TotalTime
+app_switch,interaction_transition,yes,active-set;process,APP_A,am start -W TotalTime; second app already resident
+scroll_fling,interaction_transition,no,active-set,APP_B,framestats window around a fixed input swipe sequence
+steady_renderer,steady_negative,no,active-set;process,APP_C,no latency event; throughput/pacing over full window
+camera_launch,interaction_transition,yes,active-set;process,APP_A,optional; only if instrumentation stays clean

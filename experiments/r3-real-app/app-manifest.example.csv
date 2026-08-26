@@ -1,0 +1,7 @@
+# Template only. Copy to app-manifest.local.csv (gitignored, never
+# committed -- docs/R3_REAL_APP_PILOT.md#app-privacy) and fill in real
+# package names / component names for this device.
+app_slot,package,launch_activity,notes
+APP_A,com.example.replaceme,.MainActivity,cold_launch / app_switch / camera_launch target
+APP_B,com.example.replaceme2,,scroll_fling target -- a scrollable feed or list view
+APP_C,com.example.replaceme3,,steady_renderer target -- continuous rendering, e.g. video playback
