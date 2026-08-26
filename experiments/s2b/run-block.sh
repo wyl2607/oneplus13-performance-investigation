@@ -9,13 +9,17 @@ cd "$(dirname "$0")/../.."
 
 OFFSETS=1560,848,856,4
 DURATION=${DURATION:-15}
-OUT_DIR=experiments/s2b/data-$(date -u +%Y%m%d)
+A_MIN=${A_MIN:-0}
+B_MIN=${B_MIN:-512}
+RUN_PREFIX=${RUN_PREFIX:-s2b-r}
+OUT_DIR=${OUT_DIR:-experiments/s2b/data-$(date -u +%Y%m%d)}
 CSV=$OUT_DIR/s2b-runs.csv
 LOG=$OUT_DIR/run-block.log
 mkdir -p "$OUT_DIR"
 
 # ABBA / BAAB balanced blocks, repeated to reach 16 runs (4 blocks).
 BLOCKS=("A B B A" "B A A B" "A B B A" "B A A B")
+TOTAL_RUNS=16
 
 first_row=1
 [ -f "$CSV" ] && first_row=0
@@ -26,11 +30,11 @@ for block_i in "${!BLOCKS[@]}"; do
 	pattern=(${BLOCKS[$block_i]})
 	for arm in "${pattern[@]}"; do
 		run_idx=$((run_idx + 1))
-		run_id=$(printf "s2b-r%02d" "$run_idx")
-		[ "$arm" = "A" ] && umin=0 || umin=512
+		run_id=$(printf "%s%02d" "$RUN_PREFIX" "$run_idx")
+		[ "$arm" = "A" ] && umin=$A_MIN || umin=$B_MIN
 		trace="/data/local/tmp/op13-s2b/${run_id}.trace"
 
-		echo "=== run $run_idx/16  id=$run_id block=$block_num arm=$arm uclamp_min=$umin ===" | tee -a "$LOG"
+		echo "=== run $run_idx/$TOTAL_RUNS  id=$run_id block=$block_num arm=$arm uclamp_min=$umin ===" | tee -a "$LOG"
 		result=$(MSYS_NO_PATHCONV=1 adb shell "su -c 'cd /data/local/tmp && sh run-one.sh --run-id $run_id --arm $arm --uclamp-min $umin --duration $DURATION --uclamp-offsets $OFFSETS --out $trace'" 2>&1)
 		echo "$result" | tee -a "$LOG"
 

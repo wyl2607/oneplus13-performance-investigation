@@ -1,15 +1,23 @@
-# S2b device validation: does `uclamp.min` causally alter WALT placement?
+# S2b device validation: `uclamp.min` causes a placement-stage capacity/candidate shift, not WALT pred_demand
 
-**Answer: yes, but not by the mechanism the S1/S2a descriptive model implied.**
+**Answer: yes, `uclamp.min` causally alters placement, but not by the
+mechanism the S1/S2a descriptive model implied.**
 `uclamp.min=512` moves a wake-heavy thread from 0% prime first-run share to
 ~90%, with `effective_min` (read at the scheduling instant, not just requested)
 cleanly separated between arms. But the WALT `pred_demand` signal did **not**
 rise to meet the 512 mark — it stayed at ~100-120 in both arms, far below the
-S2a demand curve's ~519 crossover for 50% prime share. The effect runs through
-the **misfit/capacity check** in CPU selection (`start_cpu`, `candidate_mask`),
-not through inflating WALT's own predicted-demand estimate. The naive identity
+S2a demand curve's ~519 crossover for 50% prime share. So the effect is **not**
+mediated by inflating WALT's own predicted-demand estimate. It is consistent
+with a **placement-stage capacity-fit / candidate-selection pathway** in CPU
+selection (`start_cpu`, `candidate_mask` both moved sharply with the arm) —
+but the explicit enqueue `misfit` flag itself only changed 0% -> ~2.24pp,
+nowhere near the ~90pp placement shift, so "misfit" is not established as the
+carrying mechanism and this doc no longer names it as one. The naive identity
 `uclamp.min=512 == WALT pred_demand=512` that this experiment set out to test
-is **false** on this device.
+is **false** on this device. Which specific branch inside
+`fits_capacity`/`find_best_target` produces the ~90pp shift is **NOT YET
+ESTABLISHED** — see PR #16 / `docs/S2C_PLACEMENT_MECHANISM.md` for the
+follow-up that investigates it directly.
 
 Status key: **MEASURED** (read directly from a kprobe/tracepoint),
 **DERIVED** (computed from measured values), **HYPOTHESIS** (plausible,
@@ -117,16 +125,19 @@ was 57.5°C.
 3. **Does `uclamp.min=512` change WALT `pred_demand`?** No — it went slightly
    *down* (102 vs 115.6, CI excludes 0 but the direction is wrong for a
    "clamp inflates demand" story). **This falsifies mechanism (A).**
-4. **Does it change `candidate_mask` / `start_cpu` / `misfit`?** Yes, sharply
-   — `start_cpu` moves to a prime core in 91.9% of B cycles vs 0% of A cycles,
-   and 2.2% of B cycles are explicitly flagged misfit (0% in A). This is
-   consistent with mechanism **(B)**: `uclamp.min` raises the capacity
-   requirement compared against cluster capacity in the misfit/fits-capacity
-   check inside `find_best_target`, independent of the task's own measured or
-   predicted utilization. Mechanism **(C)** (candidate selection moving
-   independent of any capacity signal) is not distinguishable from (B) with
-   this trace set — the candidate/start_cpu shift and the misfit shift move
-   together, and misfit is exactly the field that would carry (B)'s effect.
+4. **Does it change `candidate_mask` / `start_cpu` / `misfit`?** `start_cpu`
+   and `candidate_mask` yes, sharply — `start_cpu` moves to a prime core in
+   91.9% of B cycles vs 0% of A cycles. The explicit enqueue `misfit` flag
+   moves too, but only 0% -> 2.2% — an order of magnitude smaller than the
+   ~90pp placement shift, so **the explicit misfit flag is not the main
+   carrying mechanism** (see the dedicated misfit=0-subgroup check in PR #16).
+   The data are consistent with **some** placement-stage capacity/candidate
+   pathway inside `find_best_target` reacting to the raised `effective_min`
+   before the explicit misfit flag is set — candidate mechanisms include the
+   `start_cpu`/cluster-search seed, `fits_capacity`-style checks not surfaced
+   as the `misfit` field, or candidate pruning upstream of `find_best_target`.
+   **Which one is NOT ESTABLISHED here** — this doc previously overclaimed
+   "mediated by the misfit/capacity check"; that wording is retracted.
 5. **Does it change prime-selected %?** Yes, 0% -> 89.9% (first-run), tight CI.
 6. **Does it change prime first-run %?** Same as (5) — `selected_cpu` and
    `first_run_cpu` track each other almost exactly in both arms (no meaningful
@@ -136,6 +147,25 @@ was 57.5°C.
    consistent with the task's own prediction that prime admission carries a
    latency cost, but not statistically confirmed at this sample size.**
 
+## Claim status summary
+
+**MEASURED:**
+- `effective_min` separation at placement (kprobe): 0 -> 512, exact, every B cycle
+- `start_cpu` on prime: 0% -> 91.9% [88.6, 95.1]
+- `candidate_mask` includes prime: 0% -> 89.6% [86.2, 93.1]
+- `selected_cpu` / `first_run_cpu` on prime: 0% -> 89.9% [86.4, 93.5]
+- `pred_demand` p50: 115.6 -> 102.0 (went DOWN, CI excludes 0, wrong direction to be "demand inflation")
+- explicit `misfit` flag: 0% -> 2.24% [1.90, 2.58]
+
+**ESTABLISHED:**
+- `uclamp.min` causally affects placement on this device/kernel
+- The effect is NOT mediated by WALT `pred_demand` inflation
+
+**NOT YET ESTABLISHED:**
+- The exact internal branch/field producing the ~90pp placement shift (the
+  explicit `misfit` flag accounts for only ~2.2pp of it, so it is not that
+  field alone) — this is PR #16 / S2c's question
+
 ## S2b verdict
 
 **`PLACEMENT_EFFECT`** (per `tools/analyze-s2b.py`'s gate: >=4 complete
@@ -144,8 +174,11 @@ blocks, `effective_min` delta >= 128, prime first-run-share CI lower bound
 `candidate_mask` — also moved with a CI lower bound > 0).
 
 `uclamp.min` on this OnePlus 13 / WALT build causally moves task placement
-toward the prime cluster, mediated by the misfit/capacity-fit check at CPU
-selection time, **not** by inflating WALT's predicted-demand signal. The S2a
+toward the prime cluster. This is consistent with a placement-stage
+capacity-fit / candidate-selection pathway at CPU selection time, and is
+**not** mediated by inflating WALT's predicted-demand signal — but the exact
+internal branch producing the ~90pp shift is not established by this
+experiment (the explicit `misfit` flag only accounts for ~2.2pp of it). The S2a
 descriptive demand-to-prime-share curve (158->0%, ..., 616->82.5%) describes a
 *different* causal pathway (naturally accumulated demand) and does not
 transfer to `uclamp.min`-driven placement — the two produce similar-looking
