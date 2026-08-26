@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 """Offline counterfactual exploration for bounded burst uclamp.min policies.
 
-This tool refuses to simulate the uclamp counterfactual unless the caller
-explicitly acknowledges the unmeasured assumption that WALT placement sees
-max(observed demand, requested uclamp.min). S2b exists to test exactly that.
+STATUS: FALSIFIED_DEMAND_IDENTITY. This tool's core assumption -- that WALT
+placement sees max(observed demand, requested uclamp.min), i.e. that a
+uclamp.min clamp acts as if it inflated pred_demand -- was directly tested
+and falsified on-device in S2b (docs/S2B_DEVICE_RESULTS.md,
+docs/S2_RESEARCH_SUMMARY.md): pred_demand stayed ~100-120 in both arms and
+moved in the WRONG direction under the clamp. The real mechanism (S2b/S2c)
+is a placement-stage capacity/candidate check, not demand inflation. This
+tool is kept as a HISTORICAL_COUNTERFACTUAL / negative-control artifact --
+useful for showing what the (wrong) demand-identity model would have
+predicted, not as a validated policy simulator. It still refuses to run
+without an explicit --assume-clamp-visible-to-walt flag, and every result
+is labeled status=HYPOTHESIS_ONLY / s2b_validated=False so it cannot be
+silently upgraded to a validated model by dropping the flag check.
 
 No extrapolation is allowed beyond the measured prime-admission demand domain.
 """

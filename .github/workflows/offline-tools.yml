@@ -64,8 +64,12 @@ jobs:
       - name: Fetch pinned S1 observer sources
         if: matrix.python-version == '3.12'
         run: |
-          git fetch --no-tags origin \
-            feature/dominant-thread-observer:refs/remotes/origin/feature/dominant-thread-observer
+          # Pinned to the immutable commit SHA recorded in
+          # s1-source-manifest.csv, not the feature/dominant-thread-observer
+          # branch -- that branch is closed out once PR #12 is superseded
+          # and may be deleted, but a commit SHA any ref once pointed to
+          # stays fetchable from GitHub indefinitely.
+          git fetch --no-tags origin 643b25b68a694ab372c0e7a756cff6eacd41f716
       - name: Build pinned S1 real-workload report
         if: matrix.python-version == '3.12'
         run: |
