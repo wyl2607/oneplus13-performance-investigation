@@ -1,0 +1,10 @@
+label,variant,source_ref,path,blob_sha,size_bytes
+compute,module_on,643b25b68a694ab372c0e7a756cff6eacd41f716,data/2026-08-22/s1-traces/compute.txt,16f830517717a5b0ea4d71fa3b392ec43a7cc7be,129692
+compute,module_off,643b25b68a694ab372c0e7a756cff6eacd41f716,data/2026-08-22/s1-traces/compute-off.txt,f038ad81d928026a500238abcf1f49a793e91397,129766
+scroll,module_on,643b25b68a694ab372c0e7a756cff6eacd41f716,data/2026-08-22/s1-traces/scroll.txt,ce6b125385dabd804a6433da5fca28cf7e2cc056,137265
+scroll,module_off,643b25b68a694ab372c0e7a756cff6eacd41f716,data/2026-08-22/s1-traces/scroll-off.txt,29356e17e21d21129cfffc6c1bfd3bda3aa565f7,138974
+launch,module_on,643b25b68a694ab372c0e7a756cff6eacd41f716,data/2026-08-22/s1-traces/launch.txt,2f0b3d24f23cd6291494bd42a6ab65da5669765a,82893
+switch,module_on,643b25b68a694ab372c0e7a756cff6eacd41f716,data/2026-08-22/s1-traces/switch.txt,1be0e9dbe38ad9c739815002ea98d32e626419e2,120469
+wake,module_on,643b25b68a694ab372c0e7a756cff6eacd41f716,data/2026-08-22/s1-traces/wake.txt,dd9768df94cb1d76c6c7eac57ae429d2b0913a59,128813
+wake,module_off,643b25b68a694ab372c0e7a756cff6eacd41f716,data/2026-08-22/s1-traces/wake-off.txt,656f12158bd68e5a028b572e55de185c0dc33b5a,129150
+uclamp-attribution,diagnostic,643b25b68a694ab372c0e7a756cff6eacd41f716,data/2026-08-22/s1-traces/uclamp-attribution.txt,2c774792c820617c20c094b10b4dd4db6ea6447a,52219
