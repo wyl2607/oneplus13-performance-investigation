@@ -1,0 +1,22 @@
+name: sched_find_best_target
+ID: 1110
+format:
+	field:unsigned short common_type;	offset:0;	size:2;	signed:0;
+	field:unsigned char common_flags;	offset:2;	size:1;	signed:0;
+	field:unsigned char common_preempt_count;	offset:3;	size:1;	signed:0;
+	field:int common_pid;	offset:4;	size:4;	signed:1;
+
+	field:char comm[16];	offset:8;	size:16;	signed:0;
+	field:pid_t pid;	offset:24;	size:4;	signed:1;
+	field:unsigned long min_util;	offset:32;	size:8;	signed:0;
+	field:int start_cpu;	offset:40;	size:4;	signed:1;
+	field:unsigned long candidates;	offset:48;	size:8;	signed:0;
+	field:int most_spare_cap;	offset:56;	size:4;	signed:1;
+	field:int order_index;	offset:60;	size:4;	signed:1;
+	field:int end_index;	offset:64;	size:4;	signed:1;
+	field:int skip;	offset:68;	size:4;	signed:1;
+	field:bool running;	offset:72;	size:1;	signed:0;
+	field:int most_spare_rq_cpu;	offset:76;	size:4;	signed:1;
+	field:unsigned int cpu_rq_runnable_cnt;	offset:80;	size:4;	signed:0;
+
+print fmt: "pid=%d comm=%s start_cpu=%d candidates=%#lx most_spare_cap=%d order_index=%d end_index=%d skip=%d running=%d min_util=%lu spare_rq_cpu=%d min_runnable=%u", REC->pid, REC->comm, REC->start_cpu, REC->candidates, REC->most_spare_cap, REC->order_index, REC->end_index, REC->skip, REC->running, REC->min_util, REC->most_spare_rq_cpu, REC->cpu_rq_runnable_cnt
