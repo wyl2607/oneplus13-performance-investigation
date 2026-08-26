@@ -188,20 +188,33 @@ PR #15 flagged arm A running ~467-475 cycles/run vs arm B ~590-592 -- about
 - Arm B mean cycles/run (8 runs): (590+591+592+590+592+592+592+591)/8 = 591.25
 - Ratio: 591.25 / 470.5 = **1.257x**, matching the ~25% PR #15 reported.
 
-**This is wake-to-run latency, not a throughput artifact.** `wake-pair-worker.sh
---mode wake` alternates the traced thread and its partner on a fixed
-sleep/wake cadence; each cycle here is bounded by `wake_latency_us` (median
-56.5 us arm A, 58.1 us arm B per PR #15 -- statistically indistinguishable at
-p50). Since neither the worker's burst/sleep parameters nor the trace window
-changed between arms, more *completed* cycles in the same 15 s window under
-B means the wake-sleep round trip is *shorter* on B on average, consistent
-with prime cores clocking the fixed-length burst faster than mid cores would
-(prime capacity 1024 vs mid ~792, same nominal work per burst). This is
-**DERIVED, not directly measured** (no per-cycle CPU-time or clock-frequency
-field was captured this session) -- consistent with the placement result
-itself rather than a separate artifact, but the throughput-vs-clock
-attribution is not independently confirmed. Flagged as a good target for S2c
-Phase 2's `cycles_per_second` metric, which IS measured directly.
+**Revised 2026-08-26 after S2c Phase 2's clamp ladder --
+this section's original attribution to prime placement/clocking was wrong.**
+`docs/S2C_MINIMUM_CLAMP.md`'s five-point ladder (uclamp.min in
+{0, 256, 384, 448, 512}) measured `cycles_per_second` directly and found it
+rises **before** the placement threshold is ever crossed: 28.63 (sd 0.25) at
+0 -> 35.50 at 256 -> 37.34 at 384 -> 38.35 at 448 -- all four of these arms
+sit at ~0% prime first-run share (max 0.22%, i.e. still entirely on mid) --
+and only reaches 38.77 at 512, the one arm where placement actually jumps to
+~91%. So roughly (38.35 - 28.63) / (38.77 - 28.63) = **96%** of the total
+cycle-rate gain between the 0 and 512 endpoints is already present at 448,
+*before* any placement change.
+
+- **ESTABLISHED:** cycle rate rises substantially below the prime-placement
+  threshold (MEASURED directly via `cycles_per_second` in the Phase 2 ladder,
+  not derived). Therefore most of the observed cycle-rate gain cannot be
+  attributed to prime placement itself, contradicting this section's
+  original wording ("consistent with prime cores clocking the fixed-length
+  burst faster").
+- **LEADING HYPOTHESIS:** `uclamp.min` raises the utilization/frequency floor
+  (`min_util`) on the mid cluster even when it isn't enough to move
+  placement, improving DVFS response and shortening the fixed-length burst,
+  which is what produces more completed wake cycles per fixed trace window.
+- **NOT ESTABLISHED:** actual frequency residency (`cpu_frequency` /
+  `time_in_state`) was not directly measured anywhere in S2c -- the ladder
+  measured wall-clock cycle throughput, not clock frequency itself. The DVFS
+  attribution above remains a hypothesis pending direct frequency evidence,
+  which is what S2d (`docs/S2D_THRESHOLD_DVFS.md`) exists to collect.
 
 ## Files
 
