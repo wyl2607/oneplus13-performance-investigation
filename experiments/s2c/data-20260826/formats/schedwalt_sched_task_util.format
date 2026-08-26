@@ -1,0 +1,35 @@
+name: sched_task_util
+ID: 1109
+format:
+	field:unsigned short common_type;	offset:0;	size:2;	signed:0;
+	field:unsigned char common_flags;	offset:2;	size:1;	signed:0;
+	field:unsigned char common_preempt_count;	offset:3;	size:1;	signed:0;
+	field:int common_pid;	offset:4;	size:4;	signed:1;
+
+	field:int pid;	offset:8;	size:4;	signed:1;
+	field:char comm[16];	offset:12;	size:16;	signed:0;
+	field:unsigned long util;	offset:32;	size:8;	signed:0;
+	field:unsigned long candidates;	offset:40;	size:8;	signed:0;
+	field:int prev_cpu;	offset:48;	size:4;	signed:1;
+	field:int best_energy_cpu;	offset:52;	size:4;	signed:1;
+	field:bool sync;	offset:56;	size:1;	signed:0;
+	field:int need_idle;	offset:60;	size:4;	signed:1;
+	field:int fastpath;	offset:64;	size:4;	signed:1;
+	field:int placement_boost;	offset:68;	size:4;	signed:1;
+	field:int rtg_cpu;	offset:72;	size:4;	signed:1;
+	field:u64 latency;	offset:80;	size:8;	signed:0;
+	field:bool uclamp_boosted;	offset:88;	size:1;	signed:0;
+	field:bool is_rtg;	offset:89;	size:1;	signed:0;
+	field:bool rtg_skip_min;	offset:90;	size:1;	signed:0;
+	field:int start_cpu;	offset:92;	size:4;	signed:1;
+	field:u32 unfilter;	offset:96;	size:4;	signed:0;
+	field:unsigned long cpus_allowed;	offset:104;	size:8;	signed:0;
+	field:int task_boost;	offset:112;	size:4;	signed:1;
+	field:bool low_latency;	offset:116;	size:1;	signed:0;
+	field:bool iowaited;	offset:117;	size:1;	signed:0;
+	field:int load_boost;	offset:120;	size:4;	signed:1;
+	field:bool sync_state;	offset:124;	size:1;	signed:0;
+	field:int pipeline_cpu;	offset:128;	size:4;	signed:1;
+	field:int yield_cnt;	offset:132;	size:4;	signed:1;
+
+print fmt: "pid=%d comm=%s util=%lu prev_cpu=%d candidates=%#lx best_energy_cpu=%d sync=%d need_idle=%d fastpath=%d placement_boost=%d latency=%llu stune_boosted=%d is_rtg=%d rtg_skip_min=%d start_cpu=%d unfilter=%u affinity=%lx task_boost=%d low_latency=%d iowaited=%d load_boost=%d sync_state=%d pipeline_cpu=%d yield_cnt=%d", REC->pid, REC->comm, REC->util, REC->prev_cpu, REC->candidates, REC->best_energy_cpu, REC->sync, REC->need_idle, REC->fastpath, REC->placement_boost, REC->latency, REC->uclamp_boosted, REC->is_rtg, REC->rtg_skip_min, REC->start_cpu, REC->unfilter, REC->cpus_allowed, REC->task_boost, REC->low_latency, REC->iowaited, REC->load_boost, REC->sync_state, REC->pipeline_cpu, REC->yield_cnt

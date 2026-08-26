@@ -1,0 +1,1082 @@
+# scheduler-event-tracer
+# label=T2 correct filter
+# tid=31055 comm=w-wake comm_glob= alive_at_end=yes
+# duration_s=3 uptime_start=165869.72 764556.76 uptime_end=165872.73 764577.39
+# trace_clock=global buffer_size_kb_per_cpu=4099 instance=s2a
+# events=sched/sched_waking,sched/sched_wakeup,sched/sched_wakeup_new,sched/sched_switch,sched/sched_migrate_task,sched/sched_stat_wait,sched/sched_process_exit,schedwalt/sched_task_util,schedwalt/sched_enq_deq_task,schedwalt/sched_find_best_target,sched_assist/set_ux_task_to_prefer_cpu,frame_boost/find_frame_boost_cpu,
+# filter=pid==31055 (sched_switch: prev_pid||next_pid)
+# entries=1052 overrun=0 commit_overrun=0 dropped=0
+#
+# cpu0 entries=158 overrun=0 commit_overrun=0 dropped=0
+# cpu1 entries=473 overrun=0 commit_overrun=0 dropped=0
+# cpu2 entries=0 overrun=0 commit_overrun=0 dropped=0
+# cpu3 entries=0 overrun=0 commit_overrun=0 dropped=0
+# cpu4 entries=242 overrun=0 commit_overrun=0 dropped=0
+# cpu5 entries=160 overrun=0 commit_overrun=0 dropped=0
+# cpu6 entries=19 overrun=0 commit_overrun=0 dropped=0
+# cpu7 entries=0 overrun=0 commit_overrun=0 dropped=0
+# loss=none
+# tracer: nop
+#
+# entries-in-buffer/entries-written: 1052/1052   #P:8
+#
+#                                _-----=> irqs-off/BH-disabled
+#                               / _----=> need-resched
+#                              | / _---=> hardirq/softirq
+#                              || / _--=> preempt-depth
+#                              ||| / _-=> migrate-disable
+#                              |||| /     delay
+#           TASK-PID     CPU#  |||||  TIMESTAMP  FUNCTION
+#              | |         |   |||||     |         |
+          <idle>-0       [001] d.h3. 116549.360668: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.360673: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=224 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.360674: sched_task_util: pid=31055 comm=w-wake util=224 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1562 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.360676: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1755877 pred_demand_scaled=67 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.360679: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.360688: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.360691: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.367805: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=kworker/1:3 next_pid=13241 next_prio=120
+     kworker/1:3-13241   [001] d..2. 116549.367815: sched_stat_wait: comm=w-wake pid=31055 delay=15313 [ns]
+     kworker/1:3-13241   [001] d..2. 116549.367819: sched_switch: prev_comm=kworker/1:3 prev_pid=13241 prev_prio=120 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.368286: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1880394 pred_demand_scaled=338 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.368292: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+                  app-60-60      [001] D.h2. 116549.388346: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+                  app-60-60      [001] D.h2. 116549.388360: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=5 order_index=0 end_index=0 skip=-1 running=0 min_util=287 spare_rq_cpu=5 min_runnable=0
+                  app-60-60      [001] D.h2. 116549.388362: sched_task_util: pid=31055 comm=w-wake util=287 prev_cpu=1 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=4063 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+                  app-60-60      [001] D.h2. 116549.388364: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=5
+                  app-60-60      [001] D.h3. 116549.388404: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2242395 pred_demand_scaled=338 is_compat_t=0 mvp=0 misfit=0
+                  app-60-60      [001] D.h3. 116549.388414: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116549.388431: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116549.388438: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116549.395945: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=migration/5 next_pid=56 next_prio=0
+     migration/5-56      [005] d..2. 116549.395950: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=3172885 pred_demand_scaled=453 is_compat_t=0 mvp=0 misfit=0
+     migration/5-56      [005] d..2. 116549.395951: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=1
+     migration/5-56      [005] d..2. 116549.395960: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=1 affine=ff demand=3172885 pred_demand_scaled=453 is_compat_t=0 mvp=0 misfit=0
+                  app-52-52      [001] d..2. 116549.395963: sched_stat_wait: comm=w-wake pid=31055 delay=15521 [ns]
+                  app-52-52      [001] d..2. 116549.395968: sched_switch: prev_comm=app-52 prev_pid=52 prev_prio=98 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.396925: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=3172885 pred_demand_scaled=453 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.396932: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116549.417085: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.417099: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=210 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.417102: sched_task_util: pid=31055 comm=w-wake util=210 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5990 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.417108: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1642234 pred_demand_scaled=90 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.417119: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.417148: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.417160: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.436702: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-3927 next_pid=3927 next_prio=116
+        app-3927-3927    [001] d..2. 116549.436744: sched_stat_wait: comm=w-wake pid=31055 delay=52187 [ns]
+        app-3927-3927    [001] d..2. 116549.436750: sched_switch: prev_comm=app-3927 prev_pid=3927 prev_prio=116 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.436818: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-3927 next_pid=3927 next_prio=116
+          app-4646-4646    [001] d..2. 116549.437180: sched_stat_wait: comm=w-wake pid=31055 delay=370729 [ns]
+          app-4646-4646    [001] d..2. 116549.437186: sched_switch: prev_comm=app-4646 prev_pid=4646 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.437756: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-5364 next_pid=5364 next_prio=116
+            app-1242-1242    [001] d..2. 116549.437899: sched_stat_wait: comm=w-wake pid=31055 delay=153750 [ns]
+            app-1242-1242    [001] d..2. 116549.437905: sched_switch: prev_comm=app-1242 prev_pid=1242 prev_prio=130 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.439479: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1321627 pred_demand_scaled=169 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.439488: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116549.459534: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.459540: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=186 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.459541: sched_task_util: pid=31055 comm=w-wake util=186 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1927 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.459544: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1456508 pred_demand_scaled=186 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.459548: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.459559: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.459563: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.467871: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=kworker/1:3 next_pid=13241 next_prio=120
+     kworker/1:3-13241   [001] d..2. 116549.467879: sched_stat_wait: comm=w-wake pid=31055 delay=31093 [ns]
+     kworker/1:3-13241   [001] d..2. 116549.467885: sched_switch: prev_comm=kworker/1:3 prev_pid=13241 prev_prio=120 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.471068: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1999695 pred_demand_scaled=255 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.471075: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+        app-17700-17700   [001] d.h2. 116549.491125: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+        app-17700-17700   [001] d.h2. 116549.491137: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=3 order_index=0 end_index=0 skip=-1 running=0 min_util=219 spare_rq_cpu=3 min_runnable=0
+        app-17700-17700   [001] d.h2. 116549.491139: sched_task_util: pid=31055 comm=w-wake util=219 prev_cpu=1 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=5260 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+        app-17700-17700   [001] d.h2. 116549.491141: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=5
+        app-17700-17700   [001] d.h3. 116549.491172: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1714703 pred_demand_scaled=255 is_compat_t=0 mvp=0 misfit=0
+        app-17700-17700   [001] d.h3. 116549.491184: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116549.491293: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116549.491301: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116549.505268: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1704515 pred_demand_scaled=255 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116549.505279: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+          <idle>-0       [005] d.h3. 116549.525424: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] d.h3. 116549.525438: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=240 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [005] d.h3. 116549.525441: sched_task_util: pid=31055 comm=w-wake util=240 prev_cpu=5 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6459 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [005] d.h4. 116549.525471: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1876528 pred_demand_scaled=255 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [005] dNh4. 116549.525483: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116549.525508: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116549.525517: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116549.536379: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2113684 pred_demand_scaled=270 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116549.536391: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+                   app-31134-31134   [005] d.h2. 116549.556431: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+                   app-31134-31134   [005] d.h2. 116549.556442: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=4 order_index=0 end_index=0 skip=-1 running=0 min_util=203 spare_rq_cpu=4 min_runnable=1
+                   app-31134-31134   [005] d.h2. 116549.556443: sched_task_util: pid=31055 comm=w-wake util=203 prev_cpu=5 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=1614 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+                   app-31134-31134   [005] d.h2. 116549.556443: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=4
+                   app-31134-31134   [005] d.h3. 116549.556451: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1593580 pred_demand_scaled=203 is_compat_t=0 mvp=0 misfit=0
+                   app-31134-31134   [005] d.h3. 116549.556462: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+        app-17700-17700   [004] dN.2. 116549.556477: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+        app-17700-17700   [004] d..2. 116549.556493: sched_switch: prev_comm=app-17700 prev_pid=17700 prev_prio=116 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116549.561060: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-30777 next_pid=30777 next_prio=110
+           app-30777-30777   [004] d..2. 116549.561080: sched_stat_wait: comm=w-wake pid=31055 delay=26614 [ns]
+           app-30777-30777   [004] d..2. 116549.561084: sched_switch: prev_comm=app-30777 prev_pid=30777 prev_prio=110 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116549.563685: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1593580 pred_demand_scaled=321 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116549.563690: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116549.583735: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116549.583738: sched_find_best_target: pid=31055 comm=w-wake start_cpu=6 candidates=0x40 most_spare_cap=6 order_index=1 end_index=0 skip=-1 running=0 min_util=524 spare_rq_cpu=6 min_runnable=0
+          <idle>-0       [004] d.h3. 116549.583739: sched_task_util: pid=31055 comm=w-wake util=524 prev_cpu=4 candidates=0x40 best_energy_cpu=6 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=990 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=6 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h3. 116549.583739: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=6
+          <idle>-0       [004] d.h4. 116549.583751: sched_enq_deq_task: cpu=6 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=4099845 pred_demand_scaled=524 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] d.h4. 116549.583754: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=006
+          <idle>-0       [006] dN.2. 116549.583901: sched_stat_wait: comm=w-wake pid=31055 delay=78854 [ns]
+          <idle>-0       [006] d..2. 116549.583923: sched_switch: prev_comm=swapper/6 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [006] d..2. 116549.587781: sched_enq_deq_task: cpu=6 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=4099845 pred_demand_scaled=524 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [006] d..2. 116549.587798: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/6 next_pid=0 next_prio=120
+          <idle>-0       [006] d.h3. 116549.607893: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=006
+          <idle>-0       [006] d.h3. 116549.607908: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=265 spare_rq_cpu=0 min_runnable=1
+          <idle>-0       [006] d.h3. 116549.607914: sched_task_util: pid=31055 comm=w-wake util=265 prev_cpu=6 candidates=0x1 best_energy_cpu=6 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=11875 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [006] d.h4. 116549.607919: sched_enq_deq_task: cpu=6 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2076186 pred_demand_scaled=6 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [006] dNh4. 116549.607924: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=006
+          <idle>-0       [006] dN.2. 116549.607938: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [006] d..2. 116549.607945: sched_switch: prev_comm=swapper/6 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [006] d..2. 116549.618350: sched_enq_deq_task: cpu=6 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1831953 pred_demand_scaled=123 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [006] d..2. 116549.618364: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/6 next_pid=0 next_prio=120
+          <idle>-0       [006] d.h3. 116549.640506: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=006
+          <idle>-0       [006] d.h3. 116549.640537: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=233 spare_rq_cpu=0 min_runnable=0
+          <idle>-0       [006] d.h3. 116549.640542: sched_task_util: pid=31055 comm=w-wake util=233 prev_cpu=6 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=16875 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [006] d.h3. 116549.640547: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=6 dest_cpu=5
+          <idle>-0       [006] d.h4. 116549.640570: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1827270 pred_demand_scaled=200 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [006] d.h4. 116549.640596: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116549.640699: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116549.640709: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116549.656189: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1688567 pred_demand_scaled=216 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116549.656203: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+          app-15875-15875   [005] d.h2. 116549.676250: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+          app-15875-15875   [005] d.h2. 116549.676261: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=1 order_index=0 end_index=0 skip=-1 running=0 min_util=169 spare_rq_cpu=1 min_runnable=0
+          app-15875-15875   [005] d.h2. 116549.676262: sched_task_util: pid=31055 comm=w-wake util=169 prev_cpu=5 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=2343 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          app-15875-15875   [005] d.h2. 116549.676262: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=1
+          app-15875-15875   [005] d.h3. 116549.676272: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1326653 pred_demand_scaled=169 is_compat_t=0 mvp=0 misfit=0
+          app-15875-15875   [005] d.h3. 116549.676283: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.676293: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.676299: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.685263: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=3205114 pred_demand_scaled=410 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.685272: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116549.705323: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.705332: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=200 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.705334: sched_task_util: pid=31055 comm=w-wake util=200 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=3125 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.705342: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1563056 pred_demand_scaled=104 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.705346: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.705356: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.705359: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.707980: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+     kworker/1:1-21459   [001] d..2. 116549.708083: sched_stat_wait: comm=w-wake pid=31055 delay=123750 [ns]
+     kworker/1:1-21459   [001] d..2. 116549.708090: sched_switch: prev_comm=kworker/1:1 prev_pid=21459 prev_prio=120 prev_state=D ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.708689: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=kworker/1:3 next_pid=13241 next_prio=120
+           app-10020-10020   [000] d..2. 116549.708730: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1484387 pred_demand_scaled=104 is_compat_t=0 mvp=0 misfit=0
+           app-10020-10020   [000] d..2. 116549.708735: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=0
+           app-10020-10020   [000] d..2. 116549.708747: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1484387 pred_demand_scaled=104 is_compat_t=0 mvp=0 misfit=0
+           app-10020-10020   [000] dN.2. 116549.708752: sched_stat_wait: comm=w-wake pid=31055 delay=59792 [ns]
+           app-10020-10020   [000] d..2. 116549.708758: sched_switch: prev_comm=app-10020 prev_pid=10020 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116549.725765: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1678413 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116549.725775: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] d.h3. 116549.745826: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] d.h3. 116549.745835: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=122 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [000] d.h3. 116549.745836: sched_task_util: pid=31055 comm=w-wake util=122 prev_cpu=0 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=2657 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [000] d.h4. 116549.745840: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=958751 pred_demand_scaled=76 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [000] dNh4. 116549.745845: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dN.2. 116549.745859: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [000] d..2. 116549.745864: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116549.766225: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1678412 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116549.766234: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] d.h3. 116549.786279: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] d.h3. 116549.786283: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=116 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [000] d.h3. 116549.786284: sched_task_util: pid=31055 comm=w-wake util=116 prev_cpu=0 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1250 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [000] d.h4. 116549.786286: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=910445 pred_demand_scaled=94 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [000] dNh4. 116549.786288: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dN.2. 116549.786293: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [000] d..2. 116549.786296: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116549.791917: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=kworker/u16:0 next_pid=11490 next_prio=120
+                  app-60-60      [001] d..2. 116549.791921: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=861759 pred_demand_scaled=113 is_compat_t=0 mvp=0 misfit=0
+                  app-60-60      [001] d..2. 116549.791924: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=1
+                  app-60-60      [001] d..2. 116549.791929: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=861759 pred_demand_scaled=113 is_compat_t=0 mvp=0 misfit=0
+                  app-60-60      [001] dN.2. 116549.791933: sched_stat_wait: comm=w-wake pid=31055 delay=16875 [ns]
+                  app-60-60      [001] d..2. 116549.791937: sched_switch: prev_comm=app-60 prev_pid=60 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.800978: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1690622 pred_demand_scaled=216 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.800985: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116549.821034: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.821041: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=218 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.821043: sched_task_util: pid=31055 comm=w-wake util=218 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=3125 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.821060: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1708474 pred_demand_scaled=218 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.821065: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.821078: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.821084: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.832614: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1977634 pred_demand_scaled=253 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.832620: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116549.852675: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.852682: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=213 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.852684: sched_task_util: pid=31055 comm=w-wake util=213 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=2709 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.852710: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1670190 pred_demand_scaled=216 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.852715: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.852743: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.852754: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.864493: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2081339 pred_demand_scaled=266 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.864504: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116549.884670: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.884685: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=232 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.884688: sched_task_util: pid=31055 comm=w-wake util=232 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6094 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.884720: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1813349 pred_demand_scaled=208 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.884730: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.884758: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.884765: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.896204: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2078896 pred_demand_scaled=266 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.896215: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116549.916258: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.916262: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=235 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.916263: sched_task_util: pid=31055 comm=w-wake util=235 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=678 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.916266: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1841767 pred_demand_scaled=223 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.916268: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.916273: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.916274: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.924369: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=3630644 pred_demand_scaled=464 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.924376: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116549.944426: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.944431: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=242 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.944434: sched_task_util: pid=31055 comm=w-wake util=242 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1250 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.944436: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1893828 pred_demand_scaled=48 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.944439: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.944448: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.944450: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116549.958314: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2023940 pred_demand_scaled=259 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116549.958323: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116549.978489: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116549.978503: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=198 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116549.978506: sched_task_util: pid=31055 comm=w-wake util=198 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5677 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116549.978535: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1548350 pred_demand_scaled=112 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116549.978545: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116549.978570: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116549.978578: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.001632: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1304281 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.001647: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116550.021791: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.021805: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=158 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.021808: sched_task_util: pid=31055 comm=w-wake util=158 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5730 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.021836: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1238154 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.021847: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.021868: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.021874: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.038364: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1687780 pred_demand_scaled=216 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.038376: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116550.058426: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.058435: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=159 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.058436: sched_task_util: pid=31055 comm=w-wake util=159 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=3646 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.058461: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1249354 pred_demand_scaled=100 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.058467: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.058482: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.058487: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.071861: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=kworker/1:1 next_pid=21459 next_prio=120
+     kworker/1:1-21459   [001] d..2. 116550.071870: sched_stat_wait: comm=w-wake pid=31055 delay=16875 [ns]
+     kworker/1:1-21459   [001] d..2. 116550.071878: sched_switch: prev_comm=kworker/1:1 prev_pid=21459 prev_prio=120 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.077504: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1675993 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.077534: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=app-1753 next_pid=1753 next_prio=120
+          <idle>-0       [001] d.h3. 116550.097677: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.097692: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=115 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.097695: sched_task_util: pid=31055 comm=w-wake util=115 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5729 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.097702: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=900699 pred_demand_scaled=100 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.097713: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.097743: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.097755: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.119668: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1475109 pred_demand_scaled=188 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.119680: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] dNH4. 116550.139730: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dNH4. 116550.139736: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=4 order_index=0 end_index=0 skip=-1 running=0 min_util=127 spare_rq_cpu=4 min_runnable=0
+          <idle>-0       [001] dNH4. 116550.139738: sched_task_util: pid=31055 comm=w-wake util=127 prev_cpu=1 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=3333 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] dNH4. 116550.139740: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=4
+          <idle>-0       [001] dNH5. 116550.139800: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=996935 pred_demand_scaled=127 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNH5. 116550.139808: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116550.140076: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116550.140089: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116550.154786: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1617492 pred_demand_scaled=207 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116550.154798: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116550.174839: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116550.174843: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=270 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116550.174844: sched_task_util: pid=31055 comm=w-wake util=270 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1094 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116550.174847: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2109693 pred_demand_scaled=270 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116550.174849: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116550.174858: sched_stat_wait: comm=w-wake pid=31055 delay=5052 [ns]
+          <idle>-0       [004] d..2. 116550.174860: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116550.181465: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2844983 pred_demand_scaled=364 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116550.181471: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+           sleep-31161   [004] d.h2. 116550.201517: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+           sleep-31161   [004] d.h2. 116550.201522: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=220 spare_rq_cpu=0 min_runnable=0
+           sleep-31161   [004] d.h2. 116550.201523: sched_task_util: pid=31055 comm=w-wake util=220 prev_cpu=4 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=1250 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+           sleep-31161   [004] d.h2. 116550.201523: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=1
+           sleep-31161   [004] d.h3. 116550.201527: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1725776 pred_demand_scaled=135 is_compat_t=0 mvp=0 misfit=0
+           sleep-31161   [004] d.h3. 116550.201530: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.201534: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.201536: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.207839: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=migration/1 next_pid=27 next_prio=0
+                  app-17-17      [005] d..2. 116550.207843: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1755714 pred_demand_scaled=233 is_compat_t=0 mvp=0 misfit=0
+                  app-17-17      [005] d..2. 116550.207845: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=5
+                  app-17-17      [005] d..2. 116550.207850: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1755714 pred_demand_scaled=233 is_compat_t=0 mvp=0 misfit=0
+                  app-17-17      [005] d..2. 116550.207852: sched_stat_wait: comm=w-wake pid=31055 delay=13386 [ns]
+                  app-17-17      [005] d..2. 116550.207855: sched_switch: prev_comm=app-17 prev_pid=17 prev_prio=98 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116550.209621: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1755714 pred_demand_scaled=233 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116550.209628: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+          <idle>-0       [005] d.h3. 116550.229788: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] d.h3. 116550.229803: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=333 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [005] d.h3. 116550.229806: sched_task_util: pid=31055 comm=w-wake util=333 prev_cpu=5 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6459 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [005] d.h4. 116550.229835: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2605386 pred_demand_scaled=364 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [005] dNh4. 116550.229846: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116550.229874: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116550.229886: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116550.235871: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=kworker/5:2 next_pid=31101 next_prio=120
+   kworker/u16:0-11490   [000] d..2. 116550.235904: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=2839460 pred_demand_scaled=363 is_compat_t=0 mvp=0 misfit=0
+   kworker/u16:0-11490   [000] d..2. 116550.235907: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=0
+   kworker/u16:0-11490   [000] d..2. 116550.235914: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2839460 pred_demand_scaled=363 is_compat_t=0 mvp=0 misfit=0
+   kworker/u16:0-11490   [000] dN.2. 116550.235915: sched_stat_wait: comm=w-wake pid=31055 delay=37865 [ns]
+   kworker/u16:0-11490   [000] d..2. 116550.235917: sched_switch: prev_comm=kworker/u16:0 prev_pid=11490 prev_prio=120 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116550.235930: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=rcu_preempt next_pid=16 next_prio=98
+     rcu_preempt-16      [000] d..2. 116550.235976: sched_stat_wait: comm=w-wake pid=31055 delay=56146 [ns]
+     rcu_preempt-16      [000] d..2. 116550.235986: sched_switch: prev_comm=rcu_preempt prev_pid=16 prev_prio=98 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116550.237883: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2839460 pred_demand_scaled=363 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116550.237887: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] d.h3. 116550.257939: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] d.h3. 116550.257943: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=225 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [000] d.h3. 116550.257945: sched_task_util: pid=31055 comm=w-wake util=225 prev_cpu=0 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1562 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [000] d.h4. 116550.257950: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1757876 pred_demand_scaled=145 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [000] dNh4. 116550.257953: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dN.2. 116550.257961: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [000] d..2. 116550.257964: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116550.281549: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1329442 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116550.281559: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] d.h3. 116550.301611: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] d.h3. 116550.301618: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=156 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [000] d.h3. 116550.301620: sched_task_util: pid=31055 comm=w-wake util=156 prev_cpu=0 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=2813 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [000] d.h4. 116550.301642: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1223525 pred_demand_scaled=156 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [000] dNh4. 116550.301647: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dN.2. 116550.301659: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [000] d..2. 116550.301663: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116550.317129: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2019408 pred_demand_scaled=352 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116550.317136: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] dnh3. 116550.337315: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dnh3. 116550.337333: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=1 order_index=0 end_index=0 skip=-1 running=0 min_util=164 spare_rq_cpu=1 min_runnable=0
+          <idle>-0       [000] dnh3. 116550.337336: sched_task_util: pid=31055 comm=w-wake util=164 prev_cpu=0 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=8593 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [000] dnh3. 116550.337338: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=4
+          <idle>-0       [000] dnh4. 116550.337360: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1281923 pred_demand_scaled=74 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [000] dnh4. 116550.337376: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116550.337514: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116550.337531: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116550.361215: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1303815 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116550.361254: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=kworker/u17:1 next_pid=20092 next_prio=120
+          <idle>-0       [004] d.h3. 116550.381391: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116550.381407: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=148 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116550.381410: sched_task_util: pid=31055 comm=w-wake util=148 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6250 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116550.381439: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1158527 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116550.381449: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116550.381472: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116550.381479: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116550.398080: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1685018 pred_demand_scaled=215 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116550.398094: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116550.418272: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116550.418287: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=157 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116550.418290: sched_task_util: pid=31055 comm=w-wake util=157 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6250 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116550.418297: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1232868 pred_demand_scaled=89 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116550.418308: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116550.418340: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116550.418353: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116550.441638: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1303850 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116550.441665: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=app-1753 next_pid=1753 next_prio=120
+          app-4531-4531    [004] d.h2. 116550.461686: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          app-4531-4531    [004] d.h2. 116550.461690: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=159 spare_rq_cpu=0 min_runnable=1
+          app-4531-4531    [004] d.h2. 116550.461691: sched_task_util: pid=31055 comm=w-wake util=159 prev_cpu=4 candidates=0x1 best_energy_cpu=4 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=2187 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          app-4531-4531    [004] d.h3. 116550.461695: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=1 affine=ff demand=1246200 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+          app-4531-4531    [004] d.h3. 116550.461697: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+              app-16550-16550   [000] d..2. 116550.461723: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=1 affine=ff demand=1246200 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+              app-16550-16550   [000] d..2. 116550.461725: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=0
+              app-16550-16550   [000] d..2. 116550.461729: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1246200 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+              app-16550-16550   [000] dN.2. 116550.461731: sched_stat_wait: comm=w-wake pid=31055 delay=30365 [ns]
+              app-16550-16550   [000] d..2. 116550.461734: sched_switch: prev_comm=app-16550 prev_pid=16550 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116550.470078: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2632897 pred_demand_scaled=337 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116550.470084: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] d.h3. 116550.490130: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] d.h3. 116550.490132: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=187 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [000] d.h3. 116550.490133: sched_task_util: pid=31055 comm=w-wake util=187 prev_cpu=0 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=729 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [000] d.h4. 116550.490135: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1462437 pred_demand_scaled=147 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [000] dNh4. 116550.490136: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dN.2. 116550.490140: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [000] d..2. 116550.490141: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116550.498546: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1420121 pred_demand_scaled=228 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116550.498552: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+   kworker/u19:1-21607   [000] d.h2. 116550.518599: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+   kworker/u19:1-21607   [000] d.h2. 116550.518606: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=1 order_index=0 end_index=0 skip=-1 running=0 min_util=383 spare_rq_cpu=1 min_runnable=0
+   kworker/u19:1-21607   [000] d.h2. 116550.518608: sched_task_util: pid=31055 comm=w-wake util=383 prev_cpu=0 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=3281 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+   kworker/u19:1-21607   [000] d.h2. 116550.518610: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=1
+   kworker/u19:1-21607   [000] d.h3. 116550.518635: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2998873 pred_demand_scaled=383 is_compat_t=0 mvp=0 misfit=0
+   kworker/u19:1-21607   [000] d.h3. 116550.518642: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.518790: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.518795: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.526831: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2405496 pred_demand_scaled=337 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.526845: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116550.547017: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.547032: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=222 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.547035: sched_task_util: pid=31055 comm=w-wake util=222 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6094 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.547065: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1738645 pred_demand_scaled=175 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.547076: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.547106: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.547111: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.568750: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1307063 pred_demand_scaled=175 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.568763: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116550.588937: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.588952: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=161 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.588956: sched_task_util: pid=31055 comm=w-wake util=161 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6406 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.588986: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1262619 pred_demand_scaled=175 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.588997: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.589027: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.589035: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.602438: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1691734 pred_demand_scaled=216 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.602451: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116550.622613: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.622629: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=257 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.622632: sched_task_util: pid=31055 comm=w-wake util=257 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5886 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.622663: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2008149 pred_demand_scaled=257 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.622673: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.622703: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.622710: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.634605: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1707803 pred_demand_scaled=218 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.634616: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116550.654802: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.654817: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=264 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.654820: sched_task_util: pid=31055 comm=w-wake util=264 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5781 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.654849: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2068818 pred_demand_scaled=264 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.654860: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.654892: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.654897: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.666797: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1824271 pred_demand_scaled=216 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.666808: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=kworker/1:1 next_pid=21459 next_prio=120
+          <idle>-0       [001] d.h3. 116550.686975: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.686991: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=272 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.686994: sched_task_util: pid=31055 comm=w-wake util=272 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5937 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.687024: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2126126 pred_demand_scaled=272 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.687035: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.687084: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.687088: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.700284: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2027027 pred_demand_scaled=272 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.700297: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116550.720444: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.720458: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=193 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.720461: sched_task_util: pid=31055 comm=w-wake util=193 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6094 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.720467: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1511926 pred_demand_scaled=23 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.720478: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.720507: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.720520: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.733681: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-4701 next_pid=4701 next_prio=120
+         app-5567-5567    [004] d..2. 116550.733742: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1031721 pred_demand_scaled=125 is_compat_t=0 mvp=0 misfit=0
+         app-5567-5567    [004] d..2. 116550.733746: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=4
+         app-5567-5567    [004] d..2. 116550.733754: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1031721 pred_demand_scaled=125 is_compat_t=0 mvp=0 misfit=0
+         app-5567-5567    [004] d..2. 116550.733760: sched_stat_wait: comm=w-wake pid=31055 delay=84010 [ns]
+         app-5567-5567    [004] d..2. 116550.733768: sched_switch: prev_comm=app-5567 prev_pid=5567 prev_prio=105 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116550.734625: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-8767 next_pid=8767 next_prio=120
+        app-8767-8767    [004] d..2. 116550.734750: sched_stat_wait: comm=w-wake pid=31055 delay=158958 [ns]
+        app-8767-8767    [004] d..2. 116550.734760: sched_switch: prev_comm=app-8767 prev_pid=8767 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116550.734946: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-5710 next_pid=5710 next_prio=120
+          app-3663-3663    [001] d..2. 116550.735160: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1031721 pred_demand_scaled=125 is_compat_t=0 mvp=0 misfit=0
+          app-3663-3663    [001] d..2. 116550.735163: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=1
+          app-3663-3663    [001] d..2. 116550.735173: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1031721 pred_demand_scaled=125 is_compat_t=0 mvp=0 misfit=0
+        app-5128-5128    [001] d..2. 116550.735326: sched_stat_wait: comm=w-wake pid=31055 delay=390156 [ns]
+        app-5128-5128    [001] d..2. 116550.735338: sched_switch: prev_comm=app-5128 prev_pid=5128 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.740987: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2088549 pred_demand_scaled=267 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.741007: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=app-22174 next_pid=22174 next_prio=120
+       uclampset-31188   [001] d.h2. 116550.761034: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+       uclampset-31188   [001] d.h2. 116550.761038: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=104 spare_rq_cpu=0 min_runnable=0
+       uclampset-31188   [001] d.h2. 116550.761039: sched_task_util: pid=31055 comm=w-wake util=104 prev_cpu=1 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=1511 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+       uclampset-31188   [001] d.h2. 116550.761040: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=5
+       uclampset-31188   [001] d.h3. 116550.761044: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=817415 pred_demand_scaled=125 is_compat_t=0 mvp=0 misfit=0
+       uclampset-31188   [001] d.h3. 116550.761047: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116550.761053: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116550.761055: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116550.763877: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+     rcu_preempt-16      [000] d..2. 116550.763881: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=1 affine=ff demand=1400702 pred_demand_scaled=179 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [000] d..2. 116550.763884: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=0
+     rcu_preempt-16      [000] d..2. 116550.763890: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1400702 pred_demand_scaled=179 is_compat_t=0 mvp=0 misfit=0
+                  app-18-18      [005] d..2. 116550.763939: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1400702 pred_demand_scaled=179 is_compat_t=0 mvp=0 misfit=0
+                  app-18-18      [005] d..2. 116550.763940: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=5
+                  app-18-18      [005] d..2. 116550.763947: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1400702 pred_demand_scaled=179 is_compat_t=0 mvp=0 misfit=0
+                  app-18-18      [005] dN.2. 116550.763949: sched_stat_wait: comm=w-wake pid=31055 delay=67135 [ns]
+                  app-18-18      [005] d..2. 116550.763951: sched_switch: prev_comm=app-18 prev_pid=18 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+       uclampset-31188   [001] d..2. 116550.766012: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1400702 pred_demand_scaled=179 is_compat_t=0 mvp=0 misfit=0
+       uclampset-31188   [001] d..2. 116550.766017: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1400702 pred_demand_scaled=179 is_compat_t=0 mvp=0 misfit=0
+       uclampset-31188   [001] d..2. 116550.766019: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          w-wake-31055   [005] d..2. 116550.768905: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1400702 pred_demand_scaled=232 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116550.768911: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+       app-16259-16259   [005] d.h2. 116550.788955: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+       app-16259-16259   [005] d.h2. 116550.788961: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=311 spare_rq_cpu=0 min_runnable=0
+       app-16259-16259   [005] d.h2. 116550.788961: sched_task_util: pid=31055 comm=w-wake util=311 prev_cpu=5 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=2500 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+       app-16259-16259   [005] d.h2. 116550.788962: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=0
+       app-16259-16259   [005] d.h3. 116550.788967: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2430795 pred_demand_scaled=311 is_compat_t=0 mvp=0 misfit=0
+       app-16259-16259   [005] d.h3. 116550.788970: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dN.2. 116550.788974: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [000] d..2. 116550.788976: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116550.791933: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+     rcu_preempt-16      [001] d..2. 116550.791937: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=3 rt_nr_running=1 affine=ff demand=2430795 pred_demand_scaled=311 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [001] d..2. 116550.791939: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=1
+     rcu_preempt-16      [001] d..2. 116550.791943: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2430795 pred_demand_scaled=311 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [001] d..2. 116550.791944: sched_stat_wait: comm=w-wake pid=31055 delay=10313 [ns]
+     rcu_preempt-16      [001] d..2. 116550.791947: sched_switch: prev_comm=rcu_preempt prev_pid=16 prev_prio=98 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.795326: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2430795 pred_demand_scaled=311 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.795337: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=app-1753 next_pid=1753 next_prio=120
+          <idle>-0       [001] d.h3. 116550.815428: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.815434: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=479 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.815435: sched_task_util: pid=31055 comm=w-wake util=479 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=2136 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.815447: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=3744171 pred_demand_scaled=479 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.815451: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116550.815461: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116550.815465: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116550.823454: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2251057 pred_demand_scaled=288 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116550.823463: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116550.843510: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116550.843518: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=289 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116550.843520: sched_task_util: pid=31055 comm=w-wake util=289 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=3281 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116550.843544: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2262855 pred_demand_scaled=190 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116550.843550: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+   kworker/u16:0-11490   [000] d..2. 116550.843914: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=2262855 pred_demand_scaled=190 is_compat_t=0 mvp=0 misfit=0
+   kworker/u16:0-11490   [000] d..2. 116550.843918: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=0
+   kworker/u16:0-11490   [000] d..2. 116550.843922: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1992149 pred_demand_scaled=6 is_compat_t=0 mvp=0 misfit=0
+   kworker/u16:0-11490   [000] d..2. 116550.843924: sched_stat_wait: comm=w-wake pid=31055 delay=391927 [ns]
+   kworker/u16:0-11490   [000] d..2. 116550.843926: sched_switch: prev_comm=kworker/u16:0 prev_pid=11490 prev_prio=120 prev_state=D ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116550.853592: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2705477 pred_demand_scaled=479 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116550.853597: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] d.h3. 116550.873645: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] d.h3. 116550.873650: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=194 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [000] d.h3. 116550.873651: sched_task_util: pid=31055 comm=w-wake util=194 prev_cpu=0 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1458 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [000] d.h4. 116550.873656: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1516796 pred_demand_scaled=139 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [000] dNh4. 116550.873658: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dN.2. 116550.873666: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [000] d..2. 116550.873669: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116550.897178: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1308125 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116550.897194: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          app-4531-4531    [000] d.h3. 116550.917233: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          app-4531-4531    [000] d.h3. 116550.917242: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=4 order_index=0 end_index=0 skip=-1 running=0 min_util=146 spare_rq_cpu=4 min_runnable=0
+          app-4531-4531    [000] d.h3. 116550.917244: sched_task_util: pid=31055 comm=w-wake util=146 prev_cpu=0 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=4479 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          app-4531-4531    [000] d.h3. 116550.917245: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=4
+          app-4531-4531    [000] d.h4. 116550.917273: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1146236 pred_demand_scaled=146 is_compat_t=0 mvp=0 misfit=0
+          app-4531-4531    [000] d.h4. 116550.917281: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116550.917397: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116550.917409: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116550.934179: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1686121 pred_demand_scaled=215 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116550.934195: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116550.954357: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116550.954373: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=158 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116550.954376: sched_task_util: pid=31055 comm=w-wake util=158 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6250 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116550.954392: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1240664 pred_demand_scaled=93 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116550.954403: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116550.954432: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116550.954445: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116550.977786: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1308514 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116550.977833: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=app-1753 next_pid=1753 next_prio=120
+          <idle>-0       [004] d.h3. 116550.997948: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116550.997963: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=163 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116550.997966: sched_task_util: pid=31055 comm=w-wake util=163 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6667 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116550.997996: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1281037 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116550.998007: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116550.998029: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116550.998036: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.014552: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1685714 pred_demand_scaled=215 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116551.014567: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116551.034607: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116551.034613: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=161 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116551.034614: sched_task_util: pid=31055 comm=w-wake util=161 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1979 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116551.034616: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1263330 pred_demand_scaled=107 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116551.034619: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116551.034627: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116551.034630: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.036048: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-1458 next_pid=1458 next_prio=120
+     kworker/1:1-21459   [001] d..2. 116551.036141: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=3 rt_nr_running=0 affine=ff demand=1056854 pred_demand_scaled=35 is_compat_t=0 mvp=0 misfit=0
+     kworker/1:1-21459   [001] d..2. 116551.036149: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=1
+     kworker/1:1-21459   [001] d..2. 116551.036159: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1056854 pred_demand_scaled=35 is_compat_t=0 mvp=0 misfit=0
+     kworker/1:1-21459   [001] dN.2. 116551.036160: sched_stat_wait: comm=w-wake pid=31055 delay=103073 [ns]
+     kworker/1:1-21459   [001] d..2. 116551.036165: sched_switch: prev_comm=kworker/1:1 prev_pid=21459 prev_prio=120 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.038580: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-5128 next_pid=5128 next_prio=120
+        app-5128-5128    [001] d..2. 116551.038776: sched_stat_wait: comm=w-wake pid=31055 delay=225157 [ns]
+        app-5128-5128    [001] d..2. 116551.038781: sched_switch: prev_comm=app-5128 prev_pid=5128 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.042839: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1056854 pred_demand_scaled=245 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.042845: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.062933: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.062939: sched_find_best_target: pid=31055 comm=w-wake start_cpu=6 candidates=0x2 most_spare_cap=0 order_index=1 end_index=0 skip=-1 running=0 min_util=518 spare_rq_cpu=0 min_runnable=0
+          <idle>-0       [001] d.h3. 116551.062940: sched_task_util: pid=31055 comm=w-wake util=518 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=2396 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=6 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.062949: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=4047378 pred_demand_scaled=518 is_compat_t=0 mvp=0 misfit=1
+          <idle>-0       [001] dNh4. 116551.062952: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.062959: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.062962: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d.h2. 116551.063794: sched_find_best_target: pid=31055 comm=w-wake start_cpu=6 candidates=0x1 most_spare_cap=0 order_index=1 end_index=0 skip=-1 running=1 min_util=518 spare_rq_cpu=0 min_runnable=0
+          w-wake-31055   [001] d.h2. 116551.063794: sched_task_util: pid=31055 comm=w-wake util=518 prev_cpu=1 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=1354 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=6 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          w-wake-31055   [001] d..2. 116551.070550: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2499490 pred_demand_scaled=319 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.070559: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+       app-10420-10420   [001] d.h3. 116551.090616: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+       app-10420-10420   [001] d.h3. 116551.090627: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=4 order_index=0 end_index=0 skip=-1 running=0 min_util=228 spare_rq_cpu=4 min_runnable=0
+       app-10420-10420   [001] d.h3. 116551.090629: sched_task_util: pid=31055 comm=w-wake util=228 prev_cpu=1 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=5469 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+       app-10420-10420   [001] d.h3. 116551.090632: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=5
+       app-10420-10420   [001] d.h4. 116551.090665: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1782844 pred_demand_scaled=160 is_compat_t=0 mvp=0 misfit=0
+       app-10420-10420   [001] d.h4. 116551.090680: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116551.090691: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116551.090697: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.091472: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-14597 next_pid=14597 next_prio=120
+       app-10231-10231   [001] d..2. 116551.091478: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1782844 pred_demand_scaled=160 is_compat_t=0 mvp=0 misfit=0
+       app-10231-10231   [001] d..2. 116551.091480: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=1
+       app-10231-10231   [001] d..2. 116551.091487: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1782844 pred_demand_scaled=160 is_compat_t=0 mvp=0 misfit=0
+       app-10231-10231   [001] dN.2. 116551.091491: sched_stat_wait: comm=w-wake pid=31055 delay=24531 [ns]
+       app-10231-10231   [001] d..2. 116551.091497: sched_switch: prev_comm=app-10231 prev_pid=10231 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.109427: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1678266 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.109435: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.129581: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.129594: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=127 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116551.129597: sched_task_util: pid=31055 comm=w-wake util=127 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5781 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.129604: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=992580 pred_demand_scaled=64 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116551.129615: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.129645: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.129657: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.139957: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-4531 next_pid=4531 next_prio=89
+        app-17700-17700   [004] d..2. 116551.139981: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=1 affine=ff demand=976597 pred_demand_scaled=125 is_compat_t=0 mvp=0 misfit=0
+        app-17700-17700   [004] d..2. 116551.139985: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=4
+        app-17700-17700   [004] d..2. 116551.139994: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=976597 pred_demand_scaled=125 is_compat_t=0 mvp=0 misfit=0
+        app-17700-17700   [004] dN.2. 116551.140000: sched_stat_wait: comm=w-wake pid=31055 delay=44740 [ns]
+        app-17700-17700   [004] d..2. 116551.140008: sched_switch: prev_comm=app-17700 prev_pid=17700 prev_prio=116 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.147895: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=kworker/4:1 next_pid=2303 next_prio=120
+     kworker/4:1-2303    [004] d..2. 116551.147906: sched_stat_wait: comm=w-wake pid=31055 delay=20000 [ns]
+     kworker/4:1-2303    [004] d..2. 116551.147917: sched_switch: prev_comm=kworker/4:1 prev_pid=2303 prev_prio=120 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.153424: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1305455 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116551.153439: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116551.173484: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116551.173492: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=153 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116551.173493: sched_task_util: pid=31055 comm=w-wake util=153 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=2500 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116551.173521: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1196582 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116551.173525: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116551.173548: sched_stat_wait: comm=w-wake pid=31055 delay=40938 [ns]
+          <idle>-0       [004] d..2. 116551.173552: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.188942: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2020883 pred_demand_scaled=258 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116551.188954: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116551.209107: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116551.209121: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=159 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116551.209127: sched_task_util: pid=31055 comm=w-wake util=159 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6146 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116551.209134: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1247448 pred_demand_scaled=52 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116551.209145: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116551.209175: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116551.209188: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.233208: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1304531 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116551.233227: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+        app-9405-9405    [004] d.h2. 116551.253256: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+        app-9405-9405    [004] d.h2. 116551.253266: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=147 spare_rq_cpu=0 min_runnable=0
+        app-9405-9405    [004] d.h2. 116551.253267: sched_task_util: pid=31055 comm=w-wake util=147 prev_cpu=4 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=2812 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+        app-9405-9405    [004] d.h2. 116551.253268: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=5
+        app-9405-9405    [004] d.h3. 116551.253283: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1150516 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+        app-9405-9405    [004] d.h3. 116551.253290: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116551.253306: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116551.253312: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.268715: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2018843 pred_demand_scaled=258 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116551.268725: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+          <idle>-0       [005] d.h3. 116551.288770: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] d.h3. 116551.288776: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=157 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [005] d.h3. 116551.288778: sched_task_util: pid=31055 comm=w-wake util=157 prev_cpu=5 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=2500 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [005] d.h4. 116551.288781: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1232162 pred_demand_scaled=42 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [005] dNh4. 116551.288785: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116551.288798: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116551.288802: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.305079: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1677988 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116551.305086: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+          <idle>-0       [005] d.h3. 116551.325131: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] d.h3. 116551.325136: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=204 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [005] d.h3. 116551.325137: sched_task_util: pid=31055 comm=w-wake util=204 prev_cpu=5 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=781 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [005] d.h4. 116551.325139: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1599632 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [005] dNh4. 116551.325140: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116551.325145: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116551.325146: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.327942: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=migration/5 next_pid=56 next_prio=0
+     rcu_preempt-16      [000] d..2. 116551.327947: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1599632 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [000] d..2. 116551.327950: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=0
+     rcu_preempt-16      [000] d..2. 116551.327961: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1599632 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [000] d..2. 116551.327962: sched_stat_wait: comm=w-wake pid=31055 delay=15365 [ns]
+     rcu_preempt-16      [000] d..2. 116551.327964: sched_switch: prev_comm=rcu_preempt prev_pid=16 prev_prio=98 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116551.331689: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1599632 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116551.331695: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] d.h3. 116551.351742: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] d.h3. 116551.351745: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=496 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [000] d.h3. 116551.351746: sched_task_util: pid=31055 comm=w-wake util=496 prev_cpu=0 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=781 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [000] d.h4. 116551.351752: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=3879013 pred_demand_scaled=496 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [000] dNh4. 116551.351754: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dN.2. 116551.351760: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [000] d..2. 116551.351761: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116551.351897: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-30709 next_pid=30709 next_prio=120
+     rcu_preempt-16      [005] d..2. 116551.351913: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=3 rt_nr_running=1 affine=ff demand=3879013 pred_demand_scaled=496 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [005] d..2. 116551.351915: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=5
+     rcu_preempt-16      [005] d..2. 116551.351921: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=3879013 pred_demand_scaled=496 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [005] d..2. 116551.351923: sched_stat_wait: comm=w-wake pid=31055 delay=25312 [ns]
+     rcu_preempt-16      [005] d..2. 116551.351927: sched_switch: prev_comm=rcu_preempt prev_pid=16 prev_prio=98 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.351938: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-4531 next_pid=4531 next_prio=89
+                  app-31-31      [001] d..2. 116551.351986: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=1 affine=ff demand=3879013 pred_demand_scaled=496 is_compat_t=0 mvp=0 misfit=0
+                  app-31-31      [001] d..2. 116551.351987: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=1
+                  app-31-31      [001] d..2. 116551.351994: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=3879013 pred_demand_scaled=496 is_compat_t=0 mvp=0 misfit=0
+                  app-31-31      [001] dN.2. 116551.351996: sched_stat_wait: comm=w-wake pid=31055 delay=56563 [ns]
+                  app-31-31      [001] d..2. 116551.351998: sched_switch: prev_comm=app-31 prev_pid=31 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.360936: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2076428 pred_demand_scaled=265 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.360946: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.381094: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.381108: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=282 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116551.381111: sched_task_util: pid=31055 comm=w-wake util=282 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5834 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.381139: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2208264 pred_demand_scaled=231 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116551.381150: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.381175: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.381184: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.392833: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2263473 pred_demand_scaled=250 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.392844: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.412991: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.413005: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=293 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116551.413008: sched_task_util: pid=31055 comm=w-wake util=293 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5729 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.413036: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2292614 pred_demand_scaled=231 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116551.413046: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.413073: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.413081: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.413219: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=rcu_preempt next_pid=16 next_prio=98
+                  app-17-17      [005] d..2. 116551.413224: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=1 affine=ff demand=2292614 pred_demand_scaled=231 is_compat_t=0 mvp=0 misfit=0
+                  app-17-17      [005] d..2. 116551.413227: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=5
+                  app-17-17      [005] d..2. 116551.413233: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2292614 pred_demand_scaled=231 is_compat_t=0 mvp=0 misfit=0
+                  app-17-17      [005] d..2. 116551.413236: sched_stat_wait: comm=w-wake pid=31055 delay=21042 [ns]
+                  app-17-17      [005] d..2. 116551.413241: sched_switch: prev_comm=app-17 prev_pid=17 prev_prio=98 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.424837: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1982837 pred_demand_scaled=253 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116551.424846: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+          <idle>-0       [005] d.h3. 116551.444971: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] d.h3. 116551.444982: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=236 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [005] d.h3. 116551.444984: sched_task_util: pid=31055 comm=w-wake util=236 prev_cpu=5 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=4844 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [005] d.h4. 116551.445006: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1846881 pred_demand_scaled=253 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [005] dNh4. 116551.445014: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116551.445034: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116551.445043: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.455323: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2273264 pred_demand_scaled=290 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116551.455334: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+          <idle>-0       [005] d.h3. 116551.475380: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] d.h3. 116551.475389: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=234 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [005] d.h3. 116551.475391: sched_task_util: pid=31055 comm=w-wake util=234 prev_cpu=5 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=3646 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [005] d.h4. 116551.475411: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1830783 pred_demand_scaled=180 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [005] dNh4. 116551.475418: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116551.475431: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116551.475436: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.476008: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=migration/5 next_pid=56 next_prio=0
+     migration/5-56      [005] d..2. 116551.476021: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1495649 pred_demand_scaled=8 is_compat_t=0 mvp=0 misfit=0
+     migration/5-56      [005] d..2. 116551.476028: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=0
+     migration/5-56      [005] d..2. 116551.476040: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=4 rt_nr_running=0 affine=ff demand=1495649 pred_demand_scaled=8 is_compat_t=0 mvp=0 misfit=0
+     migration/5-56      [005] d..2. 116551.476058: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=5 rt_nr_running=0 affine=ff demand=1495649 pred_demand_scaled=8 is_compat_t=0 mvp=0 misfit=0
+     migration/5-56      [005] d..2. 116551.476061: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=5
+     migration/5-56      [005] d..2. 116551.476073: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1495649 pred_demand_scaled=8 is_compat_t=0 mvp=0 misfit=0
+     migration/5-56      [005] d..2. 116551.476081: sched_stat_wait: comm=w-wake pid=31055 delay=52969 [ns]
+     migration/5-56      [005] d..2. 116551.476090: sched_switch: prev_comm=migration/5 prev_pid=56 prev_prio=0 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.498378: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1305415 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116551.498392: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+          <idle>-0       [005] d.h3. 116551.518540: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] d.h3. 116551.518554: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=178 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [005] d.h3. 116551.518557: sched_task_util: pid=31055 comm=w-wake util=178 prev_cpu=5 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6406 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [005] d.h4. 116551.518586: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1395082 pred_demand_scaled=178 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [005] dNh4. 116551.518597: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116551.518624: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116551.518631: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.534177: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1686644 pred_demand_scaled=215 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116551.534192: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+           app-15409-15409   [005] d.h2. 116551.554239: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+           app-15409-15409   [005] d.h2. 116551.554259: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=163 spare_rq_cpu=0 min_runnable=0
+           app-15409-15409   [005] d.h2. 116551.554262: sched_task_util: pid=31055 comm=w-wake util=163 prev_cpu=5 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=8178 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+           app-15409-15409   [005] d.h2. 116551.554264: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=4
+           app-15409-15409   [005] d.h3. 116551.554281: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1280497 pred_demand_scaled=93 is_compat_t=0 mvp=0 misfit=0
+           app-15409-15409   [005] d.h3. 116551.554298: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116551.554320: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116551.554328: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.577358: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1307842 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116551.577371: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+        app-3919-3919    [004] d.h2. 116551.597410: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+        app-3919-3919    [004] d.h2. 116551.597421: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=151 spare_rq_cpu=0 min_runnable=0
+        app-3919-3919    [004] d.h2. 116551.597424: sched_task_util: pid=31055 comm=w-wake util=151 prev_cpu=4 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=5937 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+        app-3919-3919    [004] d.h2. 116551.597426: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=5
+        app-3919-3919    [004] d.h3. 116551.597456: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1185458 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+        app-3919-3919    [004] d.h3. 116551.597466: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116551.597481: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116551.597487: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.611849: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-52 next_pid=52 next_prio=98
+                  app-52-52      [005] d..2. 116551.611874: sched_stat_wait: comm=w-wake pid=31055 delay=31198 [ns]
+                  app-52-52      [005] d..2. 116551.611877: sched_switch: prev_comm=app-52 prev_pid=52 prev_prio=98 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [005] d..2. 116551.613179: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1684921 pred_demand_scaled=215 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [005] d..2. 116551.613185: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/5 next_pid=0 next_prio=120
+          <idle>-0       [005] d.h3. 116551.633232: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] d.h3. 116551.633237: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x20 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=159 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [005] d.h3. 116551.633238: sched_task_util: pid=31055 comm=w-wake util=159 prev_cpu=5 candidates=0x20 best_energy_cpu=5 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1094 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [005] d.h4. 116551.633239: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1247415 pred_demand_scaled=95 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [005] dNh4. 116551.633241: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=005
+          <idle>-0       [005] dN.2. 116551.633246: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [005] d..2. 116551.633247: sched_switch: prev_comm=swapper/5 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+       uclampset-31226   [004] d..2. 116551.633902: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1247415 pred_demand_scaled=95 is_compat_t=0 mvp=0 misfit=0
+       uclampset-31226   [004] d..2. 116551.633906: sched_enq_deq_task: cpu=5 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1247415 pred_demand_scaled=95 is_compat_t=0 mvp=0 misfit=0
+       uclampset-31226   [004] d..2. 116551.633908: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          w-wake-31055   [005] d..2. 116551.639931: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-11933 next_pid=11933 next_prio=104
+     rcu_preempt-16      [000] d..2. 116551.639938: sched_enq_deq_task: cpu=5 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1228847 pred_demand_scaled=319 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [000] d..2. 116551.639940: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=5 dest_cpu=0
+     rcu_preempt-16      [000] d..2. 116551.639945: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1228847 pred_demand_scaled=319 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [000] d..2. 116551.639946: sched_stat_wait: comm=w-wake pid=31055 delay=17343 [ns]
+     rcu_preempt-16      [000] d..2. 116551.639948: sched_switch: prev_comm=rcu_preempt prev_pid=16 prev_prio=98 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116551.640736: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1228847 pred_demand_scaled=319 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116551.640742: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+         app-5137-5137    [000] d.h2. 116551.660787: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+         app-5137-5137    [000] d.h2. 116551.660793: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=1 order_index=0 end_index=0 skip=-1 running=0 min_util=382 spare_rq_cpu=1 min_runnable=0
+         app-5137-5137    [000] d.h2. 116551.660793: sched_task_util: pid=31055 comm=w-wake util=382 prev_cpu=0 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=886 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+         app-5137-5137    [000] d.h2. 116551.660794: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=1
+         app-5137-5137    [000] d.h3. 116551.660804: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2987010 pred_demand_scaled=382 is_compat_t=0 mvp=0 misfit=0
+         app-5137-5137    [000] d.h3. 116551.660808: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.660823: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.660825: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.663979: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-52 next_pid=52 next_prio=98
+   kworker/u16:2-16729   [001] d..2. 116551.664046: sched_stat_wait: comm=w-wake pid=31055 delay=76875 [ns]
+   kworker/u16:2-16729   [001] d..2. 116551.664050: sched_switch: prev_comm=kworker/u16:2 prev_pid=16729 prev_prio=120 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.668336: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=3625088 pred_demand_scaled=464 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.668343: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.688391: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.688396: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=229 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116551.688397: sched_task_util: pid=31055 comm=w-wake util=229 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1563 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.688399: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1791580 pred_demand_scaled=49 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116551.688402: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.688409: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.688411: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.702098: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2023593 pred_demand_scaled=259 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.702105: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.722150: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.722152: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=196 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116551.722153: sched_task_util: pid=31055 comm=w-wake util=196 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=782 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.722154: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1534846 pred_demand_scaled=102 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116551.722157: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.722160: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.722162: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.739336: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1334724 pred_demand_scaled=170 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.739349: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.759495: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.759510: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=204 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116551.759513: sched_task_util: pid=31055 comm=w-wake util=204 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5781 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.759540: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1599733 pred_demand_scaled=204 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116551.759550: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.759578: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.759585: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.771883: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+                  app-17-17      [001] d..2. 116551.771905: sched_stat_wait: comm=w-wake pid=31055 delay=31718 [ns]
+                  app-17-17      [001] d..2. 116551.771910: sched_switch: prev_comm=app-17 prev_pid=17 prev_prio=98 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.775095: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1692060 pred_demand_scaled=216 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.775104: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.795149: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.795156: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=170 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116551.795158: sched_task_util: pid=31055 comm=w-wake util=170 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=2813 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.795175: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1334740 pred_demand_scaled=128 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116551.795180: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.795194: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.795199: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.815866: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+   kworker/u19:1-21607   [004] d..2. 116551.815874: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=1 affine=ff demand=1311606 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+   kworker/u19:1-21607   [004] d..2. 116551.815877: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=4
+   kworker/u19:1-21607   [004] d..2. 116551.815883: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1311606 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+   kworker/u19:1-21607   [004] d..2. 116551.815885: sched_stat_wait: comm=w-wake pid=31055 delay=17813 [ns]
+   kworker/u19:1-21607   [004] d..2. 116551.815889: sched_switch: prev_comm=kworker/u19:1 prev_pid=21607 prev_prio=100 prev_state=D ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.817865: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1311606 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116551.817890: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=app-17080 next_pid=17080 next_prio=120
+          <idle>-0       [004] d.h3. 116551.838032: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116551.838045: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=165 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116551.838049: sched_task_util: pid=31055 comm=w-wake util=165 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6250 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116551.838077: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1292939 pred_demand_scaled=165 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116551.838088: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116551.838108: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116551.838115: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.854483: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1686211 pred_demand_scaled=215 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116551.854495: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116551.874663: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116551.874679: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=161 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116551.874682: sched_task_util: pid=31055 comm=w-wake util=161 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6198 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116551.874714: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1258590 pred_demand_scaled=104 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116551.874724: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116551.874749: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116551.874757: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.892658: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1978542 pred_demand_scaled=253 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116551.892671: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+              app-16550-16550   [004] d.h4. 116551.912706: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+              app-16550-16550   [004] d.h4. 116551.912712: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=1 order_index=0 end_index=0 skip=-1 running=0 min_util=117 spare_rq_cpu=1 min_runnable=0
+              app-16550-16550   [004] d.h4. 116551.912712: sched_task_util: pid=31055 comm=w-wake util=117 prev_cpu=4 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=1094 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+              app-16550-16550   [004] d.h4. 116551.912713: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=1
+              app-16550-16550   [004] d.h5. 116551.912719: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=919006 pred_demand_scaled=41 is_compat_t=0 mvp=0 misfit=0
+              app-16550-16550   [004] d.h5. 116551.912722: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.912727: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.912729: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.919418: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-5128 next_pid=5128 next_prio=120
+          app-4531-4531    [004] d..2. 116551.919429: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1572018 pred_demand_scaled=299 is_compat_t=0 mvp=0 misfit=0
+          app-4531-4531    [004] d..2. 116551.919430: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=4
+          app-4531-4531    [004] d..2. 116551.919436: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1572018 pred_demand_scaled=299 is_compat_t=0 mvp=0 misfit=0
+          app-4531-4531    [004] d..2. 116551.919438: sched_stat_wait: comm=w-wake pid=31055 delay=19791 [ns]
+          app-4531-4531    [004] d..2. 116551.919439: sched_switch: prev_comm=app-4531 prev_pid=4531 prev_prio=89 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.919866: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+     rcu_preempt-16      [001] d..2. 116551.919867: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=1 affine=ff demand=1572018 pred_demand_scaled=334 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [001] d..2. 116551.919868: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=1
+     rcu_preempt-16      [001] d..2. 116551.919874: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1572018 pred_demand_scaled=334 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [001] d..2. 116551.919876: sched_stat_wait: comm=w-wake pid=31055 delay=8073 [ns]
+     rcu_preempt-16      [001] d..2. 116551.919877: sched_switch: prev_comm=rcu_preempt prev_pid=16 prev_prio=98 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.919887: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=rcu_preempt next_pid=16 next_prio=98
+     rcu_preempt-16      [001] d..2. 116551.919890: sched_stat_wait: comm=w-wake pid=31055 delay=9688 [ns]
+     rcu_preempt-16      [001] d..2. 116551.919894: sched_switch: prev_comm=rcu_preempt prev_pid=16 prev_prio=98 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.920790: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1572018 pred_demand_scaled=335 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.920793: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.940849: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.940858: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=412 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116551.940859: sched_task_util: pid=31055 comm=w-wake util=412 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=2969 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.940880: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=3219677 pred_demand_scaled=412 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116551.940886: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.940903: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.940908: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.948022: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=3556949 pred_demand_scaled=455 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116551.948028: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116551.968075: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116551.968079: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=226 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116551.968079: sched_task_util: pid=31055 comm=w-wake util=226 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=938 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116551.968080: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1770643 pred_demand_scaled=23 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116551.968082: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116551.968087: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116551.968088: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116551.971862: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-52 next_pid=52 next_prio=98
+                  app-17-17      [000] d..2. 116551.971866: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=1 affine=ff demand=2022722 pred_demand_scaled=202 is_compat_t=0 mvp=0 misfit=0
+                  app-17-17      [000] d..2. 116551.971868: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=0
+                  app-17-17      [000] d..2. 116551.971874: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2022722 pred_demand_scaled=202 is_compat_t=0 mvp=0 misfit=0
+                   app-31244-31244   [004] d..2. 116551.971881: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=2022722 pred_demand_scaled=202 is_compat_t=0 mvp=0 misfit=0
+                   app-31244-31244   [004] d..2. 116551.971884: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=4
+                   app-31244-31244   [004] d..2. 116551.971894: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2022722 pred_demand_scaled=202 is_compat_t=0 mvp=0 misfit=0
+                   app-31244-31244   [004] dN.2. 116551.971897: sched_stat_wait: comm=w-wake pid=31055 delay=15729 [ns]
+                   app-31244-31244   [004] d..2. 116551.971900: sched_switch: prev_comm=app-31244 prev_pid=31244 prev_prio=120 prev_state=Z ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116551.976740: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2022722 pred_demand_scaled=227 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116551.976751: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116551.996792: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116551.996798: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=282 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116551.996799: sched_task_util: pid=31055 comm=w-wake util=282 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1666 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116551.996809: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=2203779 pred_demand_scaled=412 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116551.996812: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116551.996819: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116551.996822: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116552.004058: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=3608720 pred_demand_scaled=461 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116552.004065: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116552.024113: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116552.024119: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=199 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116552.024120: sched_task_util: pid=31055 comm=w-wake util=199 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=1927 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116552.024123: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1556046 pred_demand_scaled=25 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116552.024126: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116552.024136: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116552.024139: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116552.043426: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1614738 pred_demand_scaled=166 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116552.043437: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116552.063581: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116552.063594: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=207 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116552.063598: sched_task_util: pid=31055 comm=w-wake util=207 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6146 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116552.063626: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1620317 pred_demand_scaled=207 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116552.063636: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116552.063666: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116552.063672: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116552.075812: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=kworker/4:1 next_pid=2303 next_prio=120
+     kworker/4:1-2303    [004] d..2. 116552.075845: sched_stat_wait: comm=w-wake pid=31055 delay=38646 [ns]
+     kworker/4:1-2303    [004] d..2. 116552.075852: sched_switch: prev_comm=kworker/4:1 prev_pid=2303 prev_prio=120 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116552.077590: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1692393 pred_demand_scaled=216 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116552.077596: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116552.097753: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116552.097767: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=169 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116552.097770: sched_task_util: pid=31055 comm=w-wake util=169 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6250 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116552.097799: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1322182 pred_demand_scaled=100 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116552.097810: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116552.097835: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116552.097843: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116552.117092: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1675533 pred_demand_scaled=214 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [004] d..2. 116552.117103: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/4 next_pid=0 next_prio=120
+          <idle>-0       [004] d.h3. 116552.137256: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] d.h3. 116552.137271: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x10 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=114 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [004] d.h3. 116552.137274: sched_task_util: pid=31055 comm=w-wake util=114 prev_cpu=4 candidates=0x10 best_energy_cpu=4 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=6563 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [004] d.h4. 116552.137304: sched_enq_deq_task: cpu=4 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=897336 pred_demand_scaled=100 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [004] dNh4. 116552.137316: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=004
+          <idle>-0       [004] dN.2. 116552.137342: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [004] d..2. 116552.137351: sched_switch: prev_comm=swapper/4 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116552.137424: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R+ ==> next_comm=kworker/4:1 next_pid=2303 next_prio=120
+     kworker/4:1-2303    [004] d..2. 116552.137439: sched_stat_wait: comm=w-wake pid=31055 delay=50729 [ns]
+     kworker/4:1-2303    [004] d..2. 116552.137445: sched_switch: prev_comm=kworker/4:1 prev_pid=2303 prev_prio=120 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116552.141296: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-1458 next_pid=1458 next_prio=120
+          app-8343-8343    [004] d..2. 116552.141582: sched_stat_wait: comm=w-wake pid=31055 delay=310937 [ns]
+          app-8343-8343    [004] d..2. 116552.141592: sched_switch: prev_comm=app-8343 prev_pid=8343 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [004] d..2. 116552.152667: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17080 next_pid=17080 next_prio=120
+       app-12373-12373   [000] d..2. 116552.153209: sched_enq_deq_task: cpu=4 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=1006879 pred_demand_scaled=128 is_compat_t=0 mvp=0 misfit=0
+       app-12373-12373   [000] d..2. 116552.153214: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=4 dest_cpu=0
+       app-12373-12373   [000] d..2. 116552.153228: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1006879 pred_demand_scaled=128 is_compat_t=0 mvp=0 misfit=0
+       app-12373-12373   [000] dN.2. 116552.153233: sched_stat_wait: comm=w-wake pid=31055 delay=561823 [ns]
+       app-12373-12373   [000] d..2. 116552.153239: sched_switch: prev_comm=app-12373 prev_pid=12373 prev_prio=120 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116552.160948: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1305479 pred_demand_scaled=167 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [000] d..2. 116552.160960: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] dnh3. 116552.181000: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dnh3. 116552.181011: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=1 order_index=0 end_index=0 skip=-1 running=0 min_util=140 spare_rq_cpu=1 min_runnable=0
+          <idle>-0       [000] dnh3. 116552.181013: sched_task_util: pid=31055 comm=w-wake util=140 prev_cpu=0 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=4166 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [000] dnh3. 116552.181015: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=1
+          <idle>-0       [000] dnh4. 116552.181050: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1094176 pred_demand_scaled=140 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [000] dnh4. 116552.181060: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116552.181186: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116552.181196: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116552.183859: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+                  app-17-17      [001] d..2. 116552.183899: sched_stat_wait: comm=w-wake pid=31055 delay=54688 [ns]
+                  app-17-17      [001] d..2. 116552.183908: sched_switch: prev_comm=app-17 prev_pid=17 prev_prio=98 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116552.191861: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-4531 next_pid=4531 next_prio=89
+          app-4531-4531    [001] d..2. 116552.191923: sched_stat_wait: comm=w-wake pid=31055 delay=70417 [ns]
+          app-4531-4531    [001] d..2. 116552.191931: sched_switch: prev_comm=app-4531 prev_pid=4531 prev_prio=89 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116552.197604: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2012941 pred_demand_scaled=257 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116552.197625: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116552.217784: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116552.217799: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=164 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116552.217802: sched_task_util: pid=31055 comm=w-wake util=164 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5937 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116552.217809: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1285448 pred_demand_scaled=81 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116552.217820: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116552.217852: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116552.217864: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116552.238922: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1704643 pred_demand_scaled=218 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116552.238934: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+              app-16550-16550   [001] d.h2. 116552.258971: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+              app-16550-16550   [001] d.h2. 116552.258977: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x1 most_spare_cap=0 order_index=0 end_index=0 skip=-1 running=0 min_util=123 spare_rq_cpu=0 min_runnable=0
+              app-16550-16550   [001] d.h2. 116552.258977: sched_task_util: pid=31055 comm=w-wake util=123 prev_cpu=1 candidates=0x1 best_energy_cpu=0 sync=0 need_idle=0 fastpath=0 placement_boost=0 latency=1927 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+              app-16550-16550   [001] d.h2. 116552.258978: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=1 dest_cpu=0
+              app-16550-16550   [001] d.h3. 116552.258982: sched_enq_deq_task: cpu=0 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=966001 pred_demand_scaled=123 is_compat_t=0 mvp=0 misfit=0
+              app-16550-16550   [001] d.h3. 116552.258986: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=000
+          <idle>-0       [000] dN.2. 116552.258991: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [000] d..2. 116552.258992: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [000] d..2. 116552.259841: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=kworker/0:2 next_pid=9340 next_prio=120
+     rcu_preempt-16      [001] d..2. 116552.259844: sched_enq_deq_task: cpu=0 dequeue comm=w-wake pid=31055 prio=120 nr_running=2 rt_nr_running=0 affine=ff demand=851523 pred_demand_scaled=123 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [001] d..2. 116552.259845: sched_migrate_task: comm=w-wake pid=31055 prio=120 orig_cpu=0 dest_cpu=1
+     rcu_preempt-16      [001] d..2. 116552.259849: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=851523 pred_demand_scaled=123 is_compat_t=0 mvp=0 misfit=0
+     rcu_preempt-16      [001] d..2. 116552.259850: sched_stat_wait: comm=w-wake pid=31055 delay=8438 [ns]
+     rcu_preempt-16      [001] d..2. 116552.259852: sched_switch: prev_comm=rcu_preempt prev_pid=16 prev_prio=98 prev_state=I ==> next_comm=w-wake next_pid=31055 next_prio=120
+       uclampset-31259   [000] d..2. 116552.263866: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=851523 pred_demand_scaled=274 is_compat_t=0 mvp=0 misfit=0
+       uclampset-31259   [000] d..2. 116552.263870: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=851523 pred_demand_scaled=274 is_compat_t=0 mvp=0 misfit=0
+       uclampset-31259   [000] d..2. 116552.263871: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          w-wake-31055   [001] d..2. 116552.266066: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=851523 pred_demand_scaled=274 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116552.266072: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116552.286228: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116552.286242: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=428 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116552.286245: sched_task_util: pid=31055 comm=w-wake util=428 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5782 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116552.286273: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=3346327 pred_demand_scaled=428 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116552.286283: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116552.286310: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116552.286320: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116552.293502: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=2827672 pred_demand_scaled=428 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116552.293513: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116552.313638: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116552.313648: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=216 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116552.313650: sched_task_util: pid=31055 comm=w-wake util=216 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=3438 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116552.313658: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=1693492 pred_demand_scaled=123 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116552.313664: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116552.313681: sched_stat_wait: comm=w-wake pid=31055 delay=0 [ns]
+          <idle>-0       [001] d..2. 116552.313689: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116552.319899: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+                  app-17-17      [001] d..2. 116552.319954: sched_stat_wait: comm=w-wake pid=31055 delay=75938 [ns]
+                  app-17-17      [001] d..2. 116552.319964: sched_switch: prev_comm=app-17 prev_pid=17 prev_prio=98 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116552.328054: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=R ==> next_comm=app-17 next_pid=17 next_prio=98
+                  app-17-17      [001] d..2. 116552.328074: sched_stat_wait: comm=w-wake pid=31055 delay=37917 [ns]
+                  app-17-17      [001] d..2. 116552.328084: sched_switch: prev_comm=app-17 prev_pid=17 prev_prio=98 prev_state=S ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116552.335639: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1355174 pred_demand_scaled=173 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116552.335650: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120
+          <idle>-0       [001] d.h3. 116552.355799: sched_waking: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] d.h3. 116552.355817: sched_find_best_target: pid=31055 comm=w-wake start_cpu=0 candidates=0x2 most_spare_cap=-1 order_index=0 end_index=0 skip=-1 running=0 min_util=124 spare_rq_cpu=-1 min_runnable=4294967295
+          <idle>-0       [001] d.h3. 116552.355820: sched_task_util: pid=31055 comm=w-wake util=124 prev_cpu=1 candidates=0x2 best_energy_cpu=1 sync=0 need_idle=0 fastpath=2 placement_boost=0 latency=5937 stune_boosted=0 is_rtg=0 rtg_skip_min=0 start_cpu=0 unfilter=100000000 affinity=ff task_boost=0 low_latency=0 iowaited=0 load_boost=0 sync_state=1 pipeline_cpu=-1 yield_cnt=0
+          <idle>-0       [001] d.h4. 116552.355847: sched_enq_deq_task: cpu=1 enqueue comm=w-wake pid=31055 prio=120 nr_running=0 rt_nr_running=0 affine=ff demand=975136 pred_demand_scaled=124 is_compat_t=0 mvp=0 misfit=0
+          <idle>-0       [001] dNh4. 116552.355858: sched_wakeup: comm=w-wake pid=31055 prio=120 target_cpu=001
+          <idle>-0       [001] dN.2. 116552.356033: sched_stat_wait: comm=w-wake pid=31055 delay=52083 [ns]
+          <idle>-0       [001] d..2. 116552.356041: sched_switch: prev_comm=swapper/1 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=w-wake next_pid=31055 next_prio=120
+          w-wake-31055   [001] d..2. 116552.374208: sched_enq_deq_task: cpu=1 dequeue comm=w-wake pid=31055 prio=120 nr_running=1 rt_nr_running=0 affine=ff demand=1683701 pred_demand_scaled=215 is_compat_t=0 mvp=0 misfit=0
+          w-wake-31055   [001] d..2. 116552.374226: sched_switch: prev_comm=w-wake prev_pid=31055 prev_prio=120 prev_state=S ==> next_comm=swapper/1 next_pid=0 next_prio=120

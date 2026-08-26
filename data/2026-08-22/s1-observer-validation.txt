@@ -1,0 +1,251 @@
+S1 dominant-thread observer -- V1..V6 device validation
+OnePlus 13 (CPH2653), kernel 6.6.118-android15-8, Android 16 / BP2A.250605.015
+Shell under test: /system/bin/sh = mksh R59.
+Foreground app identities are written as app-A / app-B; only thread names from
+synthetic workers are reproduced verbatim.
+
+================================================================================
+0. Why the shell matters, measured before anything else
+================================================================================
+`type printf`  -> printf is a tracked alias for /system/bin/printf   (NOT builtin)
+`type echo`    -> echo is a shell builtin
+
+135 iterations, /proc/uptime centisecond clock:
+  printf 'a b c\n' >/dev/null   870 ms      (6.4 ms per fork)
+  echo   'a b c'   >/dev/null     0 ms
+  no-op                          10 ms
+
+One snapshot of 135 top-app threads:
+  read schedstat only                        10 ms
+  read stat only                             20 ms
+  read stat + split + field 37               20 ms
+  append with printf, reopening per line    880 ms
+  append with printf, single open           880 ms   <- the reopen was never the cost
+  whole snapshot rewritten with echo         20 ms   <- 48x
+
+================================================================================
+1. V1 -- zero performance writes                                          PASS
+================================================================================
+Method: A/B/A phases, only the middle one runs the observer; full node snapshot
+before and after each phase, plus a 1 Hz sampler of the four mandated nodes.
+perfd was live throughout (status: level=2 held=yes cfb=0 prime=3283200), so the
+4 Hz re-assert of cpu_max_freq is present in every phase.
+
+Nodes covered: msm_performance/cpu_max_freq, cpufreq_bouncing/enable,
+cpu.uclamp.{min,max,latency_sensitive}/shares/schedtune.boost/qos_* for 9 cpuctl
+groups, cpus/effective_cpus/sched_load_balance for 9 cpusets, scaling_{max,min}_freq
+and governor for policy0/2/6, sched_util_clamp_* sysctls, task_overload row count.
+
+round 1  A(30s, no obs)  pre/post diff: none      1 Hz distinct states: 1 of 30
+         B(30s, OBSERVER) pre/post diff: none     1 Hz distinct states: 1 of 30
+         C(30s, no obs)  pre/post diff: 3 nodes   1 Hz distinct states: 1 of 30
+              /dev/cpuctl/{foreground,background,system-background}/cpu.uclamp.max
+              50.00 -> max
+round 2  B(25s, OBSERVER) diff: none
+         A(25s, no obs)   diff: none
+         B(25s, OBSERVER) diff: none
+              all three nodes back at 50.00 -- the framework oscillates them
+
+The only node movement in 165 s of sampling landed in a no-observer phase and
+reverted on its own. The harness is demonstrably able to see a change; it never
+saw one attributable to the observer.
+
+================================================================================
+2. V2 -- lock, signals, cleanup                              FAIL -> fixed -> PASS
+================================================================================
+DEFECT: TERM and INT ended the process but reported exit 0, not the 130 the
+handler asks for. Isolated with a two-line reproduction:
+
+  trap 'exit 130' TERM                                    -> status 130
+  trap 'cleanup; exit 130' TERM ; trap cleanup EXIT       -> status 0
+
+mksh takes the status of the EXIT trap's last command. `rm -rf` succeeds, so the
+handler overwrote 130 with 0 and no caller could tell an aborted trace from a
+completed one. Fixed with `trap 'rc=$?; cleanup; exit $rc' EXIT`.
+
+After the fix:
+  second instance while one runs        exit 3, "observer already running as pid N"
+  TERM                                  exit 130, lock removed
+  INT                                   exit 130, lock removed
+  normal completion                     exit 0,   lock removed
+  after SIGKILL leaves a stale lock     next run reclaims it, exit 0
+  restart after abort                   exit 0
+
+TERM really ends it, checked against a demonstrated production rate:
+  t=8s: 30 windows.  TERM.  +4s: 30 windows.  +8s: 30 windows.
+  no END line, process dead, no leftover observer processes, lock removed.
+
+================================================================================
+3. V3 -- top-app identity                                                  PASS
+================================================================================
+system_server (uid 1000) was present in /dev/cpuset/top-app/cgroup.procs during
+the whole session and never appeared in the observer's TGID set -- the uid>=10000
+filter works, and it is a UID filter, not a name filter.
+
+Discovery method changed after measuring both against each other:
+  via tasks + 163 /proc/<tid>/status reads   40 ms   -> tgids 10622 26538
+  via cgroup.procs + 3 reads                 20 ms   -> tgids 10622 26538
+  identical result, half the cost.
+
+top_app_changed, exercised by really changing the kernel cpuset membership
+(a uid-10999 worker moved in at t=4s and killed at t=8s during a 12 s trace):
+  EVENT|seq=16|type=top_app_changed|from=A,B|to=A,B,W
+  EVENT|seq=32|type=top_app_changed|from=A,B,W|to=A,B
+  45 windows: 30 with the two-app set, 15 with the three-process set, none joined
+  across the transition.
+
+The gap this section first reported -- no real app-to-app switch, because the
+device was locked (deviceLocked=1) and launch/switch needs an unlock -- was
+closed afterwards on an unlocked device, and the verdict above is PASS on that
+later run, not on the synthetic cpuset move alone.
+
+Real app-to-app switching, five launches inside one 46 s trace
+(Chrome -> Clock -> Calculator -> Settings -> Chrome), with the kernel cpuset
+sampled independently at 250 ms alongside the observer:
+
+  distinct app-UID TGID sets seen by the independent sampler   7
+  distinct sets reported by the observer                       6
+  top_app_changed events emitted                               6
+  windows joined across a transition                           0
+  system_server (uid 1000) in the observer's TGID set          never
+
+The one set the observer did not report existed for less than a single 250 ms
+window. A transition shorter than the interval is collapsed into its neighbours;
+that is sampling, not a parse defect, but a consumer counting transitions has to
+know it. Android's own cpuset transition did not flap: each real switch produced
+one event, not a burst.
+
+Two properties of top-app on this ROM came out of the same trace, and both bound
+what any conclusion from this tool can mean:
+  - top-app is not one app: up to seven application processes were resident at
+    once, so "the dominant thread of the foreground app" is really "the dominant
+    thread of the top-app cpuset".
+  - a system-UID foreground app is invisible: launching Settings (uid 1000)
+    leaves the observer with only the residual app-UID processes.
+
+PROVENANCE: the per-window raw lines of this 46 s run were written to
+/data/local/tmp/dto-v, which was removed during device restore before the run
+was committed. What survives is the derived counts above and the same result in
+docs/DOMINANT_THREAD_OBSERVER.md section V3. The nine traces under
+data/2026-08-22/s1-traces/ are S1 collection runs, not this validation run.
+
+================================================================================
+4. V4 -- /proc/<tid>/stat field offset                       FAIL -> fixed -> PASS
+================================================================================
+DEFECT, and not a hypothetical one. The scaffold stripped the comm with a
+shortest match, `${line#*) }`, on the argument that app thread names practically
+never contain ") ". A scan of all 14731 live threads found otherwise:
+
+  3 threads with ')' in comm, 2 of them with ') ':  "AdWorker(NG) #1"
+  raw: 11781 (AdWorker(NG) #1) S 1962 1962 0 0 -1 ...
+       shortest match -> processor = -1        <- looks like a legitimate value
+       longest match  -> processor = 2
+       independent awk (split at last ')') = 2
+
+Longest match cannot overshoot: of 14734 stat lines, 0 have a parenthesis in the
+tail after the comm.
+
+Cross-check with a controlled thread (uid 10999, moved into top-app, renamed to
+"AdWorker(NG) #1" via /proc/self/comm, then pinned -- the pin must come after the
+cpuset move, since attaching to a cpuset rewrites cpus_allowed):
+
+  pinned cpu 3, mask 0x8:  observer cpu_start/cpu_end = 3/3 in 39 of 39 windows
+                           independent awk = 3 in 40 of 40 samples
+                           Cpus_allowed_list = 3
+  pinned cpu 5, mask 0x20: observer = 5/5 in 20 of 20 windows, awk = 5
+  same thread, one line reverted to the shortest match:
+                           observer = 17/17, on an eight-core device
+
+runtime_pct for that fully busy pinned thread: 96.0 .. 102.8 %. The excursions
+past 100 are the 10 ms clock quantising a 250 ms window, not a parse error.
+
+================================================================================
+5. V5 -- uclamp                                                            PASS
+================================================================================
+Module set to level 0 for this test: perfd runs `uclampset -a -M 1024` against
+every top-app app pid at 4 Hz, which would race the value under test.
+
+  guard-imposed value (oplus task_overload clamped the busy worker after 5 s):
+      observer uclamp_max 500 in 23 of 23 rows
+      direct /proc/<tid>/sched 500 in 24 of 24 samples
+  uclampset -M 700:  observer 700 in 23 of 23, direct 700
+  uclampset -M 640 (re-run after the enrichment rewrite): observer 640, direct 640
+
+FINDING, and the reason a field was added. The task's requested uclamp.max and
+its effective value diverge, both read in ONE awk pass so there is no skew:
+
+  30 samples of a continuously running, guard-clamped worker
+      req=1024 eff=1024   13 samples
+      req=500  eff=1024   17 samples
+  same thread, SIGSTOPped
+      req=500  eff=500
+
+The scheduler latches the effective clamp at enqueue, so on a continuously
+running thread the requested value alone would claim a clamp that is not being
+applied. Both are now reported as uclamp_max and uclamp_max_eff.
+
+================================================================================
+6. V6 -- observer overhead                                     PASS in the S1 regime
+================================================================================
+Workload: fixed 4,000,000-iteration uid-10999 compute task moved into top-app;
+metric is completion time; arms alternate so session drift splits evenly.
+~510-520 top-app threads were being scanned throughout.
+
+one busy core, fixed observer @250ms/top5, 6 reps per arm
+  A (workload only)      min 6350  median 6400  max 6440  mean 6400.0  spread 1.4%
+  B (workload+observer)  min 6360  median 6390  max 6420  mean 6390.0  spread 0.9%
+  delta -10.0 ms (-0.16%)   t = -0.63          -> no detectable contamination
+
+one busy core, PRE-FIX observer, 4 reps per arm
+  A mean 6400.0   C mean 6387.5   delta -12.5 ms (-0.20%)  t = -0.73
+  (even the 2 s/window version did not move a single-core workload -- seven idle
+   cores absorb it. Overhead is not visible at one busy core either way.)
+
+eight busy cores, one worker pinned per core, fixed observer, 10 reps per arm
+  A8 raw 18810 17090 19140 17710 17330 19400 16820 18600 19190 18910   mean 18300.0
+  B8 raw 19890 20860 20070 17960 17160 20480 21810 18640 21680 21320   mean 19987.0
+  delta +1687.0 ms (+9.22%)   t = 2.86         -> real contamination
+
+The observer's own cost, counted as utime+stime+cutime+cstime so the forked
+children are included (schedstat covers only the leader thread and gave
+nonsense here):
+
+  @250ms top5, before the enrichment rewrite   62 % of one core
+  @250ms top5, after                           45 % of one core
+      own 3.7 s + children 5.9 s over 20 s wall
+
+0.62 core / 8 cores = 7.8 %, against a measured +9.2 % -- the self-cost predicts
+the eight-core contamination, which is the consistency check that makes both
+numbers believable.
+
+CONCLUSION: usable for the one-to-two busy core regime S1 targets. NOT usable to
+support any throughput conclusion under a saturating load.
+
+cadence held after the fixes (median wall_ms over 20 s runs, ~516 threads):
+  interval 250 ms  -> 260 ms, 100 windows
+  interval 500 ms  -> 510 ms,  51 windows
+  interval 1000 ms -> 1010 ms, 26 windows
+  before the fixes: nominal 250 ms produced 1400 ms windows, and 760 ms once the
+  hot-path printf alone was put back.
+
+================================================================================
+7. Defects found, in the order they were found
+================================================================================
+D1  per-thread printf in the snapshot loop. printf is /system/bin/printf under
+    mksh, so the hot path forked once per scanned thread. 960 ms per snapshot of
+    135 threads; the nominal 250 ms cadence ran at 1.4 s. Reverse-verified by
+    restoring that one line: median wall_ms 260 -> 760.
+D2  enrichment forked a subshell plus two awks plus a `tr` pipeline per ranked
+    thread, 19 ms each, 95 ms of a 250 ms window for five threads.
+D3  the window timestamp was taken before the snapshot, so wall_ms excluded the
+    scan and every runtime_pct was inflated by it.
+D4  a fixed sleep made the real cadence interval + scan, never the interval.
+D5  the EXIT trap replaced the signal handler's exit 130 with 0.
+D6  shortest-match comm stripping returned a wrong, plausible-looking CPU number
+    for threads whose name contains ") ". Two such threads were live on the
+    device during this session.
+
+Introduced while fixing, and caught before it could mislead: the enrichment
+lookup table first used '|' as its delimiter, which mksh treats as pattern
+alternation inside ${var#pattern}, so every enriched field came out NA. Loud
+rather than silent, and changed to ';'.
