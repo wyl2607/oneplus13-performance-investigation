@@ -33,14 +33,17 @@ next=$(( (cur + 1) % 4 ))
 date +%s > "$SINCE"
 echo "$next" > "$STATE"
 
-# Level label and description come from desc.sh, which reads the conf the daemon
-# reads. Three hand-maintained copies of these numbers is exactly how README,
-# action.sh and perfd.sh ended up disagreeing on every single value.
+# Level label comes from desc.sh, which reads the conf the daemon reads. Three
+# hand-maintained copies of these numbers is exactly how README, action.sh and
+# perfd.sh ended up disagreeing on every single value.
+#
+# The module.prop write is NOT done here. The daemon does it, on the same poll
+# that applies the level, so that the widget and the tile -- which switch by
+# writing $STATE and never run this script -- update the list too.
 [ -f "$CONF" ] && . "$CONF"
 . "$MODDIR/desc.sh"
 
 LABEL=$(lvlname "$next")
-write_prop "$next" "$MODDIR/module.prop"
 
 echo "切换为：$LABEL"
 echo

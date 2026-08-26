@@ -1,0 +1,178 @@
+S1 dominant-thread collection -- OnePlus 13, 2026-08-22
+Observer: tools/dominant-thread-observer.sh, 250 ms / top 10, validated in
+data/2026-08-22/s1-observer-validation.txt. Median window 260 ms in every trace.
+
+Two module states:
+  ON   = op13perf level 2 (ceilings 2918400/3283200, CFB=0, and a 4 Hz
+         `uclampset -a -M 1024` against every top-app app pid)
+  OFF  = op13perf level 0 = stock (rated ceilings, CFB=1, no uclamp lift)
+
+The third-party game is written as "the game"; it is a Unity title. Its trace is
+of the TITLE SCREEN, which is a real rendered 3D scene but is not gameplay -- see
+section 6.
+
+Synthetic workers run as uid 10999 and are moved into the top-app cpuset so the
+observer can see them:
+  compute = uninterrupted shell arithmetic loop, 100 % duty
+  wake    = same loop in ~4.6 ms bursts behind a 20 ms timed read on a fifo,
+            ~38 % duty at ~40 Hz. The timed read is a mksh builtin, so unlike a
+            `sleep` loop it adds no fork per cycle.
+
+================================================================================
+1. Is a 250 ms window dominated by one or two threads?  Mostly NO
+================================================================================
+"share" = fraction of all top-app CPU delivered in that window, over every thread
+compared, not just the ten reported.
+
+| trace        | active windows | rank1 share | top-2 share | threads >=10% | top-2 >= 80% |
+|--------------|----------------|-------------|-------------|---------------|--------------|
+| launch       | 33 of 74       | 50 %        | 85 %        | 2             | 52 % of win  |
+| scroll  ON   | 45 of 122      | 30 %        | 54 %        | 4             | 24 %         |
+| scroll  OFF  | 56 of 123      | 34 %        | 57 %        | 3             | 27 %         |
+| switch       | 50 of 105      | 44 %        | 68 %        | 3             | 30 %         |
+| game    ON   | 231 of 231     | 23 %        | 39 %        | 3 (>=5%: 7)   | **0 %**      |
+| game    OFF  | 231 of 231     | 23 %        | 39 %        | 3 (>=5%: 7)   | **0 %**      |
+| wake         | 115 of 115     | 100 %       | 100 %       | 1             | 100 %        |
+| compute      | 116 of 116     | 100 %       | 100 %       | 1             | 100 %        |
+
+App launch is the only real workload that looks like the premise: top-2 holds
+85 % of the window, and does so in half the windows. Scroll and app-switch are
+three-to-four-thread workloads. The game is not close: a median of 21 busy
+threads per window, rank1 holding 23 %, and **not one window out of 462 where two
+threads held 80 %**.
+
+The 100 % rows are the synthetic workers and are a sanity check on the metric,
+not a finding.
+
+================================================================================
+2. Is the dominant TID stable, or does it rotate?  It depends on the workload
+================================================================================
+| trace       | distinct rank1 TIDs | consecutive-window persistence |
+|-------------|---------------------|--------------------------------|
+| launch      | 11 over 33 windows  | 31 %                           |
+| scroll ON   |  9 over 45          | 43 %                           |
+| scroll OFF  | 12 over 56          | 24 %                           |
+| switch      | 16 over 50          | 20 %                           |
+| game ON     |  4 over 231         | **94 %** (224x the same thread)|
+| game OFF    |  2 over 231         | **96 %** (226x the same thread)|
+
+A steady-state renderer has one clearly dominant thread and keeps it. Launch and
+app-switch rotate through a pool -- Chrome's main thread, NetworkService,
+ThreadPoolForeground, VizCompositor, RenderThread -- and the leader changes
+between four windows out of five.
+
+Consequence for a controller: a rule that picks "the busiest thread" and pins or
+boosts it would be chasing a different thread every window during exactly the
+transitions where responsiveness matters most.
+
+================================================================================
+3. Where does the scheduler put dominant threads?  Almost never on 6-7
+================================================================================
+Share of windows in which the rank1 thread ended on a prime core:
+
+  launch        9 %        game ON       1 %
+  scroll ON     0 %        game OFF      2 %
+  scroll OFF    5 %        wake ON       0 %
+  switch       10 %        wake OFF      0 %
+                           compute ON  100 %
+                           compute OFF  41 %
+
+Across all reported rows rather than just rank1, prime share is 5-8 % for the UI
+workloads and 20 % for the game.
+
+The game's dominant render thread ran on CPU 2-5 in 216 of 231 windows and on a
+prime core in 3.
+
+================================================================================
+4. The controlled pair: changing the sleep/wake pattern flipped the cluster
+================================================================================
+Same uid, same cgroup, same module state, same shell, same machine, back to back.
+The only difference is whether the thread ever sleeps. Changing only the
+sleep/wake pattern was sufficient to flip placement in this controlled pair --
+which names the input, not the mechanism.
+
+| worker            | duty  | prime share | runq_wait median | p90     | max     |
+|-------------------|-------|-------------|------------------|---------|---------|
+| compute (ON)      | 100 % | **100 %**   | 0.000 ms         | 0.093   | 0.457   |
+| wake    (ON)      | ~38 % | **0 %**     | 0.480 ms         | 2.371   | 9.038   |
+| wake    (OFF)     | ~38 % | **0 %**     | 0.369 ms         | 2.225   | 6.391   |
+
+A thread that never sleeps gets the prime cluster and never waits. The same
+thread, doing 4.6 ms of the same work and then sleeping 20 ms, never reaches the
+prime cluster in 230 windows across both module states, and picks up the highest
+runqueue wait measured anywhere in this session.
+
+Wake, enqueue, util history, CPU selection and any later migration all change
+together with the sleep/wake pattern, and every one of them happens between two
+250 ms samples. Attributing the flip to the duty-cycle number itself would be a
+mechanism claim this instrument cannot support; that is what S2a is for.
+
+That is the S1 result that matters. The regime DATA.md 42-43 left open is not
+limited by a frequency ceiling; in it the dominant thread is not on the cores the
+ceiling governs at all.
+
+================================================================================
+5. Does the oplus clamp explain the placement?  NOT ESTABLISHED
+================================================================================
+With the module ON, `uclamp_max != 1024` appears in **0 of 705** reported rank1
+rows across every trace. That is the module working as designed -- its 4 Hz
+`uclampset -a -M 1024` erases the guard's clamp -- and it means none of the
+module-ON traces can say anything about the clamp.
+
+With the module OFF the clamp does appear, but only on the 100 % duty worker, and
+the two runs disagree.
+
+  compute OFF, within-run cross-tab (n=116):
+      uclamp_max = 1024   n=47   prime 98 %   runq median 0.047 ms
+      uclamp_max =  346   n=69   prime  3 %   runq median 0.414 ms
+  attribution run, module OFF, same kind of worker (n=84):
+      uclamp_max = 1024   n=69   prime 100 %  runq median 0.030 ms
+      uclamp_max =  346   n=15   prime 100 %  runq median 0.063 ms
+
+In the first run clamp and loss of the prime cluster co-occur almost perfectly,
+with a 9x runqueue wait. In the second the identical clamp value left the thread
+on a prime core in every window. The one visible difference: the second run's
+thread never migrated at all (0 migrations per window; the first run's moved in
+50 % of windows), which is consistent with the V5 finding that the effective
+clamp is latched at enqueue -- a thread that is never re-placed keeps the core it
+already has, clamp or no clamp.
+
+The A/B/A probe that was supposed to settle this could not: by the time it ran,
+phase A was already at 100 % prime, so holding uclamp.max at 1024 for the middle
+third had no headroom to show an effect.
+
+**So: association observed once, not reproduced. No S2 arm should be justified on
+it.** Settling it needs wake/placement events, not 250 ms sampling.
+
+The wake-heavy worker was **never clamped in either module state** (0 of 230
+windows). Whatever keeps it off the prime cluster, it is not the guard.
+
+================================================================================
+6. What the traces do not cover
+================================================================================
+- The game trace is the title screen. Tapping "enter" resumed a 48.5 GB resource
+  download (19.4 GB already present) over LTE, so it was force-stopped after
+  ~50 s and roughly 0.5 GB. Gameplay is unmeasured, and gameplay is where the
+  thermal and thread-count behaviour would actually differ.
+- `top-app` on this ROM is not one app. It held up to seven application processes
+  at once (plus system_server, filtered by UID), so "dominant thread of the
+  foreground app" is really "dominant thread of the top-app cpuset". Narrowing to
+  the resumed activity's pid is not implemented.
+- System-UID foreground apps are invisible: launching Settings (uid 1000) leaves
+  the observer with only residual app-uid processes.
+- Scroll ON vs OFF differ in median runq_wait (0.365 vs 0.130 ms) but also in
+  which threads led and in page state. Nothing is claimed from that pair.
+- Single session, single device, one trace per cell except the synthetic pair.
+
+================================================================================
+7. Files
+================================================================================
+Raw observer output is in data/2026-08-22/s1-traces/. Re-derive every table above
+with:
+
+    python3 tools/analyze-dominant-thread.py data/2026-08-22/s1-traces
+
+The two game traces are NOT committed: their thread names include an engine
+thread named after an in-game character, which identifies the title. Their
+numbers are in sections 1-3 above. The per-trace tgid-to-package maps are also
+withheld for the same reason.

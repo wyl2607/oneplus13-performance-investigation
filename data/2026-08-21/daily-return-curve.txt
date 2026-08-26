@@ -1,0 +1,31 @@
+### module parked; this script drives the levers itself
+BARE DEVICE, 8 workers (one per core), 150s per point
+stock first, so nothing is read against an already-soaked device.
+
+=== stock  (no levers: URCC inversion and the uclamp guard both left in place) ===
+start temp 35 C after 90s idle
+RESULT stock | work=861 (mid=566 prime=295) | stepped-down=0% | clk p6=2666541 p0=2094305 | start 35 C, mean 64 C, last-60s 67 C, peak 90 C
+
+=== d-base  p6 2841600  p0 2400000  gate 88 C ===
+start temp 39 C after 90s idle
+RESULT d-base | work=1043 (mid=685 prime=358) | stepped-down=28% | clk p6=2596800 p0=2270400 | start 39 C, mean 86 C, last-60s 89 C, peak 91 C
+
+=== d-mid1  p6 2841600  p0 2745600  gate 88 C ===
+start temp 40 C after 90s idle
+RESULT d-mid1 | work=1025 (mid=672 prime=353) | stepped-down=100% | clk p6=2438400 p0=2227200 | start 40 C, mean 86 C, last-60s 88 C, peak 90 C
+
+=== d-mid2  p6 2841600  p0 2918400  gate 88 C ===
+start temp 44 C after 90s idle
+RESULT d-mid2 | work=1006 (mid=659 prime=347) | stepped-down=100% | clk p6=2438400 p0=2227200 | start 44 C, mean 87 C, last-60s 90 C, peak 91 C
+
+=== d-p6up  p6 3283200  p0 2400000  gate 88 C ===
+start temp 43 C after 90s idle
+RESULT d-p6up | work=1013 (mid=683 prime=330) | stepped-down=36% | clk p6=2444800 p0=2227200 | start 43 C, mean 89 C, last-60s 91 C, peak 92 C
+
+=== perf  p6 3283200  p0 2918400  gate 90 C ===
+start temp 46 C after 90s idle
+RESULT perf | work=1019 (mid=686 prime=333) | stepped-down=3% | clk p6=2246400 p0=2227200 | start 46 C, mean 89 C, last-60s 90 C, peak 92 C
+
+=== done ===
+### clean: no uid 10999 processes remain
+### module returned to level 1

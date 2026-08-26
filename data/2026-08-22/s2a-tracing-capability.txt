@@ -1,0 +1,152 @@
+S2a phase 1 -- what this kernel's tracing interface actually exposes
+OnePlus 13 (CPH2653), kernel 6.6.118-android15-8-g2e6b9c3812c5-ab15114928-4k,
+Android 16 / BP2A.250605.015. All of this was read off the device, not from docs.
+
+================================================================================
+0. The interface itself
+================================================================================
+/proc/mounts                tracefs on /sys/kernel/tracing (rw, gid=3012)
+/sys/kernel/tracing         present
+/sys/kernel/debug/tracing   ABSENT -- there is no debugfs tracing path on this
+                            ROM. Anything that hardcodes it will fail.
+
+State found before touching anything, and the state it must be returned to:
+  tracing_on          0
+  current_tracer      nop
+  available_tracers   nop            <- only nop. No function tracer.
+  buffer_size_kb      7              <- the global buffer is 7 KB per CPU
+  trace_clock         [boot]
+  tracing_cpumask     ff
+  available_events    1932 events
+  available_filter_functions   DOES NOT EXIST
+  instances           bootreceiver, hsuart, wifi   <- the ROM's own, leave alone
+  set_event           16 events already enabled by the ROM (sde:*, camera:*,
+                      bpf_trace:bpf_trace_printk) -- leave alone
+  options/record-tgid 0
+  options/overwrite   1
+
+No function tracer and no available_filter_functions means function-graph and
+`set_ftrace_filter` style tracing is off the table. Static tracepoints and
+kprobes are what is available.
+
+================================================================================
+1. Capability table -- the events S2a needs
+================================================================================
+"filter" was tested by actually writing `pid==12345` to each event's filter file
+and reading it back, then clearing it. Overhead is per fired event and only for
+the target thread, because every filter is kernel-side.
+
+event                                   | avail | fields that matter                                      | filter | root | writes
+----------------------------------------|-------|---------------------------------------------------------|--------|------|-------
+sched:sched_waking                      | yes   | comm pid prio target_cpu                                 | pid    | yes  | none
+sched:sched_wakeup                      | yes   | comm pid prio target_cpu                                 | pid    | yes  | none
+sched:sched_wakeup_new                  | yes   | comm pid prio target_cpu                                 | pid    | yes  | none
+sched:sched_switch                      | yes   | prev_comm prev_pid prev_state next_comm next_pid          | prev_pid/next_pid | yes | none
+sched:sched_migrate_task                | yes   | comm pid prio orig_cpu dest_cpu                          | pid    | yes  | none
+sched:sched_stat_wait                   | yes   | comm pid delay(ns)                                       | pid    | yes  | none
+sched:sched_process_exit                | yes   | comm pid prio                                            | pid    | yes  | none
+sched:sched_blocked_reason              | yes   | pid caller io_wait                                       | pid    | yes  | none
+schedwalt:sched_task_util               | yes   | pid util candidates prev_cpu best_energy_cpu sync         | pid    | yes  | none
+                                        |       | need_idle fastpath placement_boost start_cpu latency     |        |      |
+                                        |       | stune_boosted is_rtg affinity task_boost low_latency     |        |      |
+schedwalt:sched_find_best_target        | yes   | pid min_util start_cpu candidates order_index end_index   | pid    | yes  | none
+                                        |       | skip running most_spare_cap cpu_rq_runnable_cnt          |        |      |
+schedwalt:sched_enq_deq_task            | yes   | pid cpu enqueue/dequeue nr_running cpus_allowed demand    | pid    | yes  | none
+                                        |       | pred_demand_scaled mvp misfit                            |        |      |
+schedwalt:sched_compute_energy          | yes   | pid util prev_cpu prev_energy eval_cpu eval_energy        | pid    | yes  | none
+                                        |       | best_energy_cpu best_energy + per-cluster s/m/c          |        |      |
+schedwalt:sched_cpu_util                | yes   | cpu nr_running cpu_util capacity_curr capacity halted     | cpu    | yes  | none
+                                        |       | irqload thermal_pressure high_irq_load                    |        |      |
+sched_assist:set_ux_task_to_prefer_cpu  | yes   | pid comm cpus util msg target_cpu ux_cpu start_cls        | pid    | yes  | none
+frame_boost:find_frame_boost_cpu        | yes   | comm pid cpumsk precpumsk available_cluster target_cpu    | pid    | yes  | none
+
+Everything above is read-only: enabling a tracepoint records, it does not steer.
+
+Estimated overhead: the filters are evaluated in the kernel, so a filtered-out
+event still costs its reserve/discard but never reaches the buffer. Measured
+end to end against the workload rather than estimated -- see T5 in
+s2a-tracer-validation.txt.
+
+================================================================================
+2. What the vendor stack exposes, and what it does not
+================================================================================
+Searched the full 1932-event list for: oplus, walt, sched_assist, task_overload,
+uclamp, util, select_task_rq, placement, migrat.
+
+FOUND -- this device runs Qualcomm WALT, and WALT traces its own placement:
+  schedwalt:  56 events, including sched_task_util, sched_find_best_target,
+              sched_compute_energy, sched_enq_deq_task, sched_cpu_util,
+              sched_update_task_ravg, walt_lb_cpu_util, walt_active_load_balance,
+              walt_find_busiest_queue, sched_overutilized, core_ctl_*,
+              waltgov_next_freq, sched_set_preferred_cluster
+  sched_assist (OPLUS):  set_ux_task_to_prefer_cpu, inherit_ux_{set,unset,reset},
+              sched_assist_spread_tasks
+  frame_boost: find_frame_boost_cpu
+  oplus_locking, oplus_omrg_trace, oplus_fdleak: present, not placement-related
+
+NOT FOUND -- and this bounds what S2a can answer:
+  task_overload   no tracepoint anywhere in the 1932
+  uclamp          no tracepoint anywhere in the 1932
+  select_task_rq  no tracepoint (WALT's sched_task_util is the equivalent)
+  placement       no tracepoint by that name
+
+So the oplus task_overload clamp that S1 could not attribute has NO tracepoint.
+It cannot be observed at event level on the stock kernel, only inferred from
+/proc/<tid>/sched, which is a poll and is exactly what S1 already did.
+
+Numeric uclamp -- requested or effective -- is likewise not emitted by any
+tracepoint. The only uclamp-adjacent signal aligned with the placement instant
+is `stune_boosted`, a bool on sched_task_util.
+
+================================================================================
+3. kprobes: available, but not usable for uclamp without more work
+================================================================================
+  kprobe_events writable                                    yes
+  p:x select_task_rq_fair                                   CREATED (then removed)
+  r:x uclamp_eff_value ret=$retval:u32                      CREATED (then removed)
+  p:x uclamp_eff_value pid=$arg1->pid:s32                   REJECTED
+  p:x uclamp_eff_value pid=+2464($arg1):s32                 CREATED (offset is a
+                                                            guess, not validated)
+  /sys/kernel/btf/vmlinux                                   present, 6105169 bytes
+  /proc/kallsyms                                            448121 symbols, both
+                                                            uclamp_eff_value (T)
+                                                            and select_task_rq_fair (t)
+
+BTF-typed kprobe arguments (`$arg1->pid`) are rejected, so reaching a field of a
+task_struct* argument needs a literal byte offset. Deriving that offset from the
+BTF blob and validating it empirically was not done this round, and a guessed
+offset is not evidence. Also, `uclamp_eff_value` is called on every enqueue and
+dequeue for every task on the machine, so an unfiltered probe on it is not a
+low-overhead instrument.
+
+Conclusion for now: kprobes are AVAILABLE and could close the uclamp gap later.
+Nothing was flashed and no custom kernel is needed for anything S2a does.
+
+================================================================================
+4. Instances -- the reason none of this disturbs the device
+================================================================================
+  mkdir /sys/kernel/tracing/instances/<name>   works, gets its own
+      buffer_size_kb, trace_clock, events/, set_event, tracing_on, per_cpu stats
+  the instance sees the full event tree, schedwalt included
+  echo 2048 > buffer_size_kb                   -> 2051 (page rounding), per CPU
+  rmdir <name>                                 frees the whole buffer, and the
+      global buffer is still 7 KB with tracing_on 0 afterwards
+
+The tracer therefore never writes the global buffer, never enables a global
+event, and never touches the ROM's three instances.
+
+*** trace_clock: a fresh instance defaults to `local`. ***
+`local` timestamps are per-CPU and are NOT comparable across CPUs. A wake
+recorded on the waker's CPU and a switch-in recorded on the target's CPU cannot
+be ordered under it. The tracer forces `global` and verifies the readback.
+T6 in s2a-tracer-validation.txt shows what happens if you do not.
+
+================================================================================
+5. Machine shape, for reading the placement fields
+================================================================================
+  cpu0..cpu5   cpu_capacity 792    cpufreq max 3532800
+  cpu6, cpu7   cpu_capacity 1024   cpufreq max 4320000
+
+Six-plus-two. "Prime" in every table in this project means CPU 6 and 7.
+792 is the number the misfit test is against, and it is the number that makes
+the sweep in s2a-wake-path.txt read the way it does.

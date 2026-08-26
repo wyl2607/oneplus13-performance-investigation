@@ -1,0 +1,27 @@
+### module parked; this script drives the levers itself
+BARE DEVICE, 8 workers (one per core), 150s per point
+gate parked at 96 C so it never fires -- each point is a fixed pair of ceilings.
+
+=== s-anchor  p6 2841600  p0 2400000  gate 96 C ===
+start temp 42 C after 90s idle
+RESULT s-anchor | work=1003 (mid=672 prime=331) | stepped-down=0% | clk p6=2060800 p0=2195200 | start 42 C, mean 86 C, last-60s 88 C, peak 92 C
+
+=== s-cool-now  p6 2649600  p0 2227200  gate 96 C ===
+start temp 47 C after 90s idle
+RESULT s-cool-now | work=949 (mid=637 prime=312) | stepped-down=0% | clk p6=2438400 p0=2227200 | start 47 C, mean 85 C, last-60s 89 C, peak 91 C
+
+=== s-prime-cut  p6 2438400  p0 2400000  gate 96 C ===
+start temp 44 C after 90s idle
+RESULT s-prime-cut | work=1050 (mid=715 prime=335) | stepped-down=0% | clk p6=2310400 p0=2284800 | start 44 C, mean 88 C, last-60s 89 C, peak 91 C
+
+=== s-mid-cut  p6 2841600  p0 2227200  gate 96 C ===
+start temp 45 C after 90s idle
+RESULT s-mid-cut | work=1008 (mid=660 prime=348) | stepped-down=0% | clk p6=2246400 p0=2227200 | start 45 C, mean 89 C, last-60s 91 C, peak 93 C
+
+=== s-deep  p6 2438400  p0 1996800  gate 96 C ===
+start temp 45 C after 90s idle
+RESULT s-deep | work=879 (mid=573 prime=306) | stepped-down=0% | clk p6=1939200 p0=2003200 | start 45 C, mean 80 C, last-60s 83 C, peak 87 C
+
+=== done ===
+### clean: no uid 10999 processes remain
+### module returned to level 1
