@@ -11,7 +11,13 @@ and `experiments/burst-detector-holdout/LIVE_SESSION_CHECKLIST.md`.
 
 ## Session state
 
-- Overhead validation: not started
+- Overhead validation: **done** (2026-08-27) -- see `overhead-2026-08-27/RESULT.md`.
+  Verdict: 1-thread regime not OVERHEAD_LIMITED; 8-thread regime
+  OVERHEAD_LIMITED (+5.6% wall-time, likely a conservative lower bound
+  due to a disclosed methodology confound). HIGH_LOAD_OBSERVER_CONTAMINATION
+  declared for the many-thread regime; does not stop the holdout, but
+  steady_gameplay / steady_game_title must be reported as measured under
+  a known-contaminating instrument regime.
 - Smoke: not started
 - Official 88-run holdout: 0 / 88 complete
 - Analysis: not run
