@@ -304,6 +304,14 @@ class AdbDevice(Device):
         remote_out = f"{self.DEVICE_DIR}/raw/{run_id}.log"
         remote_obs = f"{self.DEVICE_DIR}/raw/{run_id}.observer.log"
         self._adb(["shell", "mkdir", "-p", f"{self.DEVICE_DIR}/raw"])
+        # The host-side raw dir is gitignored and does not exist on a fresh
+        # checkout (experiments/burst-detector-holdout/raw/): `adb pull`
+        # silently fails to write into a missing local directory, which
+        # made run H001 of a first-ever session read back as no file at
+        # all -- status "UNKNOWN" -- and stop the whole holdout on its very
+        # first row. FakeDevice.run() already does this; AdbDevice.run() did
+        # not.
+        Path(out_path).parent.mkdir(parents=True, exist_ok=True)
         args = [
             "--run-id", run_id,
             "--workload", row["workload_id"],
