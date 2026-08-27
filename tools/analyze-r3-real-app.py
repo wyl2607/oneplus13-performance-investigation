@@ -39,6 +39,9 @@ SAMPLE_RE = re.compile(
     r"^S\|(?P<t>[\d.]+)\|j=(?P<j>\S+)\|s=(?P<s>\S+)\|all_busy=(?P<all_busy>\d+)"
     r"\|prime_busy=(?P<prime_busy>\d+)\|fg_threads=(?P<fg>\d+)\|clamped_threads=(?P<cl>\d+)"
 )
+GFX_TOTAL_RE = re.compile(r"^Total frames rendered:\s*(?P<n>\d+)")
+GFX_JANKY_RE = re.compile(r"^Janky frames:\s*(?P<n>\d+)\s*\((?P<pct>[\d.]+)%\)")
+GFX_PCT_RE = re.compile(r"^(?P<p>90th|95th|99th) percentile:\s*(?P<ms>\d+)ms")
 
 
 def fnum(v):
@@ -102,6 +105,8 @@ def parse_run_log(path):
     total_ticks = 0
     prime_busy_first = prime_busy_last = None
     all_busy_first = all_busy_last = None
+    gfx = {"total_frames": None, "janky_pct": None, "p90_ms": None, "p95_ms": None, "p99_ms": None}
+    in_gfx = False
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
             for line in fh:
@@ -111,6 +116,25 @@ def parse_run_log(path):
                     if m:
                         result = m.groupdict()
                     continue
+                if line == "#GFXINFO_BEGIN":
+                    in_gfx = True
+                    continue
+                if line == "#GFXINFO_END":
+                    in_gfx = False
+                    continue
+                if in_gfx:
+                    m = GFX_TOTAL_RE.match(line)
+                    if m:
+                        gfx["total_frames"] = int(m.group("n"))
+                        continue
+                    m = GFX_JANKY_RE.match(line)
+                    if m:
+                        gfx["janky_pct"] = float(m.group("pct"))
+                        continue
+                    m = GFX_PCT_RE.match(line)
+                    if m:
+                        gfx[f'p{m.group("p")[:2]}_ms'] = int(m.group("ms"))
+                        continue
                 m = SAMPLE_RE.match(line)
                 if not m:
                     continue
@@ -151,6 +175,7 @@ def parse_run_log(path):
         "clamped_thread_peak": cl_peak,
         "clamp_ticks": clamp_ticks,
         "total_ticks": total_ticks,
+        "gfx": gfx,
     }
 
 
@@ -194,6 +219,11 @@ def build_rows(plan, raw_dir):
             "fg_thread_peak": parsed["fg_thread_peak"],
             "clamped_thread_peak": parsed["clamped_thread_peak"],
             "clamp_fraction": clamp_frac,
+            "gfx_total_frames": parsed["gfx"]["total_frames"],
+            "gfx_janky_pct": parsed["gfx"]["janky_pct"],
+            "gfx_p90_ms": parsed["gfx"]["p90_ms"],
+            "gfx_p95_ms": parsed["gfx"]["p95_ms"],
+            "gfx_p99_ms": parsed["gfx"]["p99_ms"],
         })
     return rows
 
@@ -216,7 +246,8 @@ def main():
 
     workloads = sorted({(r["workload_id"], r["mechanism"]) for r in rows})
     metrics = ["event_ms", "prime_residency_pct", "mid_weighted_freq",
-               "prime_weighted_freq", "j_peak", "clamp_fraction"]
+               "prime_weighted_freq", "j_peak", "clamp_fraction",
+               "gfx_janky_pct", "gfx_p90_ms", "gfx_p95_ms", "gfx_p99_ms"]
 
     print("\n## Per-workload/mechanism control vs 512 (mean, run-level)")
     for workload_id, mechanism in workloads:
@@ -233,7 +264,8 @@ def main():
     print("\n## Run-level table")
     hdr = ["run_id", "workload_id", "mechanism", "arm", "status", "event_ms",
            "prime_residency_pct", "mid_weighted_freq", "prime_weighted_freq",
-           "j_peak", "clamp_fraction"]
+           "j_peak", "clamp_fraction", "gfx_total_frames", "gfx_janky_pct",
+           "gfx_p90_ms", "gfx_p95_ms", "gfx_p99_ms"]
     print(",".join(hdr))
     for row in sorted(rows, key=lambda r: r["run_id"]):
         print(",".join(

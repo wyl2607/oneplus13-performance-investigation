@@ -58,6 +58,14 @@ class R3AnalysisTests(unittest.TestCase):
             self.assertNotIn("mScreenState", flat)
             self.assertNotIn("Intent", flat)
 
+    def test_parse_run_log_extracts_gfxinfo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "R001.log"
+            path.write_text(SAMPLE_LOG)
+            parsed = MOD.parse_run_log(path)
+            self.assertEqual(parsed["gfx"]["total_frames"], 30)
+            self.assertAlmostEqual(parsed["gfx"]["janky_pct"], 3.33)
+
     def test_fnum_handles_na(self):
         self.assertIsNone(MOD.fnum("NA"))
         self.assertIsNone(MOD.fnum(""))

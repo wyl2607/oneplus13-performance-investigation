@@ -1,0 +1,86 @@
+# 32 runs loaded from experiments/r3-real-app/raw
+
+## Per-workload/mechanism control vs 512 (mean, run-level)
+
+--- app_switch / active-set  n_control=4 n_512=4 ---
+  event_ms               control_mean=     36.75 (n=4)  512_mean=     36.00 (n=4)  delta=   -0.75
+  prime_residency_pct    control_mean=      2.67 (n=4)  512_mean=      1.97 (n=4)  delta=   -0.69
+  mid_weighted_freq      control_mean=1226636.20 (n=4)  512_mean=1411661.00 (n=4)  delta=+185024.80
+  prime_weighted_freq    control_mean=1264183.91 (n=4)  512_mean=1174797.76 (n=4)  delta=-89386.15
+  j_peak                 control_mean=  55475.00 (n=4)  512_mean=  53725.00 (n=4)  delta=-1750.00
+  clamp_fraction         control_mean=      0.00 (n=4)  512_mean=      0.95 (n=4)  delta=   +0.95
+  gfx_janky_pct          control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+  gfx_p90_ms             control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+  gfx_p95_ms             control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+  gfx_p99_ms             control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+
+--- cold_launch / active-set  n_control=4 n_512=4 ---
+  event_ms               control_mean=    285.00 (n=4)  512_mean=    294.50 (n=4)  delta=   +9.50
+  prime_residency_pct    control_mean=      7.32 (n=4)  512_mean=      9.41 (n=4)  delta=   +2.10
+  mid_weighted_freq      control_mean=1452218.04 (n=4)  512_mean=1905226.19 (n=4)  delta=+453008.15
+  prime_weighted_freq    control_mean=1526457.35 (n=4)  512_mean=1667214.85 (n=4)  delta=+140757.50
+  j_peak                 control_mean=  61675.00 (n=4)  512_mean=  62250.00 (n=4)  delta= +575.00
+  clamp_fraction         control_mean=      0.00 (n=4)  512_mean=      0.97 (n=4)  delta=   +0.97
+  gfx_janky_pct          control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+  gfx_p90_ms             control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+  gfx_p95_ms             control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+  gfx_p99_ms             control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+
+--- scroll_fling / active-set  n_control=4 n_512=4 ---
+  event_ms               control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+  prime_residency_pct    control_mean=      1.19 (n=4)  512_mean=      3.24 (n=4)  delta=   +2.05
+  mid_weighted_freq      control_mean=1314318.70 (n=4)  512_mean=1686709.29 (n=4)  delta=+372390.59
+  prime_weighted_freq    control_mean=1143335.40 (n=4)  512_mean=1239607.08 (n=4)  delta=+96271.68
+  j_peak                 control_mean=  49200.00 (n=4)  512_mean=  50350.00 (n=4)  delta=+1150.00
+  clamp_fraction         control_mean=      0.00 (n=4)  512_mean=      0.96 (n=4)  delta=   +0.96
+  gfx_janky_pct          control_mean=      0.43 (n=4)  512_mean=      0.21 (n=4)  delta=   -0.21
+  gfx_p90_ms             control_mean=      9.50 (n=4)  512_mean=      5.00 (n=4)  delta=   -4.50
+  gfx_p95_ms             control_mean=      9.75 (n=4)  512_mean=      5.25 (n=4)  delta=   -4.50
+  gfx_p99_ms             control_mean=     11.75 (n=4)  512_mean=     10.00 (n=4)  delta=   -1.75
+
+--- steady_renderer / active-set  n_control=4 n_512=4 ---
+  event_ms               control_mean=       nan (n=0)  512_mean=       nan (n=0)  delta=    +nan
+  prime_residency_pct    control_mean=      3.30 (n=4)  512_mean=      2.33 (n=4)  delta=   -0.97
+  mid_weighted_freq      control_mean=1704504.46 (n=4)  512_mean=2180822.29 (n=4)  delta=+476317.84
+  prime_weighted_freq    control_mean=1193529.79 (n=4)  512_mean=1206906.82 (n=4)  delta=+13377.03
+  j_peak                 control_mean=  57200.00 (n=4)  512_mean=  48600.00 (n=4)  delta=-8600.00
+  clamp_fraction         control_mean=      0.00 (n=4)  512_mean=      0.94 (n=4)  delta=   +0.94
+  gfx_janky_pct          control_mean=      2.51 (n=4)  512_mean=      0.00 (n=4)  delta=   -2.51
+  gfx_p90_ms             control_mean=     11.75 (n=4)  512_mean=      8.75 (n=4)  delta=   -3.00
+  gfx_p95_ms             control_mean=     14.00 (n=4)  512_mean=      9.25 (n=4)  delta=   -4.75
+  gfx_p99_ms             control_mean=     18.25 (n=4)  512_mean=     10.50 (n=4)  delta=   -7.75
+
+## Run-level table
+run_id,workload_id,mechanism,arm,status,event_ms,prime_residency_pct,mid_weighted_freq,prime_weighted_freq,j_peak,clamp_fraction,gfx_total_frames,gfx_janky_pct,gfx_p90_ms,gfx_p95_ms,gfx_p99_ms
+R001,app_switch,active-set,control,OK,32.00,2.06,1395633.37,1468474.58,51300.00,0.00,NA,NA,NA,NA,NA
+R002,app_switch,active-set,512,OK,37.00,1.88,1371730.78,1176108.96,45500.00,0.96,NA,NA,NA,NA,NA
+R003,cold_launch,active-set,control,OK,242.00,4.32,1378401.78,1449717.73,61000.00,0.00,NA,NA,NA,NA,NA
+R004,cold_launch,active-set,512,OK,243.00,7.75,1784938.67,1827285.33,58300.00,0.96,NA,NA,NA,NA,NA
+R005,scroll_fling,active-set,control,OK,NA,1.34,1471501.19,1324218.18,50500.00,0.00,573,0.00,13,13,13
+R006,scroll_fling,active-set,512,OK,NA,2.90,1636919.84,1213581.10,43600.00,0.96,470,0.00,5,5,9
+R007,steady_renderer,active-set,control,OK,NA,8.53,1729427.34,1465961.54,68300.00,0.00,458,0.44,10,13,15
+R008,steady_renderer,active-set,512,OK,NA,2.15,2138125.71,1190239.62,47100.00,0.96,450,0.00,8,8,11
+R009,steady_renderer,active-set,512,OK,NA,2.90,2176407.69,1220528.52,51700.00,0.92,450,0.00,9,9,10
+R010,steady_renderer,active-set,control,OK,NA,1.10,1659520.77,1073477.51,54000.00,0.00,450,2.67,13,14,19
+R011,app_switch,active-set,512,OK,36.00,1.17,1412871.53,1143777.88,56700.00,0.96,NA,NA,NA,NA,NA
+R012,app_switch,active-set,control,OK,31.00,2.59,1218400.00,1204423.53,54800.00,0.00,NA,NA,NA,NA,NA
+R013,scroll_fling,active-set,512,OK,NA,2.68,1707165.41,1213003.52,59000.00,0.96,467,0.00,5,5,10
+R014,scroll_fling,active-set,control,OK,NA,1.09,1294185.14,1079536.29,44800.00,0.00,469,0.43,5,6,9
+R015,cold_launch,active-set,512,OK,344.00,6.89,1745682.05,1661721.11,57900.00,0.97,NA,NA,NA,NA,NA
+R016,cold_launch,active-set,control,OK,277.00,7.68,1532786.18,1571387.01,63700.00,0.00,NA,NA,NA,NA,NA
+R017,steady_renderer,active-set,control,OK,NA,0.85,1727282.89,1089871.48,52100.00,0.00,468,4.49,12,15,20
+R018,steady_renderer,active-set,512,OK,NA,1.92,2197733.97,1189846.82,47800.00,0.92,449,0.00,9,10,11
+R019,cold_launch,active-set,control,OK,310.00,11.37,1445644.59,1562242.79,64100.00,0.00,NA,NA,NA,NA,NA
+R020,cold_launch,active-set,512,OK,266.00,6.50,2002801.29,1555715.02,57100.00,0.97,NA,NA,NA,NA,NA
+R021,scroll_fling,active-set,control,OK,NA,0.70,1231726.68,1065348.69,51700.00,0.00,471,0.64,14,14,14
+R022,scroll_fling,active-set,512,OK,NA,3.67,1704923.33,1263076.33,49800.00,0.96,465,0.43,5,5,9
+R023,app_switch,active-set,control,OK,42.00,4.71,1194303.17,1251445.57,60600.00,0.00,NA,NA,NA,NA,NA
+R024,app_switch,active-set,512,OK,34.00,2.76,1399128.49,1190262.69,56000.00,0.96,NA,NA,NA,NA,NA
+R025,scroll_fling,active-set,512,OK,NA,3.72,1697828.57,1268767.35,49000.00,0.95,469,0.43,5,6,12
+R026,scroll_fling,active-set,control,OK,NA,1.65,1259861.78,1104238.43,49800.00,0.00,467,0.64,6,6,11
+R027,steady_renderer,active-set,512,OK,NA,2.37,2211021.79,1227012.33,47800.00,0.96,462,0.00,9,10,10
+R028,steady_renderer,active-set,control,OK,NA,2.73,1701786.83,1144808.64,54400.00,0.00,451,2.44,12,14,19
+R029,cold_launch,active-set,512,OK,325.00,16.51,2087482.76,1624137.93,75700.00,0.97,NA,NA,NA,NA,NA
+R030,cold_launch,active-set,control,OK,311.00,5.89,1452039.60,1522481.85,57900.00,0.00,NA,NA,NA,NA,NA
+R031,app_switch,active-set,512,OK,37.00,2.08,1462913.21,1189041.51,56700.00,0.92,NA,NA,NA,NA,NA
+R032,app_switch,active-set,control,OK,42.00,1.31,1098208.26,1132391.97,55200.00,0.00,NA,NA,NA,NA,NA
