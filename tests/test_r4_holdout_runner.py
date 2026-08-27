@@ -403,6 +403,26 @@ class TestAdbDeviceHostChecks(unittest.TestCase):
         with mock.patch("subprocess.run", return_value=completed):
             self.assertEqual(device.thermal_milli_c(), (None, None))
 
+    def test_run_creates_missing_raw_dir_before_pulling(self):
+        # Regression for a second bug the same live smoke session found:
+        # experiments/burst-detector-holdout/raw/ is gitignored and does not
+        # exist on a fresh checkout. `adb pull` silently fails to write into
+        # a missing local directory, so run H001 of a first-ever session
+        # read back as no file at all (status "UNKNOWN") and stopped the
+        # whole holdout on its very first row. FakeDevice.run() already
+        # creates out_path's parent; AdbDevice.run() must too.
+        device = self._adb_device()
+        with tempfile.TemporaryDirectory() as tmp:
+            raw_dir = pathlib.Path(tmp) / "raw"  # deliberately not created
+            self.assertFalse(raw_dir.exists())
+            out_path = raw_dir / "S001.log"
+            observer_out_path = raw_dir / "S001.observer.log"
+            completed = mock.Mock(stdout="", stderr="", returncode=0)
+            with mock.patch("subprocess.run", return_value=completed):
+                device.run("S001", {"workload_id": "synthetic_compute", "module_state": "module_off"},
+                           None, None, 30, out_path, observer_out_path)
+            self.assertTrue(raw_dir.is_dir())
+
     def test_push_scripts_pushes_both_host_check_scripts(self):
         device = self._adb_device()
         with mock.patch("subprocess.run", return_value=mock.Mock(stdout="", stderr="", returncode=0)) as run:
