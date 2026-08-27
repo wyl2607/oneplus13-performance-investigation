@@ -198,3 +198,29 @@ active_set_tick() {
 	printf '%s\n' "$_new" > "$_setfile"
 	printf '%s\n' "$_new"
 }
+
+# Read back uclamp.min for one tid via uclampset -p (same "min: N" pattern
+# already validated 16/16 in S2b/S2d -- experiments/s2b/run-one.sh,
+# experiments/s2d/run-one.sh). Empty output means the thread is gone, not 0.
+uclamp_min_readback() {
+	_t="$1"
+	uclampset -p "$_t" 2>/dev/null | sed -n 's/.*min: \([0-9]*\).*/\1/p'
+}
+
+# Boost exit invariant (docs/METHODOLOGY.md, "Safety invariant: boost exit
+# must be verified"): after a boost-exit sweep, every thread still alive in
+# $1's task group must read back uclamp.min=0. Prints offending "tid=N
+# min=N" lines to stdout for logging. Returns 0 clean, 1 if residue found.
+verify_boost_clean() {
+	_pid="$1"
+	[ -d "/proc/$_pid/task" ] || return 0
+	_bad=0
+	for _t in $(ls "/proc/$_pid/task" 2>/dev/null); do
+		_v=$(uclamp_min_readback "$_t")
+		if [ -n "$_v" ] && [ "$_v" != "0" ]; then
+			printf 'RESIDUAL tid=%s min=%s\n' "$_t" "$_v"
+			_bad=1
+		fi
+	done
+	return $_bad
+}

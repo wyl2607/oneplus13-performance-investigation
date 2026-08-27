@@ -1,8 +1,21 @@
 #!/system/bin/sh
-# ad-hoc residue check, not part of the harness -- reads back uclamp.min for
-# every thread of a given pid, to confirm 512 clamps were reset after cleanup.
+# Reusable boost-exit-invariant check: confirm uclamp.min=0 on every thread
+# of a given pid. Standalone (post-session audit) or called from run-one.sh's
+# cleanup() via common.sh's verify_boost_clean. See docs/METHODOLOGY.md,
+# "Safety invariant: boost exit must be verified".
+#
+# usage: sh check-uclamp.sh PID
+# exit 0 CLEAN, 1 RESIDUE, 2 usage
+DIR=$(dirname "$0")
+. "$DIR/common.sh"
+
 PID="$1"
-for t in $(ls /proc/$PID/task 2>/dev/null); do
-	R=$(uclampset -p "$t" 2>/dev/null)
-	echo "$t: $R"
-done
+[ -n "$PID" ] || { echo "usage: check-uclamp.sh PID"; exit 2; }
+
+if verify_boost_clean "$PID"; then
+	echo "CLEAN pid=$PID"
+	exit 0
+else
+	echo "RESIDUE pid=$PID -- run reset-uclamp.sh $PID"
+	exit 1
+fi
