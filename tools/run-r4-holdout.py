@@ -266,17 +266,19 @@ class AdbDevice(Device):
         return out.stdout.strip() or self.serial or "unknown-device"
 
     def screen_on(self):
-        out = self._shell("dumpsys display | grep -m1 mScreenState")
+        # A pushed file, not an inline multi-word `su -c '<script>'` argument:
+        # see host-screen-check.sh for why (adb shell does not reliably
+        # preserve a multi-token piped script as a single argv element).
+        out = self._shell(f"sh {self.DEVICE_DIR}/host-screen-check.sh")
         return "ON" in out.stdout.upper()
 
     def thermal_milli_c(self):
-        script = (
-            "for z in /sys/class/thermal/thermal_zone*; do "
-            "t=$(cat $z/type 2>/dev/null); "
-            "case \"$t\" in cpu-1-1-1) echo J:$(cat $z/temp);; "
-            "shell_front) echo S:$(cat $z/temp);; esac; done"
-        )
-        out = self._shell(script)
+        # A pushed file, not an inline multi-word `su -c '<script>'` argument:
+        # see host-thermal-check.sh -- a `for ...; do ... done` sent that way
+        # came back "syntax error: unexpected 'do'" and silently returned
+        # (None, None), defeating the host-side thermal preflight (the
+        # caller treats None as "no reading, skip the check", not an error).
+        out = self._shell(f"sh {self.DEVICE_DIR}/host-thermal-check.sh")
         j = s = None
         for line in out.stdout.splitlines():
             if line.startswith("J:"):
@@ -290,9 +292,13 @@ class AdbDevice(Device):
         tools_dir = REPO_ROOT / "tools"
         self._adb(["shell", "mkdir", "-p", self.DEVICE_DIR])
         for src in (device_dir / "common.sh", device_dir / "run-r4-one.sh",
+                    device_dir / "host-thermal-check.sh", device_dir / "host-screen-check.sh",
                     tools_dir / "dominant-thread-observer.sh"):
             self._adb(["push", str(src), f"{self.DEVICE_DIR}/{src.name}"])
-        self._shell(f"chmod 755 {self.DEVICE_DIR}/run-r4-one.sh {self.DEVICE_DIR}/dominant-thread-observer.sh")
+        self._shell(
+            f"chmod 755 {self.DEVICE_DIR}/run-r4-one.sh {self.DEVICE_DIR}/dominant-thread-observer.sh "
+            f"{self.DEVICE_DIR}/host-thermal-check.sh {self.DEVICE_DIR}/host-screen-check.sh"
+        )
 
     def run(self, run_id, row, package, activity, duration, out_path, observer_out_path):
         remote_out = f"{self.DEVICE_DIR}/raw/{run_id}.log"
