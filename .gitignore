@@ -7,3 +7,8 @@ __pycache__/
 # R3: real package names live only here, never committed (docs/PRIVACY.md).
 experiments/r3-real-app/app-manifest.local.csv
 experiments/r3-real-app/raw/
+
+# R4: same discipline -- real package names and session-state.json (device
+# fingerprint, timestamps) never committed.
+experiments/burst-detector-holdout/app-manifest.local.csv
+experiments/burst-detector-holdout/raw/
