@@ -55,6 +55,29 @@ def test_probe_output_does_not_emit_known_sensitive_wifi_or_location_fields() ->
     assert 'kv privacy "no_device_names_addresses_or_raw_bluetooth_dump_emitted"' in bt
 
 
+def test_wifi_ping_requires_explicit_wifi_connection_and_is_interface_scoped() -> None:
+    text = (DEVICE / "wifi-probe.sh").read_text(encoding="utf-8")
+    assert 'if [ "$CONNECTED" = "true" ]; then' in text
+    assert "ping -I wlan0" in text
+    assert "SKIPPED_WIFI_NOT_CONNECTED" in text
+    assert "kv ping_target NOT_TESTED" in text
+
+
+def test_ram_probe_does_not_turn_unreadable_proc_swaps_into_no_zram() -> None:
+    text = (DEVICE / "ram-probe.sh").read_text(encoding="utf-8")
+    assert "zram_device_present" in text
+    assert "proc_swaps_readable" in text
+    assert "kv zram_present UNKNOWN" in text
+    assert "/sys/block/zram*" in text
+
+
+def test_bluetooth_probe_keeps_adapter_state_separate_from_active_device_validation() -> None:
+    text = (DEVICE / "bluetooth-probe.sh").read_text(encoding="utf-8")
+    assert "bluetooth_setting_state" in text
+    assert "bluetooth_manager_state" in text
+    assert "active_connection_and_reconnect_testing_required" in text
+
+
 def test_ufs_probe_is_bounded_and_cleans_up() -> None:
     text = (DEVICE / "ufs-bounded.sh").read_text(encoding="utf-8")
     assert "SIZE_MB:-256" in text
