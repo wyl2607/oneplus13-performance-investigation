@@ -1,4 +1,4 @@
-# Methodology, and seven traps that produced wrong answers
+# Methodology, and ten traps that produced wrong answers
 
 Documenting the false starts because each is easy to hit and each looked convincing at the
 time. Three of them produced conclusions that had to be withdrawn after they were written
@@ -128,6 +128,37 @@ from the sensor's actual operating range, not from intuition.
 Nothing here is persistent. All module parameters and `scaling_max_freq` values reset on
 reboot. The only persistent artifact in this repo is `mitigation/oneplus13_cfb_tune.sh`, which is
 opt-in and removable.
+
+---
+
+## Safety invariant: boost exit must be verified
+
+R3's Phase-4 smoke test (2026-08-27, see Trap 10 below) found that an
+active-set `uclamp.min` boost mechanism can leave threads clamped after the
+run believes it has cleaned up. Any future code that applies an experimental
+`uclamp.min` boost (or any other per-thread kernel-state boost) to a subset
+of a process's threads must, on exit:
+
+1. reset **every thread currently in the affected process/task group**, not
+   only the tracked subset (top-K, active-set, or whatever bookkeeping
+   selected them to be boosted in the first place) — bookkeeping can miss
+   threads that were boosted indirectly (e.g. kernel-side priority
+   inheritance across binder/sync).
+2. **verify** the reset by reading the value back (`uclampset -p`, not just
+   re-issuing the reset command) rather than trusting that the reset syscall
+   succeeded.
+3. **fail closed** if verification still shows residue after one retry: emit
+   a distinct, unmissable status (not folded into a generic `OK`/error) and
+   leave a persistent on-device marker, so a human has to clear it before the
+   device is trusted clean again. Never let a boost-exit failure silently
+   read as a clean run.
+
+Reference implementation: `experiments/r3-real-app/common.sh`
+(`verify_boost_clean`, `uclamp_min_readback`), wired into
+`experiments/r3-real-app/run-one.sh`'s `cleanup()`, with a standalone
+audit tool at `experiments/r3-real-app/check-uclamp.sh`. This is scoped to
+the experiment harness only — no production `perfd`/profile code is wired
+to this invariant yet.
 
 ---
 
@@ -412,3 +443,34 @@ Related: the deletion of that same directory appeared to fail with `Permission d
 file when issued as `adb shell su -c "cmd1; rm -rf ...; cmd2"`. Re-issued from a pushed script
 it succeeded immediately. Multi-level `su -c` quoting produced a plausible, entirely misleading
 error — the same hazard as trap 5. Push a script.
+
+---
+
+## Trap 10 — active-set cleanup swept only the tracked top-K, not the whole process
+
+R3's Phase-4 smoke test (docs/R3_REAL_APP_PILOT.md, 2026-08-27) found dozens of untracked
+threads still boosted to `uclamp.min=512` after an active-set run's cleanup ran and reported
+success.
+
+The active-set mechanism (`experiments/r3-real-app/common.sh:active_set_tick`) re-ranks a
+process's threads every 250 ms and clamps only the current top-K, resetting threads that drop
+out of the ranking as it goes — so at any tick it is only ever supposed to be tracking a small
+set, recorded in `SETFILE`. The original cleanup trusted that bookkeeping: at end of run it reset
+only the tids in `SETFILE`, on the assumption that every boosted tid had passed through the
+tracked set at some point and been reset on drop-out.
+
+That assumption was false. Threads outside the tracked top-K still ended up boosted — consistent
+with kernel-side boost propagation (binder/sync priority inheritance can carry an effective
+uclamp value onto a thread the harness never directly touched) — and a set-file-scoped reset
+cannot reach them because they were never in the set file to begin with.
+
+The fix already in `run-one.sh`'s `cleanup()` is to stop trusting the tracked set at exit and
+sweep unconditionally: reset every tid currently under `/proc/<pid>/task/`, regardless of
+mechanism or bookkeeping. This is now promoted to a general safety invariant — see "Safety
+invariant: boost exit must be verified" above — because a full sweep still is not enough on its
+own: exit needs to *verify* the readback and fail closed if residue survives a retry, not just
+run the reset command and assume it worked.
+
+**Bookkeeping that tracks a subset for efficiency is not a safe basis for a cleanup sweep.**
+Anything that can affect a wider set than it tracks (kernel-side propagation, in this case) needs
+its cleanup scoped to the wider set, verified, not inferred from the tracker.

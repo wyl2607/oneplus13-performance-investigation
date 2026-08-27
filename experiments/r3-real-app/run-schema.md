@@ -26,7 +26,17 @@ the source for `clamped_thread_count` and `clamp_ticks/total_ticks`).
 the expected `TotalTime:` line — treat the run's latency field as missing,
 not zero), `RUN_ABORT_THERMAL_92` (soft gate, this run only), `SESSION_STOP_
 THERMAL_95` (hard gate, stop the whole session), `THERMAL_ABOVE_SOFT_GATE_AT_
-START` (preflight refused to start).
+START` (preflight refused to start), `CLEANUP_VERIFY_FAILED` (boost-exit
+sweep + one retry both left residual `uclamp.min=512` on some thread —
+see the boost exit invariant in `docs/METHODOLOGY.md`; a
+`CLEANUP_FAILED.<run_id>` marker is also left in the on-device workdir and
+must be cleared by hand with `reset-uclamp.sh`/`check-uclamp.sh` before
+trusting the device clean).
+
+`tools/analyze-r3-real-app.py` already excludes any non-`OK` status from the
+default summary (with a `WARN`, not silently), so `CLEANUP_VERIFY_FAILED`
+runs cannot leak into the results tables even before a human notices the
+marker file.
 
 `tools/analyze-r3-real-app.py` is the only consumer of this format. It is
 also the point where `APP_A`/`APP_B`/`APP_C` sanitization happens before

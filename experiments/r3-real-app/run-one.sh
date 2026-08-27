@@ -85,6 +85,22 @@ cleanup() {
 				uclampset -m 0 -p "$_t" 2>/dev/null
 			done
 		fi
+		# Boost exit invariant: a sweep alone is not enough, verify the
+		# readback. One retry sweep, then fail closed -- surface a distinct
+		# RESULT status and leave a persistent marker instead of silently
+		# reporting a clean run (docs/METHODOLOGY.md).
+		if ! verify_boost_clean "$_pid" >>"$OUT.cleanup_verify" 2>&1; then
+			reset_process_clamp "$_pid"
+			if [ -d "/proc/$_pid/task" ]; then
+				for _t in $(ls "/proc/$_pid/task" 2>/dev/null); do
+					uclampset -m 0 -p "$_t" 2>/dev/null
+				done
+			fi
+			if ! verify_boost_clean "$_pid" >>"$OUT.cleanup_verify" 2>&1; then
+				say "RESULT run_id=$RUN_ID status=CLEANUP_VERIFY_FAILED see=$OUT.cleanup_verify" >> "$OUT"
+				: > "$WORKDIR/CLEANUP_FAILED.$RUN_ID"
+			fi
+		fi
 	fi
 	rm -f "$STOP" "$SETFILE"
 }
