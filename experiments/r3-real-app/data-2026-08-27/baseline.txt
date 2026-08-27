@@ -1,0 +1,37 @@
+R3 real-app pilot -- pre-run device baseline
+captured 2026-08-27 (local device time may differ)
+
+device model: CPH2653 (CPH2653EEA / OP5D55L1)
+ROM fingerprint: OnePlus/CPH2653EEA/OP5D55L1:16/BP2A.250605.015/V.R4T3.52da06f-2e397f6-2e81775:user/release-keys
+kernel: 6.6.118-android15-8-g2e6b9c3812c5-ab15114928-4k
+
+battery: level=52% status=CHARGING(2) AC_powered=false USB_powered=true battery_temp=33.5C
+screen: mScreenState=ON, isKeyguardShowing=false, mWakefulness=Awake (device unlocked and interactive)
+junction (cpu-1-1-1) temp at capture: 37.0 C
+
+perfd (op13perf mitigation daemon) process: NOT RUNNING (ps -A has no perfd match) -- isolation
+  from any live uclamp-rewriting daemon confirmed, same check as prior S2b/S2c sessions.
+op13perf module.prop last-recorded profile: v1.2.0 "高性能档" (high-performance), BOOT_LEVEL=1
+  reverts to "日常档" (daily) on reboot per module description -- NOT reverted this session,
+  ambient state below reflects this profile's residual (non-persistent) writes, not stock Daily.
+
+policy0 (mid cluster, cpu0-5) scaling_max_freq: 2918400
+policy6 (prime cluster, cpu6-7) scaling_max_freq: 3283200
+policy0 scaling_cur_freq: 2918400
+policy6 scaling_cur_freq: 3283200
+msm_performance cpu_max_freq (URCC-owned node): 0:2918400 1:2918400 2:2918400 3:2918400
+  4:2918400 5:2918400 6:3283200 7:3283200 -- prime ABOVE mid, URCC inversion NOT present
+  at capture time (normal ordering, consistent with the high-performance tune having
+  released the inversion per module description)
+
+CFB (cpufreq_bouncing) / task_overload guard: debug_enabled=1 (guard active, not disabled)
+abnormal_task table: non-empty, contains stale rows from a prior session (pid/uid/limit_flag/
+  comm/date/temp/freq) -- in-kernel table, cleared only by reboot, not R3-specific; not reset
+  or modified by this baseline capture.
+
+NOTE for interpretation: R3 does not write scaling_max_freq, cpu_max_freq, or any perfd/
+Daily/Performance/Extreme parameter -- uclamp.min via uclampset is the only lever R3 applies,
+per docs/R3_REAL_APP_PILOT.md. The ceiling/inversion state above is ambient context only,
+already present before R3 touches anything, and is expected to affect the absolute DVFS
+floor both arms see equally (both control and 512 runs in a pair share this same ambient
+ceiling), not to bias the control-vs-512 delta.

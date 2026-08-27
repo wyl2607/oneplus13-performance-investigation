@@ -71,11 +71,18 @@ cleanup() {
 	[ -n "$SAMPLER_PID" ] && kill "$SAMPLER_PID" 2>/dev/null
 	[ -n "$CLAMP_PID" ] && kill "$CLAMP_PID" 2>/dev/null
 	_pid=$(pkg_pid "$PACKAGE")
-	if [ -n "$_pid" ]; then
-		[ "$ARM" = "512" ] && [ "$MECHANISM" = "process" ] && reset_process_clamp "$_pid"
-		if [ "$ARM" = "512" ] && [ "$MECHANISM" = "active-set" ] && [ -f "$SETFILE" ]; then
-			for _t in $(cat "$SETFILE"); do
-				[ -d "/proc/$_pid/task/$_t" ] && uclampset -m 0 -p "$_t" 2>/dev/null
+	if [ -n "$_pid" ] && [ "$ARM" = "512" ]; then
+		# Full-process sweep, not just the tracked SETFILE tids: a smoke test
+		# (2026-08-27) found dozens of untracked threads still boosted after
+		# cleanup on active-set runs -- consistent with kernel-side boost
+		# propagation (e.g. binder/sync priority inheritance) reaching
+		# threads this run never explicitly clamped. Reset every thread in
+		# the process's task group unconditionally, regardless of mechanism,
+		# so nothing depends on the active-set bookkeeping being complete.
+		reset_process_clamp "$_pid"
+		if [ -d "/proc/$_pid/task" ]; then
+			for _t in $(ls "/proc/$_pid/task" 2>/dev/null); do
+				uclampset -m 0 -p "$_t" 2>/dev/null
 			done
 		fi
 	fi

@@ -2,6 +2,7 @@
 # committed -- docs/R3_REAL_APP_PILOT.md#app-privacy) and fill in real
 # package names / component names for this device.
 app_slot,package,launch_activity,notes
-APP_A,com.example.replaceme,.MainActivity,cold_launch / app_switch / camera_launch target
-APP_B,com.example.replaceme2,,scroll_fling target -- a scrollable feed or list view
-APP_C,com.example.replaceme3,,steady_renderer target -- continuous rendering, e.g. video playback
+APP_A,com.example.replaceme,.MainActivity,cold_launch / camera_launch target
+APP_B,com.example.replaceme2,,app_switch target -- a distinct resident app switched to from APP_A
+APP_C,com.example.replaceme3,,scroll_fling target -- a scrollable feed or list view
+APP_D,com.example.replaceme4,,steady_renderer target -- continuous rendering, e.g. video playback

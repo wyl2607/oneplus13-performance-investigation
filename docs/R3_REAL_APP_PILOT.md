@@ -73,7 +73,7 @@ measurement harness; it does not import or modify anything under
 ## App privacy
 
 Real package names and any recognizable app/game name are never committed.
-Every script and doc refers to `APP_A` / `APP_B` / `APP_C`. The mapping from
+Every script and doc refers to `APP_A` / `APP_B` / `APP_C` / `APP_D`. The mapping from
 those tokens to real packages lives only in
 `experiments/r3-real-app/app-manifest.local.csv`, which is listed in
 `.gitignore` and was never committed — not even once, since a later removal
