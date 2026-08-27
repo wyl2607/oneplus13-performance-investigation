@@ -6,6 +6,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
@@ -362,6 +363,57 @@ class RunSessionCheckpointResumeTests(unittest.TestCase):
             # drift against what the session recorded at creation time.
             with self.assertRaises(MOD.PlanIntegrityError):
                 MOD.run_session(plan_path, sha_path, state_path, MOD.FakeDevice(), cfg)
+
+
+class TestAdbDeviceHostChecks(unittest.TestCase):
+    """Regression coverage for the bug the R4 smoke phase found live: a
+    multi-word inline script (`for z in ...; do ... done`) passed as a
+    `su -c <script>` argv element came back "syntax error: unexpected 'do'"
+    from the device, and thermal_milli_c() silently turned that failure into
+    (None, None) -- which the caller treats as "no reading, skip the check",
+    defeating the host-side thermal preflight with no error surfaced. The
+    fix routes both host checks through a pushed script file (the same
+    `sh <path>` pattern device.run() already uses), which this locks in by
+    asserting the command line is exactly `sh <DEVICE_DIR>/<script>`, never
+    an inline multi-word script."""
+
+    def _adb_device(self):
+        return MOD.AdbDevice(serial="TESTSERIAL")
+
+    def test_thermal_milli_c_runs_pushed_script_not_inline(self):
+        device = self._adb_device()
+        completed = mock.Mock(stdout="J:45200\nS:31100\n", stderr="", returncode=0)
+        with mock.patch("subprocess.run", return_value=completed) as run:
+            j, s = device.thermal_milli_c()
+        self.assertEqual((j, s), (45200, 31100))
+        args = run.call_args[0][0]
+        self.assertEqual(args[-3:], ["su", "-c", f"sh {device.DEVICE_DIR}/host-thermal-check.sh"])
+
+    def test_screen_on_runs_pushed_script_not_inline(self):
+        device = self._adb_device()
+        completed = mock.Mock(stdout="  mScreenState=ON\n", stderr="", returncode=0)
+        with mock.patch("subprocess.run", return_value=completed) as run:
+            self.assertTrue(device.screen_on())
+        args = run.call_args[0][0]
+        self.assertEqual(args[-3:], ["su", "-c", f"sh {device.DEVICE_DIR}/host-screen-check.sh"])
+
+    def test_thermal_milli_c_missing_zone_is_none_not_a_parse_crash(self):
+        device = self._adb_device()
+        completed = mock.Mock(stdout="", stderr="syntax error\n", returncode=1)
+        with mock.patch("subprocess.run", return_value=completed):
+            self.assertEqual(device.thermal_milli_c(), (None, None))
+
+    def test_push_scripts_pushes_both_host_check_scripts(self):
+        device = self._adb_device()
+        with mock.patch("subprocess.run", return_value=mock.Mock(stdout="", stderr="", returncode=0)) as run:
+            device.push_scripts()
+        pushed = {
+            pathlib.Path(c.args[0][-1]).name
+            for c in run.call_args_list
+            if "push" in c.args[0]
+        }
+        self.assertIn("host-thermal-check.sh", pushed)
+        self.assertIn("host-screen-check.sh", pushed)
 
 
 if __name__ == "__main__":
