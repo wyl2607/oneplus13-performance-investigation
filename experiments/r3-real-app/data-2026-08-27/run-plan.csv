@@ -1,0 +1,33 @@
+run_id,repeat,pair_index,workload_id,mechanism,role,event_markers_required,app_slot,arm,arm_order,notes
+R001,1,1,app_switch,active-set,interaction_transition,yes,APP_B,control,CONTROL_512,am start -W TotalTime; APP_A already resident
+R002,1,1,app_switch,active-set,interaction_transition,yes,APP_B,512,CONTROL_512,am start -W TotalTime; APP_A already resident
+R003,1,2,cold_launch,active-set,interaction_transition,yes,APP_A,control,CONTROL_512,am start -W TotalTime
+R004,1,2,cold_launch,active-set,interaction_transition,yes,APP_A,512,CONTROL_512,am start -W TotalTime
+R005,1,3,scroll_fling,active-set,interaction_transition,no,APP_C,control,CONTROL_512,framestats window around a fixed input swipe sequence
+R006,1,3,scroll_fling,active-set,interaction_transition,no,APP_C,512,CONTROL_512,framestats window around a fixed input swipe sequence
+R007,1,4,steady_renderer,active-set,steady_negative,no,APP_D,control,CONTROL_512,no latency event; throughput/pacing over full window
+R008,1,4,steady_renderer,active-set,steady_negative,no,APP_D,512,CONTROL_512,no latency event; throughput/pacing over full window
+R009,2,1,steady_renderer,active-set,steady_negative,no,APP_D,512,512_CONTROL,no latency event; throughput/pacing over full window
+R010,2,1,steady_renderer,active-set,steady_negative,no,APP_D,control,512_CONTROL,no latency event; throughput/pacing over full window
+R011,2,2,app_switch,active-set,interaction_transition,yes,APP_B,512,512_CONTROL,am start -W TotalTime; APP_A already resident
+R012,2,2,app_switch,active-set,interaction_transition,yes,APP_B,control,512_CONTROL,am start -W TotalTime; APP_A already resident
+R013,2,3,scroll_fling,active-set,interaction_transition,no,APP_C,512,512_CONTROL,framestats window around a fixed input swipe sequence
+R014,2,3,scroll_fling,active-set,interaction_transition,no,APP_C,control,512_CONTROL,framestats window around a fixed input swipe sequence
+R015,2,4,cold_launch,active-set,interaction_transition,yes,APP_A,512,512_CONTROL,am start -W TotalTime
+R016,2,4,cold_launch,active-set,interaction_transition,yes,APP_A,control,512_CONTROL,am start -W TotalTime
+R017,3,1,steady_renderer,active-set,steady_negative,no,APP_D,control,CONTROL_512,no latency event; throughput/pacing over full window
+R018,3,1,steady_renderer,active-set,steady_negative,no,APP_D,512,CONTROL_512,no latency event; throughput/pacing over full window
+R019,3,2,cold_launch,active-set,interaction_transition,yes,APP_A,control,CONTROL_512,am start -W TotalTime
+R020,3,2,cold_launch,active-set,interaction_transition,yes,APP_A,512,CONTROL_512,am start -W TotalTime
+R021,3,3,scroll_fling,active-set,interaction_transition,no,APP_C,control,CONTROL_512,framestats window around a fixed input swipe sequence
+R022,3,3,scroll_fling,active-set,interaction_transition,no,APP_C,512,CONTROL_512,framestats window around a fixed input swipe sequence
+R023,3,4,app_switch,active-set,interaction_transition,yes,APP_B,control,CONTROL_512,am start -W TotalTime; APP_A already resident
+R024,3,4,app_switch,active-set,interaction_transition,yes,APP_B,512,CONTROL_512,am start -W TotalTime; APP_A already resident
+R025,4,1,scroll_fling,active-set,interaction_transition,no,APP_C,512,512_CONTROL,framestats window around a fixed input swipe sequence
+R026,4,1,scroll_fling,active-set,interaction_transition,no,APP_C,control,512_CONTROL,framestats window around a fixed input swipe sequence
+R027,4,2,steady_renderer,active-set,steady_negative,no,APP_D,512,512_CONTROL,no latency event; throughput/pacing over full window
+R028,4,2,steady_renderer,active-set,steady_negative,no,APP_D,control,512_CONTROL,no latency event; throughput/pacing over full window
+R029,4,3,cold_launch,active-set,interaction_transition,yes,APP_A,512,512_CONTROL,am start -W TotalTime
+R030,4,3,cold_launch,active-set,interaction_transition,yes,APP_A,control,512_CONTROL,am start -W TotalTime
+R031,4,4,app_switch,active-set,interaction_transition,yes,APP_B,512,512_CONTROL,am start -W TotalTime; APP_A already resident
+R032,4,4,app_switch,active-set,interaction_transition,yes,APP_B,control,512_CONTROL,am start -W TotalTime; APP_A already resident

@@ -34,7 +34,9 @@ jobs:
             tools/build-observer-workload-report.py \
             tools/build-observer-manifest-report.py \
             tools/evaluate-observer-detector-candidates.py \
-            tools/make-burst-detector-holdout-plan.py
+            tools/make-burst-detector-holdout-plan.py \
+            tools/make-r3-run-plan.py \
+            tools/analyze-r3-real-app.py
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
       - name: Smoke-test GB7 plan generation

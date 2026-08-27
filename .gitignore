@@ -3,3 +3,7 @@ raw/
 scratch/
 vmlinux.btf
 __pycache__/
+
+# R3: real package names live only here, never committed (docs/PRIVACY.md).
+experiments/r3-real-app/app-manifest.local.csv
+experiments/r3-real-app/raw/
