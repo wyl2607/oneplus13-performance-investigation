@@ -25,14 +25,45 @@ for kind in cpu memory io; do
   fi
 done
 
-ZRAM="$(awk '$1 ~ /zram/ {print $1}' /proc/swaps 2>/dev/null | head -n1 || true)"
-if [ -n "$ZRAM" ]; then
-  kv zram_present true
-  ZNAME="${ZRAM##*/}"
-  kv zram_disksize_bytes "$(cat "/sys/block/$ZNAME/disksize" 2>/dev/null || printf 'UNKNOWN')"
-  kv zram_mem_used_total "$(awk '{print $3}' "/sys/block/$ZNAME/mm_stat" 2>/dev/null || printf 'UNKNOWN')"
+ZSYS=""
+for z in /sys/block/zram*; do
+  [ -e "$z" ] || continue
+  ZSYS="$z"
+  break
+done
+if [ -n "$ZSYS" ]; then
+  kv zram_device_present true
 else
-  kv zram_present false
+  kv zram_device_present false
+fi
+
+if [ -r /proc/swaps ] && head -n1 /proc/swaps >/dev/null 2>&1; then
+  kv proc_swaps_readable true
+  ZRAM="$(awk '$1 ~ /zram/ {print $1}' /proc/swaps 2>/dev/null | head -n1 || true)"
+  if [ -n "$ZRAM" ]; then
+    kv zram_present true
+    ZNAME="${ZRAM##*/}"
+    kv zram_disksize_bytes "$(cat "/sys/block/$ZNAME/disksize" 2>/dev/null || printf 'UNKNOWN')"
+    kv zram_mem_used_total "$(awk '{print $3}' "/sys/block/$ZNAME/mm_stat" 2>/dev/null || printf 'UNKNOWN')"
+  else
+    kv zram_present false
+    if [ -n "$ZSYS" ]; then
+      ZNAME="${ZSYS##*/}"
+      kv zram_disksize_bytes "$(cat "$ZSYS/disksize" 2>/dev/null || printf 'UNKNOWN')"
+      kv zram_mem_used_total "$(awk '{print $3}' "$ZSYS/mm_stat" 2>/dev/null || printf 'UNKNOWN')"
+    fi
+  fi
+else
+  kv proc_swaps_readable false
+  kv zram_present UNKNOWN
+  if [ -n "$ZSYS" ]; then
+    ZNAME="${ZSYS##*/}"
+    kv zram_disksize_bytes "$(cat "$ZSYS/disksize" 2>/dev/null || printf 'UNKNOWN')"
+    kv zram_mem_used_total "$(awk '{print $3}' "$ZSYS/mm_stat" 2>/dev/null || printf 'UNKNOWN')"
+  else
+    kv zram_disksize_bytes UNKNOWN
+    kv zram_mem_used_total UNKNOWN
+  fi
 fi
 
 LMKD="$(logcat -d -b system -t 2000 2>/dev/null | grep -ciE 'lmkd|lowmemorykiller' || true)"
