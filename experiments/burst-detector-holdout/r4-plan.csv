@@ -1,0 +1,89 @@
+run_id,repeat,pair_index,workload_id,role,event_markers_required,module_state,state_order,frozen_candidates,notes
+H001,1,1,steady_game_title,steady_negative,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Rendered title/menu scene; redact identifying thread names
+H002,1,1,steady_game_title,steady_negative,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Rendered title/menu scene; redact identifying thread names
+H003,1,2,synthetic_compute,synthetic_control,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Uninterrupted top-app arithmetic worker used as mechanism control
+H004,1,2,synthetic_compute,synthetic_control,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Uninterrupted top-app arithmetic worker used as mechanism control
+H005,1,3,app_launch_warm,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Warm launch from recent-task/background state
+H006,1,3,app_launch_warm,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Warm launch from recent-task/background state
+H007,1,4,video_playback,steady_negative,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Steady local or streamed video playback after startup settles
+H008,1,4,video_playback,steady_negative,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Steady local or streamed video playback after startup settles
+H009,1,5,synthetic_wake,synthetic_control,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Wake-heavy top-app worker matching the S1 mechanism control
+H010,1,5,synthetic_wake,synthetic_control,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Wake-heavy top-app worker matching the S1 mechanism control
+H011,1,6,camera_launch,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Camera app launch only; do not capture private image content
+H012,1,6,camera_launch,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Camera app launch only; do not capture private image content
+H013,1,7,app_launch_cold,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Cold launch from force-stopped state; redact package identity in committed data
+H014,1,7,app_launch_cold,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Cold launch from force-stopped state; redact package identity in committed data
+H015,1,8,steady_gameplay,steady_negative,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Gameplay if resources are available; separate from title-screen rendering
+H016,1,8,steady_gameplay,steady_negative,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Gameplay if resources are available; separate from title-screen rendering
+H017,1,9,browser_scroll,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Scroll/fling interaction in a stable page state
+H018,1,9,browser_scroll,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Scroll/fling interaction in a stable page state
+H019,1,10,app_switch,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Repeated foreground-app switch with explicit start/end marker
+H020,1,10,app_switch,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Repeated foreground-app switch with explicit start/end marker
+H021,1,11,background_download,background_negative,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Foreground remains stable while network/download work proceeds
+H022,1,11,background_download,background_negative,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Foreground remains stable while network/download work proceeds
+H023,2,1,background_download,background_negative,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Foreground remains stable while network/download work proceeds
+H024,2,1,background_download,background_negative,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Foreground remains stable while network/download work proceeds
+H025,2,2,synthetic_compute,synthetic_control,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Uninterrupted top-app arithmetic worker used as mechanism control
+H026,2,2,synthetic_compute,synthetic_control,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Uninterrupted top-app arithmetic worker used as mechanism control
+H027,2,3,steady_gameplay,steady_negative,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Gameplay if resources are available; separate from title-screen rendering
+H028,2,3,steady_gameplay,steady_negative,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Gameplay if resources are available; separate from title-screen rendering
+H029,2,4,camera_launch,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Camera app launch only; do not capture private image content
+H030,2,4,camera_launch,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Camera app launch only; do not capture private image content
+H031,2,5,video_playback,steady_negative,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Steady local or streamed video playback after startup settles
+H032,2,5,video_playback,steady_negative,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Steady local or streamed video playback after startup settles
+H033,2,6,app_launch_warm,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Warm launch from recent-task/background state
+H034,2,6,app_launch_warm,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Warm launch from recent-task/background state
+H035,2,7,steady_game_title,steady_negative,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Rendered title/menu scene; redact identifying thread names
+H036,2,7,steady_game_title,steady_negative,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Rendered title/menu scene; redact identifying thread names
+H037,2,8,app_launch_cold,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Cold launch from force-stopped state; redact package identity in committed data
+H038,2,8,app_launch_cold,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Cold launch from force-stopped state; redact package identity in committed data
+H039,2,9,synthetic_wake,synthetic_control,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Wake-heavy top-app worker matching the S1 mechanism control
+H040,2,9,synthetic_wake,synthetic_control,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Wake-heavy top-app worker matching the S1 mechanism control
+H041,2,10,browser_scroll,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Scroll/fling interaction in a stable page state
+H042,2,10,browser_scroll,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Scroll/fling interaction in a stable page state
+H043,2,11,app_switch,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Repeated foreground-app switch with explicit start/end marker
+H044,2,11,app_switch,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Repeated foreground-app switch with explicit start/end marker
+H045,3,1,app_launch_warm,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Warm launch from recent-task/background state
+H046,3,1,app_launch_warm,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Warm launch from recent-task/background state
+H047,3,2,camera_launch,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Camera app launch only; do not capture private image content
+H048,3,2,camera_launch,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Camera app launch only; do not capture private image content
+H049,3,3,video_playback,steady_negative,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Steady local or streamed video playback after startup settles
+H050,3,3,video_playback,steady_negative,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Steady local or streamed video playback after startup settles
+H051,3,4,steady_game_title,steady_negative,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Rendered title/menu scene; redact identifying thread names
+H052,3,4,steady_game_title,steady_negative,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Rendered title/menu scene; redact identifying thread names
+H053,3,5,browser_scroll,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Scroll/fling interaction in a stable page state
+H054,3,5,browser_scroll,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Scroll/fling interaction in a stable page state
+H055,3,6,app_switch,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Repeated foreground-app switch with explicit start/end marker
+H056,3,6,app_switch,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Repeated foreground-app switch with explicit start/end marker
+H057,3,7,app_launch_cold,interaction_transition,yes,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Cold launch from force-stopped state; redact package identity in committed data
+H058,3,7,app_launch_cold,interaction_transition,yes,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Cold launch from force-stopped state; redact package identity in committed data
+H059,3,8,synthetic_wake,synthetic_control,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Wake-heavy top-app worker matching the S1 mechanism control
+H060,3,8,synthetic_wake,synthetic_control,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Wake-heavy top-app worker matching the S1 mechanism control
+H061,3,9,synthetic_compute,synthetic_control,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Uninterrupted top-app arithmetic worker used as mechanism control
+H062,3,9,synthetic_compute,synthetic_control,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Uninterrupted top-app arithmetic worker used as mechanism control
+H063,3,10,background_download,background_negative,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Foreground remains stable while network/download work proceeds
+H064,3,10,background_download,background_negative,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Foreground remains stable while network/download work proceeds
+H065,3,11,steady_gameplay,steady_negative,no,module_off,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Gameplay if resources are available; separate from title-screen rendering
+H066,3,11,steady_gameplay,steady_negative,no,module_on,OFF_ON,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Gameplay if resources are available; separate from title-screen rendering
+H067,4,1,synthetic_wake,synthetic_control,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Wake-heavy top-app worker matching the S1 mechanism control
+H068,4,1,synthetic_wake,synthetic_control,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Wake-heavy top-app worker matching the S1 mechanism control
+H069,4,2,camera_launch,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Camera app launch only; do not capture private image content
+H070,4,2,camera_launch,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Camera app launch only; do not capture private image content
+H071,4,3,app_launch_warm,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Warm launch from recent-task/background state
+H072,4,3,app_launch_warm,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Warm launch from recent-task/background state
+H073,4,4,browser_scroll,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Scroll/fling interaction in a stable page state
+H074,4,4,browser_scroll,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Scroll/fling interaction in a stable page state
+H075,4,5,app_launch_cold,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Cold launch from force-stopped state; redact package identity in committed data
+H076,4,5,app_launch_cold,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Cold launch from force-stopped state; redact package identity in committed data
+H077,4,6,video_playback,steady_negative,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Steady local or streamed video playback after startup settles
+H078,4,6,video_playback,steady_negative,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Steady local or streamed video playback after startup settles
+H079,4,7,background_download,background_negative,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Foreground remains stable while network/download work proceeds
+H080,4,7,background_download,background_negative,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Foreground remains stable while network/download work proceeds
+H081,4,8,synthetic_compute,synthetic_control,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Uninterrupted top-app arithmetic worker used as mechanism control
+H082,4,8,synthetic_compute,synthetic_control,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Uninterrupted top-app arithmetic worker used as mechanism control
+H083,4,9,steady_gameplay,steady_negative,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Gameplay if resources are available; separate from title-screen rendering
+H084,4,9,steady_gameplay,steady_negative,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Gameplay if resources are available; separate from title-screen rendering
+H085,4,10,app_switch,interaction_transition,yes,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Repeated foreground-app switch with explicit start/end marker
+H086,4,10,app_switch,interaction_transition,yes,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Repeated foreground-app switch with explicit start/end marker
+H087,4,11,steady_game_title,steady_negative,no,module_on,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Rendered title/menu scene; redact identifying thread names
+H088,4,11,steady_game_title,steady_negative,no,module_off,ON_OFF,C2_ROTATION_OR_LEADER;C4_INTERACTION_SHAPE,Rendered title/menu scene; redact identifying thread names

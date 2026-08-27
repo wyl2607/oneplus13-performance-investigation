@@ -1,0 +1,16 @@
+# Template only. Copy to app-manifest.local.csv (gitignored, never
+# committed -- same discipline as experiments/r3-real-app/app-manifest.local.csv,
+# docs/R3_REAL_APP_PILOT.md#app-privacy) and fill in real package names /
+# component names for this device.
+#
+# Slot -> workload mapping used by tools/run-r4-holdout.py
+# (AUTOMATABLE_SLOTS):
+#   APP_A -> app_launch_cold, app_launch_warm
+#   APP_B -> app_switch (the switch-to target)
+#   APP_C -> browser_scroll
+#   APP_D -> camera_launch
+app_slot,package,launch_activity,notes
+APP_A,com.example.replaceme,.MainActivity,app_launch_cold / app_launch_warm target
+APP_B,com.example.replaceme2,,app_switch target -- a distinct resident app switched to from APP_A
+APP_C,com.example.replaceme3,,browser_scroll target -- a scrollable feed or list view
+APP_D,com.example.replaceme4,,camera_launch target -- do not capture private image content
