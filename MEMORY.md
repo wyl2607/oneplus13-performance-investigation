@@ -35,3 +35,12 @@
 - 处理：保留 `data/live` 快照在本机，但从 PR commit 中移除该目录；PR 只保留代码修复、回归测试和不含设备身份信息的披露式记忆。
 - 验证结果：快照已从 Git 索引移除并保留在本机；amend 后的修复 commit 不包含 `data/live`。
 - 状态：已处理；修复分支已安全推送并创建 PR #29，`data/live` 仍仅保留在本机。
+
+### 验证限制 5：普通沙箱无法读取 GitHub PR 状态
+
+- 现象：最终核验时，普通沙箱中的 `gh pr view 29` 访问 GitHub API 失败，报 Windows socket 权限拒绝。
+- 影响：该次只读查询没有返回 PR 状态；没有修改远端或本地内容。
+- 已知证据：PR 创建命令已成功返回 `https://github.com/wyl2607/oneplus13-performance-investigation/pull/29`，随后分支 push 也成功。
+- 处理：记录该限制后，用允许联网的只读方式重试 PR 状态查询。
+- 验证结果：只读重试成功；PR #29 状态为 `OPEN`，目标为 `main`，head 为 `cd94843abfa5a07a24c2eab0707623c81afd8fc5`。
+- 状态：已解除。
