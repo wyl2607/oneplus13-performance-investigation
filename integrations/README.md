@@ -11,6 +11,16 @@ Initial candidates:
 - `reigadegr/thread-opt` — game-thread classification and affinity experiments.
 - `KonaBess-Next/KonaBess-Next` — GPU calibration reference; not a runtime backend.
 
+## Live-device entry point
+
+For the first phone-connected session, start with the read-only gate in [`ADB_TEST_QUICKSTART.md`](./ADB_TEST_QUICKSTART.md):
+
+```bash
+python tools/adb-integration-smoke.py --output data/live/adb-smoke.json
+```
+
+It records the connected device/build/root state, active performance backends, OPlus control nodes, CPU policies and thermal sensors without writing to the device. A backend conflict makes the command exit non-zero so contaminated A/B runs fail before data collection.
+
 ## Integration policy
 
 1. Third-party projects remain separately installed and separately licensed.
@@ -32,4 +42,4 @@ Initial candidates:
 | GPU voltage/frequency calibration | KonaBess-Next | external lab tool |
 | production policy engine | local adapter layer | keep until evidence supports replacement |
 
-The next implementation step is a host-side backend runner with four arms (`stock`, `op13perf`, `fas-rs`, `yumi`) plus optional `thread-opt`, all feeding the same run schema.
+The next implementation step after the read-only gate is a host-side backend runner with four arms (`stock`, `op13perf`, `fas-rs`, `yumi`) plus optional `thread-opt`, all feeding the same run schema.
