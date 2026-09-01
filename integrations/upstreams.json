@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "backends": {
+    "op13perf": {
+      "repo": "wyl2607/oneplus13-performance-investigation",
+      "license": "MIT",
+      "module_id": "op13perf",
+      "role": ["oplus-limiter-control", "thermal-failsafe", "local-baseline"],
+      "integration": "native",
+      "production_candidate": true
+    },
+    "fas-rs": {
+      "repo": "shadow3aaa/fas-rs",
+      "license": "GPL-3.0-or-later",
+      "module_id": "fas_rs",
+      "pinned_commit": "09ba876fcdf378004305f30243e979c7cea346dc",
+      "role": ["frame-signal", "frame-aware-scheduling"],
+      "integration": "external-module",
+      "production_candidate": "signal-layer-only-after-ab"
+    },
+    "yumi": {
+      "repo": "imacte/yumi",
+      "license": "GPL-3.0",
+      "module_id": "yumi",
+      "pinned_commit": "5c54e0fbd403c59d3649bec055403307bdeb1747",
+      "role": ["ebpf-cpu-signal", "frame-signal", "fas", "cpu-load-governor"],
+      "integration": "external-module",
+      "production_candidate": "observer-or-controller-after-idle-power-ab"
+    },
+    "thread-opt": {
+      "repo": "reigadegr/thread-opt",
+      "license": "GPL-3.0",
+      "module_id": "thread_opt",
+      "pinned_commit": "4f9926e541ae7aa46fb11be1e1f330e7eeada2aa",
+      "role": ["game-thread-classification", "affinity-experiment"],
+      "integration": "external-module",
+      "production_candidate": "classifier-only-preferred"
+    },
+    "konabess-next": {
+      "repo": "KonaBess-Next/KonaBess-Next",
+      "license": "GPL-3.0",
+      "module_id": null,
+      "role": ["gpu-calibration-reference"],
+      "integration": "external-lab-tool",
+      "production_candidate": false
+    }
+  }
+}
