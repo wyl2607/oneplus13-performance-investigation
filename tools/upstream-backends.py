@@ -37,10 +37,12 @@ class AdbDevice:
     def shell(self, script: str, root: bool = False) -> str:
         cmd = [self.adb, "shell"]
         if root:
-            cmd += ["su", "-c", script]
+            cmd += [f"su -c {shell_quote(script)}"]
         else:
-            cmd += ["sh", "-c", script]
-        result = subprocess.run(cmd, check=True, text=True, capture_output=True)
+            cmd += [f"sh -c {shell_quote(script)}"]
+        result = subprocess.run(
+            cmd, check=True, text=True, encoding="utf-8", capture_output=True
+        )
         return result.stdout.strip()
 
     def path_exists(self, path: str) -> bool:

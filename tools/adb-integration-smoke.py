@@ -30,6 +30,7 @@ def run(cmd: list[str], timeout: int = 15, check: bool = True) -> subprocess.Com
         return subprocess.run(
             cmd,
             text=True,
+            encoding="utf-8",
             capture_output=True,
             timeout=timeout,
             check=check,
@@ -55,9 +56,9 @@ class Adb:
     def shell(self, script: str, root: bool = False, check: bool = True) -> str:
         cmd = [self.executable, "shell"]
         if root:
-            cmd += ["su", "-c", script]
+            cmd += [f"su -c {shell_quote(script)}"]
         else:
-            cmd += ["sh", "-c", script]
+            cmd += [f"sh -c {shell_quote(script)}"]
         return run(cmd, check=check).stdout.strip()
 
 
@@ -197,6 +198,8 @@ def main() -> int:
         payload["error"] = str(exc)
 
     rendered = json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False)
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     print(rendered)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
