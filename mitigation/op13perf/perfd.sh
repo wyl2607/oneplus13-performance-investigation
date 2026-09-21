@@ -39,7 +39,7 @@ mkdir -p "$STATEDIR"
 
 # Defaults live here, not only in the conf file, so an older conf missing a key
 # still yields a working daemon instead of an empty variable.
-BOOT_LEVEL=1
+BOOT_LEVEL=2
 DAILY_P6=2841600
 DAILY_P0=2400000
 DAILY_GATE=88000
@@ -60,9 +60,21 @@ PAUSE_ON_SCREEN_OFF=1
 
 [ -f "$CONF" ] || cat > "$CONF" <<'EOF'
 # 开机自动进入的档位：0=关 1=日常档 2=高性能档 3=极限档
-# 默认 1。开机时无法知道 40W 散热器接没接，而 3 档的前提就是接着散热器，
-# 所以开机只能进裸机安全的档位。
-BOOT_LEVEL=1
+# 开机时无法知道 40W 散热器接没接，而 3 档的前提就是接着散热器，所以开机只能进
+# 裸机安全的档位——但「裸机安全」到 2 档为止，这一条现在是实测的。
+#
+# 默认从 1 改成 2（2026-09-21，DATA.md 45 节）。八轮 ABBA/BAAB，拔掉散热器：
+#   单核 1804.8 -> 2103.0  +16.53%  t=+61.0      多核 6879.2 -> 7658.8  +11.33%  t=+18.1
+#   两档各自跑间标准差只有 0.4% / 0.8%，而差值是 16.5% / 11.3%
+#   峰值结温 88.0 -> 91.5 C，峰值外壳 37.2 -> 37.5 C，**八轮退让全部 0.0%**
+# 2 档的瞬时结温峰值确实越过它自己 90 C 的红线而退让没触发，因为 gate 跑在 EMA 上，
+# 裸传感器一秒内在 80<->93 C 之间甩（39 节仪器失败 4）。EMA 全程没越线。
+#
+# 此前默认 1 不是因为 2 档被测出不安全，而是因为**两个裸机档一个都没测过**
+# （39 节自己写着 "Levels 1 and 2 have no bare-device data at all"）。那条 TODO 已关。
+# 边界：上述全部在插 USB 充电下取得，机身比不充电高约 4 C，方向保守；且 GB7 多核只有
+# 约 90 s 满载，不是 17/18 节那种十五分钟持续全核——那个工况任何档位都救不了。
+BOOT_LEVEL=2
 
 # 档位 1 · 日常（裸机常开）。两个频率都必须是 scaling_available_frequencies
 # 里的真实台阶，否则内核静默向下吸附（2918400 在 policy6 上不存在，会变成 2841600）。
