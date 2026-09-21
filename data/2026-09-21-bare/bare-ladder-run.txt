@@ -1,0 +1,85 @@
+16:01:41 === bare-device ladder start ===
+16:01:41 plan: /private/tmp/claude-501/-/a410dfc6-a1f9-4dd9-b35d-063e80ef2161/scratchpad/bare-plan.csv
+16:01:41 plan holds 8 runs
+16:01:41 --- b01-r1 (block 1, order 1) arm=A level=1  level1-2841600-2400000
+16:01:44   level set to 1 -> level=1 held=yes cfb=0 prime=2841600 junc=39C left=常开 pids=12628 16362 1661 26316 8945 
+16:01:45   settling... 0/300s  junction 42C  shell 35C
+16:02:46   settling... 61/300s  junction 39C  shell 35C
+16:03:46   settling... 122/300s  junction 39C  shell 35C
+16:04:47   settling... 182/300s  junction 39C  shell 35C
+16:05:48   settling... 243/300s  junction 38C  shell 34C
+16:06:49   settled 300s: start junction 38C shell 34C
+16:07:01   tapped Run at 979,2180  [bounds="[614,2084][1344,2276]"]
+16:11:44   RESULT single=1797 multi=6836  start(j,s)=38,34C  peak(j,s,stepdown%)=80.7,35.7,0.0
+16:11:44 --- b01-r2 (block 1, order 2) arm=B level=2  level2-3283200-2918400
+16:11:47   level set to 2 -> level=2 held=yes cfb=0 prime=3283200 junc=45C left=常开 pids=12628 21698 26316 28106 8945 
+16:11:48   settling... 0/300s  junction 56C  shell 35C
+16:12:49   settling... 61/300s  junction 41C  shell 35C
+16:13:49   settling... 122/300s  junction 40C  shell 35C
+16:14:50   settling... 182/300s  junction 40C  shell 35C
+16:15:51   settling... 243/300s  junction 39C  shell 35C
+16:16:52   settled 300s: start junction 39C shell 35C
+16:17:04   tapped Run at 979,2180  [bounds="[614,2084][1344,2276]"]
+16:21:27   RESULT single=2103 multi=7737  start(j,s)=39,35C  peak(j,s,stepdown%)=91.1,36.0,0.0
+16:21:27 --- b01-r3 (block 1, order 3) arm=B level=2  level2-3283200-2918400
+16:21:30   level set to 2 -> level=2 held=yes cfb=0 prime=3283200 junc=49C left=常开 pids=12628 20827 24562 26316 8945 
+16:21:31   settling... 0/300s  junction 58C  shell 36C
+16:22:32   settling... 61/300s  junction 44C  shell 36C
+16:23:32   settling... 122/300s  junction 42C  shell 36C
+16:24:33   settling... 182/300s  junction 41C  shell 36C
+16:25:34   settling... 243/300s  junction 41C  shell 36C
+16:26:35   settled 300s: start junction 40C shell 36C
+16:26:47   tapped Run at 979,2180  [bounds="[614,2084][1344,2276]"]
+16:31:10   RESULT single=2112 multi=7638  start(j,s)=40,36C  peak(j,s,stepdown%)=91.5,37.2,0.0
+16:31:10 --- b01-r4 (block 1, order 4) arm=A level=1  level1-2841600-2400000
+16:31:13   level set to 1 -> level=1 held=yes cfb=0 prime=2841600 junc=50C left=常开 pids=12628 14677 26316 28195 8945 
+16:31:13   settling... 0/300s  junction 52C  shell 37C
+16:31:29   settling... 15/300s  junction 45C  shell 37C
+16:32:15   settling... 61/300s  junction 44C  shell 37C
+16:33:15   settling... 122/300s  junction 46C  shell 37C
+16:34:16   settling... 182/300s  junction 44C  shell 37C
+16:35:17   settling... 243/300s  junction 42C  shell 37C
+16:36:18   settled 300s: start junction 41C shell 36C
+16:36:30   tapped Run at 979,2180  [bounds="[614,2084][1344,2276]"]
+16:41:13   RESULT single=1814 multi=6856  start(j,s)=41,36C  peak(j,s,stepdown%)=86.9,37.1,0.0
+16:41:13 --- b02-r1 (block 2, order 5) arm=B level=2  level2-3283200-2918400
+16:41:16   level set to 2 -> level=2 held=yes cfb=0 prime=3283200 junc=46C left=常开 pids=12628 26316 6760 8945 9541 
+16:41:17   settling... 0/300s  junction 59C  shell 37C
+16:42:18   settling... 61/300s  junction 43C  shell 37C
+16:43:18   settling... 122/300s  junction 42C  shell 37C
+16:44:19   settling... 183/300s  junction 43C  shell 37C
+16:45:20   settling... 243/300s  junction 42C  shell 36C
+16:46:21   settled 300s: start junction 40C shell 36C
+16:46:33   tapped Run at 979,2180  [bounds="[614,2084][1344,2276]"]
+16:50:56   RESULT single=2099 multi=7680  start(j,s)=40,36C  peak(j,s,stepdown%)=91.5,37.4,0.0
+16:50:56 --- b02-r2 (block 2, order 6) arm=A level=1  level1-2841600-2400000
+16:50:59   level set to 1 -> level=1 held=yes cfb=0 prime=2841600 junc=48C left=常开 pids=12628 15719 21575 26316 8945 
+16:51:00   settling... 0/300s  junction 52C  shell 37C
+16:52:01   settling... 61/300s  junction 44C  shell 37C
+16:53:01   settling... 122/300s  junction 43C  shell 37C
+16:54:02   settling... 183/300s  junction 43C  shell 37C
+16:55:03   settling... 243/300s  junction 44C  shell 37C
+16:56:04   settled 300s: start junction 42C shell 37C
+16:56:16   tapped Run at 979,2180  [bounds="[614,2084][1344,2276]"]
+17:00:59   RESULT single=1807 multi=6865  start(j,s)=42,37C  peak(j,s,stepdown%)=88.0,37.2,0.0
+17:00:59 --- b02-r3 (block 2, order 7) arm=A level=1  level1-2841600-2400000
+17:01:02   level set to 1 -> level=1 held=yes cfb=0 prime=2841600 junc=47C left=常开 pids=12628 23419 26316 27594 8945 
+17:01:03   settling... 0/300s  junction 55C  shell 37C
+17:02:04   settling... 61/300s  junction 44C  shell 37C
+17:03:05   settling... 122/300s  junction 43C  shell 37C
+17:04:05   settling... 183/300s  junction 44C  shell 37C
+17:05:06   settling... 244/300s  junction 42C  shell 37C
+17:06:07   settled 300s: start junction 44C shell 36C
+17:06:19   tapped Run at 979,2180  [bounds="[614,2084][1344,2276]"]
+17:11:02   RESULT single=1801 multi=6960  start(j,s)=44,36C  peak(j,s,stepdown%)=88.0,37.1,0.0
+17:11:02 --- b02-r4 (block 2, order 8) arm=B level=2  level2-3283200-2918400
+17:11:05   level set to 2 -> level=2 held=yes cfb=0 prime=3283200 junc=47C left=常开 pids=10063 12628 26316 31824 8945 
+17:11:06   settling... 0/300s  junction 50C  shell 37C
+17:12:07   settling... 61/300s  junction 44C  shell 37C
+17:13:08   settling... 122/300s  junction 42C  shell 37C
+17:14:09   settling... 183/300s  junction 42C  shell 37C
+17:15:09   settling... 244/300s  junction 42C  shell 37C
+17:16:10   settled 300s: start junction 41C shell 36C
+17:16:22   tapped Run at 979,2180  [bounds="[614,2084][1344,2276]"]
+17:20:45   RESULT single=2098 multi=7580  start(j,s)=41,36C  peak(j,s,stepdown%)=91.1,37.5,0.0
+17:20:45 === ladder done, 8/8 runs recorded ===

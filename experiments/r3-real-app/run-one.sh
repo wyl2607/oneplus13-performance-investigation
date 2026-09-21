@@ -208,17 +208,31 @@ case "$WORKLOAD" in
 			_n=$((_n + 1))
 		done
 		say "EVENT|event_id=$RUN_ID|phase=end|t_ms=$(($(now_cs) * 10))" >> "$OUT"
-		GFX=$(dumpsys gfxinfo "$PACKAGE" 2>/dev/null)
+		# Pipe dumpsys straight into grep. Capturing it into a shell variable
+		# and re-printing it breaks on real apps: X's gfxinfo is 208 KB against
+		# Geekbench's 3 KB, and `printf '%s\n' "$GFX"` then dies with
+		# "Argument list too long". It fails INTERMITTENTLY -- one arm of a pair
+		# captured framestats and the other wrote a sampler line between the
+		# GFXINFO markers instead -- so it silently loses one arm rather than
+		# failing the run.
 		say "#GFXINFO_BEGIN" >> "$OUT"
-		printf '%s\n' "$GFX" | grep -E 'Total frames rendered|Janky frames|Number Missed Vsync|90th percentile|95th percentile|99th percentile' >> "$OUT"
+		dumpsys gfxinfo "$PACKAGE" 2>/dev/null \
+			| grep -E 'Total frames rendered|Janky frames|Number Missed Vsync|90th percentile|95th percentile|99th percentile' >> "$OUT"
 		say "#GFXINFO_END" >> "$OUT"
 		;;
 	steady_renderer)
 		dumpsys gfxinfo "$PACKAGE" reset >/dev/null 2>&1
 		sleep "$DURATION"
-		GFX=$(dumpsys gfxinfo "$PACKAGE" 2>/dev/null)
+		# Pipe dumpsys straight into grep. Capturing it into a shell variable
+		# and re-printing it breaks on real apps: X's gfxinfo is 208 KB against
+		# Geekbench's 3 KB, and `printf '%s\n' "$GFX"` then dies with
+		# "Argument list too long". It fails INTERMITTENTLY -- one arm of a pair
+		# captured framestats and the other wrote a sampler line between the
+		# GFXINFO markers instead -- so it silently loses one arm rather than
+		# failing the run.
 		say "#GFXINFO_BEGIN" >> "$OUT"
-		printf '%s\n' "$GFX" | grep -E 'Total frames rendered|Janky frames|Number Missed Vsync|90th percentile|95th percentile|99th percentile' >> "$OUT"
+		dumpsys gfxinfo "$PACKAGE" 2>/dev/null \
+			| grep -E 'Total frames rendered|Janky frames|Number Missed Vsync|90th percentile|95th percentile|99th percentile' >> "$OUT"
 		say "#GFXINFO_END" >> "$OUT"
 		;;
 	camera_launch)
