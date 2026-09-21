@@ -1,0 +1,150 @@
+Mid-cluster ceiling A/B — Geekbench 7.1.0, 40 W cooler attached
+2026-09-21, CPH2653 / OP5D55L1, build V.R4T3.26d97ac-1c1394-1d9854, Android 16,
+kernel 6.6.118-android15-8-g2e6b9c3812c5-ab15114928-4k
+
+Recorded here because the scores themselves are not in the sampler traces.
+Analysis: docs/DATA.md section 44. Traces: gb7-A1-mid2918400.txt,
+gb7-B1-mid3532800.txt, gb7-B2-mid3532800.txt.
+
+================================================================================
+STARTING STATE — why the session happened
+================================================================================
+Owner's complaint: "Geekbench is still too low", single-core 1700-1900.
+
+  /data/adb/op13perf/status
+    level=1 held=yes cfb=0 prime=2841600 junc=33C left=常开
+
+  policy6 scaling_max 2841600 / cpuinfo_max 4320000  = 65.8%
+  policy0 scaling_max 2400000 / cpuinfo_max 3532800  = 67.9%
+
+BOOT_LEVEL=1 and the module cannot detect the cooler, so a cooled device boots
+into the bare-device level and stays there. 2071 x 2841600/3283200 = 1792.
+Not a new limiter. The level.
+
+================================================================================
+LEVER RE-VERIFICATION AFTER THE OTA
+================================================================================
+DATA.md section 21 recorded fingerprint  ...V.R4T3.52da06f-2e397f6-2e81775
+now                                      ...V.R4T3.26d97ac-1c1394-1d9854
+kernel string byte-identical; vendor/odm moved.
+
+At level 3, before any measurement:
+  node  0:2918400 1:2918400 2:2918400 3:2918400 4:2918400 5:2918400 6:3513600 7:3513600
+  held=yes   cfb=0
+  9 s prime-pinned load, 1 Hz samples:
+    p6=3513600 p7=3513600 for every sample under load, junction 50.5 -> 71.0 C
+    no step-down, no URCC reclaim
+
+All three levers survive the OTA.
+
+================================================================================
+A/B — only EXTREME_P0 differs
+================================================================================
+Prime ceiling fixed at EXTREME_P6=3513600 and the gate fixed at
+EXTREME_GATE=92000 in BOTH arms. Geekbench force-stopped before every run so no
+clamp could ride in on a pooled thread (DATA.md section 23).
+
+  arm  mid ceiling   single   multi
+  A1    2 918 400     2229     8082
+  A2    2 918 400     2220     7971
+  B1    3 532 800     2216     8328
+  B2    3 532 800     2248     8283
+
+  single   A 2224.5 (sd  6.4)   B 2232.0 (sd 22.6)   +0.34%   SE 16.6   t +0.45
+  multi    A 8026.5 (sd 78.5)   B 8305.5 (sd 31.8)   +3.48%   SE 59.9   t +4.66
+
+  df = 2, two-tailed critical value at p = 0.05 is 4.303.
+
+Section 42's withdrawn +4.7% sat at t = 1.06 with the shipped config's own spread
+three times the effect. This is not that.
+
+================================================================================
+MECHANISM — it closes to a number, it does not merely get faster
+================================================================================
+From the traces (busy samples; mid = mean of max-of-six):
+
+                                  A1        B1        B2
+  mid at-ceiling               53.8%      0.4%      0.0%
+  mid delivered clock        2.617 GHz  2.691 GHz  2.749 GHz
+  prime delivered clock      2.143 GHz  2.079 GHz  1.808 GHz
+  multi-core score             8082      8328      8283
+
+Delivered mid clock +3.2 to +5.0%; score +3.48%. Single-core does not move, which
+is the prediction that the mid cluster has no business affecting single-core, and
+it held (t = 0.45).
+
+at-ceiling falling to 0.0-0.4% means the lever is EXHAUSTED: at 3 532 800 the
+ceiling is no longer what the mid cluster runs into, and 3 532 800 is rated.
+
+================================================================================
+THERMAL COST
+================================================================================
+                            A1        B1        B2      gate
+  junction peak           89.6 C    89.9 C    90.3 C    92 C
+  junction median         43.8 C    42.6 C    37.4 C
+  junction p95            80.3 C    77.6 C    73.7 C
+  shell peak              27.4 C    25.6 C    23.9 C
+  samples stepped down     0.0%      0.0%      0.0%
+  samples with cfb=1       0.6%      0.0%      0.0%
+
+0.7 C of junction for 3.48% of multi-core. The step-down never fired in any of
+the three runs that carried load. The margin left is 1.7 C to the GATE, not to
+the 105 C hardware trip.
+
+================================================================================
+URCC CAUGHT BY NAME — and costing nothing measurable
+================================================================================
+Ceiling stability, fast sampler (2 cats per iteration, no sleep):
+  idle, level 3, 400 samples          400/400 at 2918400 3513600
+  8-core root-uid load, 600 samples   600/600 at 2918400 3513600
+
+So the flicker seen during GB7 is neither perfd's 250 ms re-assert nor load.
+
+kprobe on freq_qos_update_request, own instance, kernel-side filter excluding the
+op13perf daemon pid (tools/qos-writer-hunt.sh). 40 events in the window, all from
+one process:
+
+  TP:2225_0  val=3532800  x6    mid, rated -> a release
+  TP:2225_3  val=4320000  x2    prime, rated -> a release
+  TP:2225_0  val=1363200  x6    a clamp
+  TP:2225_3  val=1363200  x6    a clamp
+  TP:2225_1  val=384000   x6    a MIN request at policy0's floor
+  TP:2225_2  val=384000   x6
+
+  /proc/2225/exe -> /odm/bin/hw/vendor.oplus.hardware.urcc-service
+  /proc/2225/comm -> UrccMainThread
+
+Timestamps 88034.66 / 88039.67 / 88045.69 — roughly every 5 s, and only for about
+11 s of the 150 s window, while the app was ramping.
+
+COST, measured rather than assumed. Of 526 samples in run A1:
+  off the level's ceilings           7  (1.33%)
+    (3532800, 4320000)  x4   URCC releasing to rated — can only help
+    (3532800, 3513600)  x1
+    (3072000, 3801600)  x1
+    (1555200, 1958400)  x1   the only real clamp
+perfd's 4 Hz re-assert closes the window inside 250 ms.
+
+Sections 28-30 inferred URCC owned the request and reclaimed it. This is the
+first capture by process, thread and call site, and the first sighting of it
+writing a MIN request. It is recorded as a mechanism. It is NOT why the score is
+low.
+
+TODO: unmeasured — what triggers URCC's ~5 s cycle, and whether the same
+contention matters on a configuration without the 4 Hz re-assert.
+
+================================================================================
+INSTRUMENT FAILURE
+================================================================================
+A hardcoded `input tap` coordinate. Display rotation changed between runs
+(uiautomator reports rotation="3"), the tap hit nothing, and the harness
+collected a complete 600-sample / 374-second trace of a benchmark that never
+started:
+
+  junction median 31.6 C, max 45.9 C     (a real run: median 37-44 C, max ~90 C)
+  prime mean 1.044 GHz, at-ceiling 1.0%  (a real run: 1.8-2.1 GHz, 31-44%)
+
+Caught only because those numbers are impossible for a real run. The button is
+now located by its real bounds (id/runCpuBenchmarks) before every tap —
+experiments/2026-09-21/tap-run.sh. A driver that cannot see its own target will
+report a complete run of nothing.

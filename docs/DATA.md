@@ -2664,3 +2664,180 @@ tuning the daily level needs either far longer windows, many more repetitions, o
 the right answer — a different question, since eight saturated cores have now been shown to be the
 regime where ceilings do not matter. The unmeasured regime is the one the level exists for: one or
 two busy cores, burst rather than sustained, responsiveness rather than throughput.
+
+## 44. The owner's score was low because the phone was on level 1 — and the mid ceiling was leaving 3.5% on the table
+
+Run 2026-09-21, same reference unit, **40 W cooler attached throughout**, Geekbench 7.1.0 (the app
+updated from 7.0.0 since section 39; multi-core figures are therefore not comparable across that
+boundary and this section does not compare them).
+
+The session started from a complaint — "Geekbench is still too low" — with the phone reporting
+single-core 1700–1900. It was not a new limiter. `/data/adb/op13perf/status` read
+
+```
+level=1 held=yes cfb=0 prime=2841600 junc=33C
+policy6 scaling_max 2841600 / cpuinfo_max 4320000   = 65.8%
+policy0 scaling_max 2400000 / cpuinfo_max 3532800   = 67.9%
+```
+
+`BOOT_LEVEL` defaults to 1 and the module cannot detect the cooler, so a cooled device boots into
+the level designed for a bare one and stays there. Every good number in section 39 was taken at
+3283200 or above; **level 1 had never been through a GB7 run at all**. 2071 × 2841600/3283200 =
+1792, which is the middle of what the owner was seeing.
+
+### The ROM moved under the earlier sections, and the levers survived it
+
+`ro.build.fingerprint` is now `…V.R4T3.26d97ac-1c1394-1d9854` against `…V.R4T3.52da06f-2e397f6-2e81775`
+in section 21. The kernel string is byte-identical (`6.6.118-android15-8-g2e6b9c3812c5-ab15114928-4k`);
+vendor/odm moved. Re-checked at level 3 before anything else was measured:
+
+```
+node   0:2918400 … 5:2918400 6:3513600 7:3513600   held=yes
+cfb    0
+9 s prime-pinned load: cpu6/cpu7 both 3513600 for every sample, junction 50 -> 71 C
+```
+
+All three levers still work. Nothing in sections 28–39 needs re-deriving on this build.
+
+### Single-core is clock-proportional, across five points and two devices
+
+| prime ceiling | single-core | points per MHz |
+|---|---|---|
+| 3 283 200 | 2071 (§39) | 0.6308 |
+| 3 513 600 | 2240 (§39) | 0.6376 |
+| 3 513 600 | **2229 / 2220 (today)** | **0.6343** |
+| 3 801 600 | 2416 (§39) | 0.6355 |
+| 4 320 000 | 2681 (CPH2655 reference) | 0.6206 |
+
+Five points inside ±1.4%. The reference unit is the *lowest* per MHz of the set, so this device is
+not losing single-core performance to anything except its own ceiling — no residual IPC deficit, no
+fourth limiter. `single ≈ 0.634 × prime_ceiling_MHz` predicts 2228 at 3513600 against 2229/2220
+measured.
+
+The operational consequence is blunt: **at a fixed prime ceiling, single-core is already at its
+ceiling, and nothing but raising that ceiling will move it.**
+
+### GB7 is a better instrument than the harness section 43 gave up on
+
+Section 43 measured the custom 150 s two-core harness at 7.5% run-to-run spread and concluded it
+"can only resolve effects larger than roughly 10%", calling for a different figure of merit. GB7's
+own spread on this device, same day, same configuration:
+
+```
+single-core   2229, 2220        range 9    (0.40%)
+multi-core    8082, 7971        range 111  (1.38%)
+```
+
+An order of magnitude better, because GB7 averages many short subtests instead of integrating one
+150 s window. A single A/B pair of GB7 runs resolves ~3%. Tuning A/Bs should use it.
+
+### URCC caught in the act, by name — and it is not costing anything
+
+The first GB7 trace showed `scaling_max_freq` leaving the level's values for a handful of samples,
+including two samples where cpu7 delivered **4 320 000** at 84.1 °C. A fast sampler found the
+ceilings rock-stable — 400/400 at idle, 600/600 under an eight-core root-uid load — so the writer
+was neither perfd's own 250 ms re-assert nor load alone.
+
+A kprobe on `freq_qos_update_request` in its own tracefs instance, filtered to exclude perfd's pid,
+named it on the first try:
+
+```
+TP:2225_0-7265  qosupd: freq_qos_update_request val=3532800   x6   (mid)
+TP:2225_3-7268  qosupd: freq_qos_update_request val=4320000   x2   (prime, = rated: a release)
+TP:2225_3-7268  qosupd: freq_qos_update_request val=1363200   x6   (a clamp)
+TP:2225_2-7267  qosupd: freq_qos_update_request val=384000    x6   (a min request at the floor)
+
+/proc/2225/exe -> /odm/bin/hw/vendor.oplus.hardware.urcc-service   comm UrccMainThread
+```
+
+Sections 28–30 inferred that URCC owned the request and reclaimed it. This is the first time it has
+been caught by process, thread and call site, and the first time it has been seen writing a *min*
+request. It updates roughly every 5 s and **only while a real foreground app is ramping** — which is
+why idle and synthetic-load sampling never saw it.
+
+**It is not why the score is low.** Of 526 samples in the first run, 7 (1.33%) were off the level's
+ceilings, and 4 of those 7 were URCC releasing to rated, which can only help. One sample was a real
+clamp. perfd's 4 Hz re-assert closes the window inside 250 ms. Recorded as a mechanism, graded as
+costing nothing measurable here. `TODO: unmeasured` — whether the same contention matters on a
+device without the 4 Hz re-assert, and what triggers URCC's ~5 s cycle.
+
+### The mid ceiling was the one lever nobody had pulled
+
+Every ceiling table in this repository varies the prime cluster and holds mid at 2 918 400. The
+cluster is rated **3 532 800** (`policy0 cpuinfo_max_freq`, and 3072000 / 3321600 / 3532800 are all
+real OPP steps). Sections 42/43 concluded ceilings are not the active constraint — but that was
+under a *saturating eight-core* load, which section 43 itself named as the one regime where that is
+true, leaving burst multi-core unmeasured. GB7 multi-core is exactly that: six mid cores plus two
+prime, in ~20 s bursts.
+
+A/B, four GB7 runs, alternating configuration only in `EXTREME_P0`. Prime ceiling fixed at 3513600
+and the gate fixed at 92 °C in both arms, so the owner's stated red line governed throughout.
+
+| arm | mid ceiling | single | multi |
+|---|---|---|---|
+| A1 | 2 918 400 | 2229 | 8082 |
+| A2 | 2 918 400 | 2220 | 7971 |
+| B1 | 3 532 800 | 2216 | 8328 |
+| B2 | 3 532 800 | 2248 | 8283 |
+
+```
+single   A 2224.5 (sd  6.4)   B 2232.0 (sd 22.6)   +0.34%   t = +0.45
+multi    A 8026.5 (sd 78.5)   B 8305.5 (sd 31.8)   +3.48%   t = +4.66
+```
+
+t = 4.66 against a df = 2 critical value of 4.303. Section 42's withdrawn +4.7% sat at t = 1.06;
+this is a different thing.
+
+**And it closes mechanism to number rather than merely getting faster:**
+
+| | A | B1 | B2 |
+|---|---|---|---|
+| mid at-ceiling, busy samples | 53.8% | 0.4% | 0.0% |
+| mid delivered clock, mean of max-of-six | 2.617 GHz | 2.691 GHz | 2.749 GHz |
+| multi-core score | 8082 / 7971 | 8328 | 8283 |
+
+Delivered mid clock rises 3.2–5.0%; the score rises 3.48%. The single-core arm does not move, which
+is the prediction the mid cluster has no business affecting, and it held.
+
+At-ceiling falling to 0.0–0.4% also says this lever is now **exhausted**: at 3 532 800 the ceiling
+is no longer what the mid cluster is running into, and 3 532 800 is rated, so there is nothing above
+it to try.
+
+### It costs essentially nothing thermally
+
+| | A | B1 | B2 | gate |
+|---|---|---|---|---|
+| junction peak | 89.6 °C | 89.9 °C | 90.3 °C | 92 °C |
+| junction median | 43.8 °C | 42.6 °C | 37.4 °C | |
+| shell peak | 27.4 °C | 25.6 °C | 23.9 °C | |
+| samples stepped down | 0.0% | 0.0% | 0.0% | |
+
+0.7 °C of junction for 3.48% of multi-core, and the step-down never fired in any of the three runs
+that carried load. Note the margin this leaves is 1.7 °C to the gate, not to the hardware trip.
+
+### What changed in the config, and what deliberately did not
+
+`EXTREME_P0` 2 918 400 → **3 532 800**. One line.
+
+`PERF_P0` (level 2) is **unchanged at 2 918 400**, and level 1 is untouched. Every measurement above
+was taken with the 40 W cooler attached, at level 3, which exists only for that case. Levels 1 and 2
+are bare-device levels. Changing them on cooled level-3 evidence would repeat section 42's error —
+generalising from the one regime that was measured to the one that was not — at a larger scale.
+`TODO: unmeasured`: the same A/B, bare device, at level 2's gate of 90 °C.
+
+`BOOT_LEVEL` stays 1, for the reason it was always 1: at boot the module cannot know whether the
+cooler is attached, and level 3 assumes it is. The cost of that is the thing this section opened
+with, and it is the correct cost to pay.
+
+The prime ceiling stays at 3 513 600. Section 39's 3 801 600 point (2416 single, peak 100.0 °C, 5 °C
+to the kernel trip) was not revisited; the owner set the line at level 3 and it was kept.
+
+### Instrument failure, for METHODOLOGY
+
+One, and it is the same species as all the others: a hardcoded `input tap` coordinate. The display
+rotation changed between runs (`uiautomator dump` reports `rotation="3"`), the tap landed on nothing,
+and the harness happily collected a full 600-sample, 374-second trace of a benchmark **that never
+started** — junction median 31.6 °C, prime mean 1.044 GHz. It was caught only because those numbers
+are impossible for a real run. The button is now located by its real bounds
+(`id/runCpuBenchmarks`) before every tap. **A driver that cannot see its own target will report a
+complete run of nothing.**
