@@ -2864,3 +2864,119 @@ started** — junction median 31.6 °C, prime mean 1.044 GHz. It was caught only
 are impossible for a real run. The button is now located by its real bounds
 (`id/runCpuBenchmarks`) before every tap. **A driver that cannot see its own target will report a
 complete run of nothing.**
+
+## 45. The bare-device level ladder, at last — level 2 is a free +16.5% and the retreat never fires
+
+Section 39 shipped levels 1 and 2 with `TODO: unmeasured` against them: *"Levels 1 and 2 have no
+bare-device data at all. Every number in section 39 was taken with the 40 W cooler attached."*
+Section 40 added a two-core work harness, and section 43 then measured that harness at 7.5%
+run-to-run spread and concluded it "can only resolve effects larger than roughly 10%", asking for a
+different figure of merit before the daily level could be tuned.
+
+Section 44 supplied that figure of merit: GB7's own spread on this device is 0.40% single and 1.38%
+multi. This section spends it.
+
+Run 2026-09-21, **cooler detached**, USB attached and charging, GB7 7.1.0, eight runs in an
+ABBA/BAAB plan from `tools/make-gb7-repro-plan.py`.
+
+| run | order | level | single | multi | start j/s | peak j/s | stepped down |
+|---|---|---|---|---|---|---|---|
+| b01-r1 | 1 | 1 | 1797 | 6836 | 38/34 °C | 80.7/35.7 °C | 0.0% |
+| b01-r2 | 2 | 2 | 2103 | 7737 | 39/35 °C | 91.1/36.0 °C | 0.0% |
+| b01-r3 | 3 | 2 | 2112 | 7638 | 40/36 °C | 91.5/37.2 °C | 0.0% |
+| b01-r4 | 4 | 1 | 1814 | 6856 | 41/36 °C | 86.9/37.1 °C | 0.0% |
+| b02-r1 | 5 | 2 | 2099 | 7680 | 40/36 °C | 91.5/37.4 °C | 0.0% |
+| b02-r2 | 6 | 1 | 1807 | 6865 | 42/37 °C | 88.0/37.2 °C | 0.0% |
+| b02-r3 | 7 | 1 | 1801 | 6960 | 44/36 °C | 88.0/37.1 °C | 0.0% |
+| b02-r4 | 8 | 2 | 2098 | 7580 | 41/36 °C | 91.1/37.5 °C | 0.0% |
+
+```
+single   L1 1804.8 (sd  7.4)   L2 2103.0 (sd  6.4)   +16.53%   t = +61.0  (df 5.9)
+multi    L1 6879.2 (sd 55.2)   L2 7658.8 (sd 66.3)   +11.33%   t = +18.1  (df 5.8)
+```
+
+Each arm's own spread is 0.4% and 0.8%. The difference is 16.5% and 11.3%. This is not a result
+that needs a t-test to believe; the t-test is reported because this repository has twice believed a
+difference that its own spread could not support (sections 42, 44).
+
+### The covariate was checked before the claim, not after
+
+Section 44 had to admit an ordering confound after the fact. Here the thermal state at the start of
+each run was recorded as a covariate and checked:
+
+```
+start junction   L1 41.25 C (sd 2.50)   L2 40.00 C (sd 0.82)   −1.25 C   t = −0.95   ns
+start shell      L1 35.75 C (sd 1.26)   L2 35.75 C (sd 0.50)    0.00 C   t =  0.00
+order positions  L1: 1,4,6,7            L2: 2,3,5,8
+```
+
+Mean starting shell temperature is **identical** between arms, and the 1.25 °C junction difference
+runs *against* the arm that scored higher. The ABBA ordering absorbed the chassis drift it exists
+to absorb.
+
+### The retreat never fired, in any of the eight runs
+
+| | L1 | L2 |
+|---|---|---|
+| gate | 88 °C | 90 °C |
+| junction peak | 88.0 °C (mean 85.9) | 91.5 °C (mean 91.3) |
+| shell peak | 37.2 °C | 37.5 °C |
+| samples stepped down | **0.0%** | **0.0%** |
+
+Level 2's *instantaneous* junction peak exceeds its own 90 °C gate, and the step-down still never
+engaged — because the gate runs on an EMA, and the raw `cpu-1-1-1` sensor swings 80↔93 °C inside a
+second (section 39, instrument failure 4). The EMA never crossed. This is the first time that
+design decision has been exercised by a real workload at its own gate rather than argued for.
+
+Shell peaked 0.3 °C higher at level 2 than at level 1. The phone does not feel different.
+
+### What this settles, and what it does not
+
+**Settles:** level 2 is safe to run always-on bare-device for burst workloads, and level 1 is
+leaving 16.5% of single-core and 11.3% of multi-core on the table for the owner who runs it as the
+boot default. Section 39's `TODO: unmeasured` on levels 1 and 2 is closed.
+
+**Does not settle:**
+
+- **Charging.** Every run had USB attached and charging, which holds the chassis about 4 °C above
+  its unplugged floor. The framework escalates on skin (section 18), so this is the conservative
+  direction — unplugged runs cooler and is less likely to retreat, not more — but it is not the
+  unplugged number.
+- **Sustained load.** GB7's multi-core phase is ~90 s, not fifteen minutes. Sections 17/18 measured
+  bare-device sustained all-core walking down to 1 689 600 and tripping the Android framework to
+  status 2 at ~300 s. No level prevents that, and this section did not test it.
+- **Everyday smoothness**, which is what the owner actually asked for. GB7 is burst *compute*.
+  Frame pacing under scroll is measured by the R3 harness and is a different question — see
+  `docs/R3_REAL_APP_PILOT.md`, which found `uclamp.min=512` improving scroll frame time p90
+  9.5 → 5.0 ms through the DVFS floor rather than cluster placement. **`op13perf` does not set
+  `uclamp.min` at all**; `perfd.sh` applies only `uclampset -a -M 1024`. That lever is measured,
+  cheap, and unshipped. `TODO: unmeasured` — whether it helps at level 1/2 ceilings rather than the
+  stock ceilings R3 used.
+- Single device, single session.
+
+### Instrument failures, for METHODOLOGY — three, all in the harness, none in the device
+
+This ladder had to be started four times.
+
+1. **`tail -n +2 "$PLAN" | while read` put the loop body in a subshell**, so the `exit` on every
+   abort path killed only the subshell and the script still printed its completion line.
+2. Feeding the loop from a redirect instead was **not enough: `adb shell` reads stdin**, so the
+   first iteration swallowed the remaining plan rows and the ladder ran exactly one run. Caught
+   only because the completion line had been changed to print `N/M runs recorded` — it said
+   **"done, 1/8"**. A bare "done" would have been believed.
+3. **The cooldown gate was guessed, twice.** `shell < 33 °C` was set from no measurement; the bare
+   device's idle floor is 33.8–33.9 °C, so it was never reachable. Raised to 35 °C — and the floor
+   had by then risen to 35.2 °C, because **the chassis floor climbs monotonically across a session
+   and does not return to its pre-run value within any practical wait**. Gating on a drifting floor
+   gives early runs a short wait and late runs the full timeout, which is the opposite of
+   comparability.
+
+   The fix is not a third threshold. Recovery is now a **fixed dwell**, identical for every run,
+   with junction as a safety assertion only and the starting shell temperature **recorded as a
+   covariate** so the drift is visible in the data and the ABBA ordering can absorb it.
+
+(`mapfile` being bash 4+ while macOS ships 3.2 also stopped a run, but `set -u` made that fail
+loudly on line 1 rather than silently, which is the behaviour to want.)
+
+The pattern across all three: **a harness that cannot see its own progress will report completion.**
+Section 44's missed `input tap` was the same failure in a different place.
