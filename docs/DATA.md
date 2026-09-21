@@ -2980,3 +2980,92 @@ loudly on line 1 rather than silently, which is the behaviour to want.)
 
 The pattern across all three: **a harness that cannot see its own progress will report completion.**
 Section 44's missed `input tap` was the same failure in a different place.
+
+## 46. `uclamp.min` buys nothing on top of level 2 — because there was nothing left to buy
+
+The owner's actual goal was never a benchmark number: it was *"the phone should feel faster in
+normal use, not gaming."* Sections 44 and 45 improved GB7, which is burst **compute**. Scroll frame
+pacing is a different question, and `docs/R3_REAL_APP_PILOT.md` had already found a lever for it —
+`uclamp.min=512` took scroll frame time p90 from 9.5 ms to 5.0 ms and the `steady_renderer` control
+from 2.5% janky frames to 0.0%, delivered through the DVFS floor rather than cluster placement.
+
+`op13perf` does not use that lever at all: `perfd.sh` applies only `uclampset -a -M 1024`. So the
+obvious move was to add it.
+
+**It was measured first, and it is a null.**
+
+`APP_C` timeline scroll, R3 harness unchanged apart from the gfxinfo fix below, **level 2 in both
+arms**, 25 swipes per run, two complete ABBA/BAAB blocks — four runs per arm.
+
+| | A — control | B — `uclamp.min=512` | delta | t |
+|---|---|---|---|---|
+| janky frames % | 0.55 (sd 0.16) | 0.66 (sd 0.76) | +0.12 | +0.30 |
+| p90 | 10.50 ms (sd 0.58) | 9.75 ms (sd 1.71) | −0.75 | −0.83 |
+| p95 | 11.50 ms (sd 0.58) | 11.25 ms (sd 2.63) | −0.25 | −0.19 |
+| p99 | 14.00 ms (sd 0.00) | 15.75 ms (sd 6.85) | +1.75 | +0.51 |
+| missed vsync | 0.50 (sd 1.00) | 2.25 (sd 3.20) | +1.75 | +1.04 |
+
+Every t is inside ±1.1.
+
+One B run is a clear outlier — 727 frames against ~1870 elsewhere, 1.79% janky, p99 26 ms,
+seven missed vsyncs — almost certainly an autoplaying video scrolling into view. Dropping it moves
+p90 to t = −2.32 and janky% to t = −2.28. **That is not reported as the result.** Removing the one
+unfavourable point to flip a conclusion is what section 42 did, and section 43 had to withdraw it.
+It is recorded here as what it is: a single excluded point changes the sign of the answer, which
+means this design cannot resolve the question either way.
+
+### Why it is a null, which is the part worth keeping
+
+```
+baseline across all eight runs:  janky 0.16–1.79 %,  p90 8–12 ms
+```
+
+**Scrolling on this device at level 2 is already smooth.** Half a percent of janky frames and a
+p90 of ten milliseconds leave `uclamp.min` half a percent to win. A perfect lever cannot beat the
+headroom it is given.
+
+R3's much larger effect was measured at **stock ceilings**. Section 45 raised the boot level to 2,
+which lifts the same mid-cluster frequency that R3's DVFS-floor mechanism was reaching for. The two
+levers are pulling the same rope, and the ceiling got there first. This is the crossing of the
+S2b–S2d/R3 line with the ceiling line that section 44's closing note called for, and the answer is
+that on this device they are **not additive** — the second one to arrive finds nothing left.
+
+### Consequence for the module
+
+**`op13perf` should not add `uclamp.min`.** Not because the lever does not work — S2b/S2c/S2d
+established causally that it does, and R3 measured it helping real scroll — but because at the
+ceilings this module now ships, there is no headroom for it to act on. Shipping it would spend a
+DVFS floor lift, and the per-thread bookkeeping and boost-exit verification it requires, for an
+effect this measurement cannot distinguish from zero.
+
+`TODO: unmeasured`: whether the same null holds at level 1, where the ceiling is lower and the
+headroom therefore larger. That is the configuration the lever might still be worth something in —
+but level 1 is no longer the boot default, so it is no longer the case that matters.
+
+### Scope, and why the run stopped at eight
+
+The plan was sixteen runs. It stopped at eight because the owner called it: the test monopolises
+the foreground and repeatedly flings the timeline, so it costs them the use of the phone, and the
+first blocks were already showing nothing. Eight runs is two complete ABBA/BAAB blocks and four per
+arm — a balanced design, not a truncated one — so the table above is a result rather than a partial
+capture. It is a small n against a workload whose content varies between runs, which is exactly why
+the honest reading is "cannot resolve", not "proven equal".
+
+Cleanup was verified rather than assumed: 252 threads of the target process read back
+`uclamp.min = 0`, and the harness left no `CLEANUP_FAILED` marker. A process lookup that returns
+nothing is **not** evidence of a clean process, so the check resolves the pid from `ps` and fails
+loudly if it cannot.
+
+### Instrument failure, for METHODOLOGY
+
+`run-one.sh` captured the whole of `dumpsys gfxinfo $PACKAGE` into a shell variable and re-printed
+it into `grep`. `APP_C`'s gfxinfo is **208 KB**; Geekbench's is 3 KB. `printf '%s\n' "$GFX"` dies
+with *Argument list too long* — **intermittently**, depending on how much the app has cached.
+
+In the pair that found it, the control arm captured framestats and the 512 arm did not, and the
+512 arm still emitted its `#GFXINFO_BEGIN` / `#GFXINFO_END` markers with an unrelated sampler line
+between them. A parser that looks for the block finds one. **One arm of an A/B silently became a
+line of the wrong data**, inside well-formed markers.
+
+Fixed by piping `dumpsys` straight into `grep`. The same code was in both the `scroll_fling` and
+`steady_renderer` branches, so any R3 result taken on a large app is suspect until re-checked.
