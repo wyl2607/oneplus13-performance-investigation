@@ -2832,6 +2832,29 @@ with, and it is the correct cost to pay.
 The prime ceiling stays at 3 513 600. Section 39's 3 801 600 point (2416 single, peak 100.0 °C, 5 °C
 to the kernel trip) was not revisited; the owner set the line at level 3 and it was kept.
 
+### The run order is the weak part of this A/B, and it is weaker than the repository's own standard
+
+The four runs were taken in the order A1, A2, B1, B2 — **sequential, not alternating**. Section 43
+already tightened to alternating A/B/A/B precisely so that a slow drift over a session cannot
+masquerade as an arm effect, and `tools/make-gb7-repro-plan.py` exists to generate ABBA/BAAB
+blocks for exactly this. Neither was used here. That is a design error, not a judgement call.
+
+Drift over this session was real and it pointed the wrong way for comfort: the device got
+progressively cooler, junction median 43.8 → 42.6 → 37.4 °C and shell peak 27.4 → 25.6 → 23.9 °C,
+so the B runs ran on a cooler device than the A runs did.
+
+What keeps the result standing is an internal control rather than the ordering:
+
+- **Single-core is the drift control, and it did not move** (+0.34%, t = 0.45). A session-wide
+  effect that made the device faster would have moved it too. Only the multi-core arm moved, and
+  the mid cluster is the only thing that changed.
+- The mechanism is measured, not inferred: mid at-ceiling 53.8% → 0.0–0.4% is a definitional
+  consequence of raising that specific ceiling, and delivered mid clock follows it.
+
+Graded accordingly: the direction and the mechanism are **solid**; the *magnitude* of +3.48% carries
+an ordering confound that this design cannot separate. `TODO: unmeasured` — the same comparison run
+as an ABBA/BAAB block from `make-gb7-repro-plan.py`, which would settle it.
+
 ### Instrument failure, for METHODOLOGY
 
 One, and it is the same species as all the others: a hardcoded `input tap` coordinate. The display

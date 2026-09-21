@@ -59,6 +59,31 @@ Section 42's withdrawn +4.7% sat at t = 1.06 with the shipped config's own sprea
 three times the effect. This is not that.
 
 ================================================================================
+RUN ORDER — the weak part of this A/B
+================================================================================
+Runs were taken A1, A2, B1, B2: SEQUENTIAL, not alternating. Section 43 already
+tightened to alternating A/B/A/B for exactly this reason, and
+tools/make-gb7-repro-plan.py generates ABBA/BAAB blocks for it. Neither was used.
+That is a design error.
+
+Drift over the session pointed the wrong way for comfort -- the device got
+cooler as it went, so B ran on a cooler device than A:
+
+  junction median   43.8 C (A1)  ->  42.6 C (B1)  ->  37.4 C (B2)
+  shell peak        27.4 C (A1)  ->  25.6 C (B1)  ->  23.9 C (B2)
+
+What keeps the result standing is an internal control, not the ordering:
+
+  - single-core is the drift control and it did NOT move (+0.34%, t = 0.45).
+    A session-wide effect would have moved it too.
+  - mid at-ceiling 53.8% -> 0.0-0.4% is a definitional consequence of raising
+    that specific ceiling; delivered mid clock follows it.
+
+Graded: direction and mechanism SOLID. The MAGNITUDE of +3.48% carries an
+ordering confound this design cannot separate.
+TODO: unmeasured -- the same comparison as an ABBA/BAAB block.
+
+================================================================================
 MECHANISM — it closes to a number, it does not merely get faster
 ================================================================================
 From the traces (busy samples; mid = mean of max-of-six):
