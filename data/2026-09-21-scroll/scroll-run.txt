@@ -1,0 +1,19 @@
+19:32:41 === scroll A/B start ===
+19:32:41 plan holds 16 runs
+19:32:41 --- b01-r1 (block 1, order 1) arm=A control
+19:33:24   1876,0.32,10,11,14,0   junction 45C shell 35C
+19:33:24 --- b01-r2 (block 1, order 2) arm=B uclampmin512
+19:34:11   1881,0.27,10,11,12,1   junction 49C shell 35C
+19:34:11 --- b01-r3 (block 1, order 3) arm=B uclampmin512
+19:34:57   1867,0.16,8,9,12,1   junction 47C shell 35C
+19:34:57 --- b01-r4 (block 1, order 4) arm=A control
+19:35:40   1867,0.64,11,12,14,0   junction 47C shell 35C
+19:35:40 --- b02-r1 (block 2, order 5) arm=B uclampmin512
+19:36:27   727,1.79,12,15,26,7   junction 58C shell 36C
+19:36:27 --- b02-r2 (block 2, order 6) arm=A control
+19:37:10   1738,0.69,11,12,14,0   junction 50C shell 36C
+19:37:10 --- b02-r3 (block 2, order 7) arm=A control
+19:37:53   1311,0.53,10,11,14,2   junction 49C shell 36C
+19:37:53 --- b02-r4 (block 2, order 8) arm=B uclampmin512
+19:38:40   1871,0.43,9,10,13,0   junction 50C shell 36C
+19:38:40 --- b03-r1 (block 3, order 9) arm=A control

@@ -1,0 +1,17 @@
+run_id,block,order,arm,label
+b01-r1,1,1,A,control
+b01-r2,1,2,B,uclampmin512
+b01-r3,1,3,B,uclampmin512
+b01-r4,1,4,A,control
+b02-r1,2,5,B,uclampmin512
+b02-r2,2,6,A,control
+b02-r3,2,7,A,control
+b02-r4,2,8,B,uclampmin512
+b03-r1,3,9,A,control
+b03-r2,3,10,B,uclampmin512
+b03-r3,3,11,B,uclampmin512
+b03-r4,3,12,A,control
+b04-r1,4,13,B,uclampmin512
+b04-r2,4,14,A,control
+b04-r3,4,15,A,control
+b04-r4,4,16,B,uclampmin512
